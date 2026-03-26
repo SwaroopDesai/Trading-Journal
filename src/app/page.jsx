@@ -227,6 +227,12 @@ export default function App() {
     setTrades([]); setDailyPlans([]); setWeeklyPlans([])
   }
 
+  // Expose save for WeeklyReview component
+  useEffect(() => {
+    window._saveWeeklyReview = (updated) => saveWeekly(updated)
+    return () => { delete window._saveWeeklyReview }
+  }, [user])
+
   const stats = useMemo(() => {
     const t=trades, wins=t.filter(x=>x.result==="WIN"), losses=t.filter(x=>x.result==="LOSS"), be=t.filter(x=>x.result==="BREAKEVEN");
     const totalR=t.reduce((s,x)=>s+(x.rr||0),0), avgRR=wins.length?wins.reduce((s,x)=>s+x.rr,0)/wins.length:0, winRate=t.length?(wins.length/t.length)*100:0;
@@ -239,7 +245,7 @@ export default function App() {
 
   const filtered = useMemo(()=>trades.filter(t=>(filterPair==="ALL"||t.pair===filterPair)&&(filterResult==="ALL"||t.result===filterResult)).sort((a,b)=>new Date(b.date)-new Date(a.date)),[trades,filterPair,filterResult]);
 
-  const TABS=[{id:"dashboard",icon:"◈",label:"Dashboard"},{id:"journal",icon:"◎",label:"Journal"},{id:"daily",icon:"◷",label:"Daily"},{id:"weekly",icon:"◻",label:"Weekly"},{id:"analytics",icon:"▦",label:"Analytics"},{id:"psychology",icon:"◉",label:"Mind"},{id:"calculator",icon:"◧",label:"Calc"},{id:"news",icon:"◨",label:"News"}];
+  const TABS=[{id:"dashboard",icon:"◈",label:"Dashboard"},{id:"journal",icon:"◎",label:"Journal"},{id:"daily",icon:"◷",label:"Daily"},{id:"weekly",icon:"◻",label:"Weekly"},{id:"analytics",icon:"▦",label:"Analytics"},{id:"psychology",icon:"◉",label:"Mind"},{id:"calculator",icon:"◧",label:"Calc"},{id:"news",icon:"◨",label:"News"},{id:"gallery",icon:"◫",label:"Gallery"},{id:"review",icon:"◬",label:"Review"}];
 
   // ── Auth loading ──
   if (authLoading) return (
@@ -297,6 +303,8 @@ export default function App() {
           {tab==="psychology"&&<Psychology stats={stats} trades={trades}/>}
           {tab==="calculator"&&<Calculator/>}
           {tab==="news"&&<NewsCalendar/>}
+          {tab==="gallery"&&<ScreenshotGallery trades={trades}/>}
+          {tab==="review"&&<WeeklyReview weeklyPlans={weeklyPlans} trades={trades}/>}
         </div>
       </main>
       {tradeModal&&<TradeModal initial={tradeModal==="new"?null:tradeModal} onSave={saveTrade} onClose={()=>setTradeModal(null)} syncing={syncing}/>}
@@ -377,7 +385,9 @@ function Dashboard({stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily}) 
                 return (
                   <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 10px",background:isKey?"rgba(239,68,68,0.06)":"var(--surface2)",border:`1px solid ${isKey?"rgba(239,68,68,0.25)":"var(--border)"}`,borderRadius:3}}>
                     {isKey&&<span style={{fontSize:8,background:"var(--red)",color:"#fff",padding:"1px 5px",borderRadius:2,fontWeight:700,letterSpacing:"0.08em",flexShrink:0}}>KEY</span>}
-                    <span style={{fontSize:9,color:"var(--text-dim)",minWidth:50,flexShrink:0}}>{e.date}</span>
+                    <span style={{fontSize:9,color:"var(--text-dim)",minWidth:90,flexShrink:0}}>
+                      {e.date} {e.date&&e.time ? (() => { try { const dt=new Date(`${e.date}T${e.time}`); return isNaN(dt)?e.time:dt.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}) } catch{return e.time} })() : ""}
+                    </span>
                     <span style={{fontSize:9,fontWeight:700,color:cc,minWidth:28,flexShrink:0}}>{e.country}</span>
                     <span style={{fontSize:11,color:"var(--text)",flex:1}}>{e.title}</span>
                     <span style={{fontSize:9,color:"var(--red)",letterSpacing:"0.08em",flexShrink:0}}>HIGH</span>
@@ -723,8 +733,11 @@ function Calculator() {
 const HIGH_IMPACT_KEYWORDS = ["NFP","Non-Farm","CPI","GDP","FOMC","Interest Rate","Fed","Inflation","Unemployment","Retail Sales","PMI","ISM","PPI","ECB","BOE","Jackson Hole"]
 
 async function fetchForexNews() {
-  // Call our own Next.js API route — never blocked by CORS
-  const r = await fetch("/api/news", { cache: "no-store" })
+  const ts = Date.now()
+  const r = await fetch(`/api/news?t=${ts}`, {
+    cache: "no-store",
+    headers: { "Cache-Control": "no-cache" }
+  })
   if (!r.ok) throw new Error("Calendar temporarily unavailable")
   const data = await r.json()
   if (data.error) throw new Error(data.error)
@@ -819,6 +832,275 @@ function NewsCalendar() {
         </div>
       ))}
       <div style={{fontSize:10,color:"var(--muted)",textAlign:"center",marginTop:16}}>ForexFactory · USD, EUR, GBP · High & Medium Impact</div>
+    </div>
+  )
+}
+
+
+// ── Screenshot Gallery ────────────────────────────────────────────────────────
+function ScreenshotGallery({trades}) {
+  const [selected, setSelected] = useState(null)
+  const [filterPair, setFilterPair] = useState("ALL")
+  const [filterType, setFilterType] = useState("ALL") // ALL | PRE | POST
+
+  const withShots = trades.filter(t => t.preScreenshot || t.postScreenshot)
+  const filtered = withShots.filter(t =>
+    (filterPair === "ALL" || t.pair === filterPair) 
+  )
+
+  // Build flat list of images
+  const images = []
+  filtered.forEach(t => {
+    if ((filterType === "ALL" || filterType === "PRE") && t.preScreenshot) {
+      images.push({ src: t.preScreenshot, type: "PRE", trade: t })
+    }
+    if ((filterType === "ALL" || filterType === "POST") && t.postScreenshot) {
+      images.push({ src: t.postScreenshot, type: "POST", trade: t })
+    }
+  })
+
+  const resultColor = r => r==="WIN"?"var(--green)":r==="LOSS"?"var(--red)":"var(--amber)"
+
+  return (
+    <div>
+      <div style={{display:"flex",gap:8,marginBottom:16,flexWrap:"wrap",alignItems:"center"}}>
+        <div style={{fontSize:9,color:"var(--muted)",letterSpacing:"0.15em",alignSelf:"center"}}>PAIR:</div>
+        {["ALL",...PAIRS].map(p=><button key={p} className={`chip ${filterPair===p?"active":""}`} onClick={()=>setFilterPair(p)}>{p}</button>)}
+        <div style={{width:1,height:16,background:"var(--border)",margin:"0 4px"}}/>
+        <div style={{fontSize:9,color:"var(--muted)",letterSpacing:"0.15em",alignSelf:"center"}}>TYPE:</div>
+        {["ALL","PRE","POST"].map(t=><button key={t} className={`chip ${filterType===t?"active":""}`} onClick={()=>setFilterType(t)}>{t}</button>)}
+      </div>
+
+      {images.length === 0 ? (
+        <div className="empty-big">
+          No screenshots yet.<br/>
+          <span style={{fontSize:11,color:"var(--muted)"}}>Add pre/post screenshots when logging trades to see them here.</span>
+        </div>
+      ) : (
+        <>
+          <div style={{fontSize:10,color:"var(--muted)",marginBottom:12}}>{images.length} screenshot{images.length!==1?"s":""}</div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:12}}>
+            {images.map((img, i) => (
+              <div key={i} style={{background:"var(--surface)",border:"1px solid var(--border)",borderRadius:6,overflow:"hidden",cursor:"pointer",transition:"border-color .15s"}}
+                onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(0,201,167,.4)"}
+                onMouseLeave={e=>e.currentTarget.style.borderColor="var(--border)"}
+                onClick={()=>setSelected(img)}
+              >
+                <div style={{position:"relative",paddingTop:"60%",background:"#0a0a0f",overflow:"hidden"}}>
+                  <img src={img.src} alt="chart" style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",objectFit:"cover"}}/>
+                  <div style={{position:"absolute",top:6,left:6,background:"rgba(0,0,0,0.75)",borderRadius:2,padding:"2px 7px",fontSize:9,color:"var(--text-dim)",letterSpacing:"0.1em"}}>{img.type}</div>
+                  <div style={{position:"absolute",top:6,right:6,background:resultColor(img.trade.result),borderRadius:2,padding:"2px 7px",fontSize:9,color:"#000",fontWeight:700}}>{img.trade.result}</div>
+                </div>
+                <div style={{padding:"10px 12px"}}>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
+                    <span style={{fontFamily:"'Syne',sans-serif",fontSize:14,fontWeight:700,color:"var(--accent)"}}>{img.trade.pair}</span>
+                    <span className={img.trade.rr>=0?"rr-pos":"rr-neg"} style={{fontSize:12,fontWeight:700}}>{img.trade.rr>=0?"+":""}{(img.trade.rr||0).toFixed(2)}R</span>
+                  </div>
+                  <div style={{display:"flex",gap:8,fontSize:10,color:"var(--text-dim)"}}>
+                    <span>{fmtDate(img.trade.date)}</span>
+                    <span className={`dir-badge dir-${img.trade.direction?.toLowerCase()}`}>{img.trade.direction}</span>
+                  </div>
+                  {img.trade.setup && <div style={{fontSize:9,color:"var(--muted)",marginTop:4}}>{img.trade.setup}</div>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Lightbox */}
+      {selected && (
+        <div className="overlay" onClick={()=>setSelected(null)}>
+          <div style={{maxWidth:"90vw",maxHeight:"90vh",display:"flex",flexDirection:"column",gap:12}} onClick={e=>e.stopPropagation()}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"var(--surface)",border:"1px solid var(--border)",borderRadius:"6px 6px 0 0",padding:"10px 16px"}}>
+              <div style={{display:"flex",alignItems:"center",gap:12}}>
+                <span style={{fontFamily:"'Syne',sans-serif",fontSize:16,fontWeight:700,color:"var(--accent)"}}>{selected.trade.pair}</span>
+                <span className={`dir-badge dir-${selected.trade.direction?.toLowerCase()}`}>{selected.trade.direction}</span>
+                <span className={`result-badge result-${selected.trade.result?.toLowerCase()}`}>{selected.trade.result}</span>
+                <span className={selected.trade.rr>=0?"rr-pos":"rr-neg"} style={{fontWeight:700}}>{selected.trade.rr>=0?"+":""}{(selected.trade.rr||0).toFixed(2)}R</span>
+                <span style={{fontSize:10,color:"var(--muted)"}}>{fmtDate(selected.trade.date)}</span>
+                <span style={{fontSize:10,color:"var(--text-dim)",background:"var(--surface2)",padding:"2px 8px",borderRadius:2}}>{selected.type} TRADE</span>
+              </div>
+              <button onClick={()=>setSelected(null)} style={{background:"none",border:"none",color:"var(--text-dim)",cursor:"pointer",fontSize:18}}>✕</button>
+            </div>
+            <img src={selected.src} alt="chart" style={{maxWidth:"90vw",maxHeight:"80vh",borderRadius:"0 0 6px 6px",objectFit:"contain",border:"1px solid var(--border)"}}/>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Weekly Review ─────────────────────────────────────────────────────────────
+function WeeklyReview({weeklyPlans, trades}) {
+  const [selectedWeek, setSelectedWeek] = useState(null)
+  const [reviewText, setReviewText] = useState("")
+  const [saving, setSaving] = useState(false)
+
+  const sorted = [...weeklyPlans].sort((a,b)=>new Date(b.weekStart)-new Date(a.weekStart))
+
+  const getWeekTrades = (plan) => {
+    if(!plan) return []
+    return trades.filter(t => t.date >= plan.weekStart && t.date <= plan.weekEnd)
+  }
+
+  const openReview = (plan) => {
+    setSelectedWeek(plan)
+    setReviewText(plan.review || "")
+  }
+
+  const weekStats = (plan) => {
+    const wt = getWeekTrades(plan)
+    const wins = wt.filter(t=>t.result==="WIN").length
+    const losses = wt.filter(t=>t.result==="LOSS").length
+    const totalR = wt.reduce((s,t)=>s+(t.rr||0),0)
+    const winRate = wt.length ? (wins/wt.length*100).toFixed(0) : 0
+    return { wt, wins, losses, totalR, winRate }
+  }
+
+  const REVIEW_PROMPTS = [
+    "Did I follow my daily bias?",
+    "Did I wait for manipulation before entry?",
+    "Did I trade in the kill zone?",
+    "Did I manage risk properly?",
+    "What was my biggest mistake?",
+    "What did I do well?",
+    "What will I improve next week?"
+  ]
+
+  return (
+    <div>
+      {sorted.length === 0 && (
+        <div className="empty-big">No weekly plans yet.<br/><span style={{fontSize:11,color:"var(--muted)"}}>Create a weekly plan first, then come back to review it.</span></div>
+      )}
+
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))",gap:12}}>
+        {sorted.map(plan => {
+          const {wt, wins, losses, totalR, winRate} = weekStats(plan)
+          const hasReview = plan.review && plan.review.trim().length > 0
+          return (
+            <div key={plan._dbid} style={{background:"var(--surface)",border:`1px solid ${hasReview?"rgba(0,201,167,.3)":"var(--border)"}`,borderRadius:6,padding:16}}>
+              <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:12}}>
+                <div>
+                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:700}}>{plan.weekStart} → {plan.weekEnd}</div>
+                  {plan.overallBias && <div style={{fontSize:10,color:"var(--accent)",marginTop:3}}>{plan.overallBias}</div>}
+                </div>
+                {hasReview && <span style={{fontSize:9,background:"rgba(0,201,167,.15)",color:"var(--accent)",border:"1px solid rgba(0,201,167,.3)",padding:"2px 8px",borderRadius:2,letterSpacing:"0.08em"}}>REVIEWED</span>}
+              </div>
+
+              {/* Week stats */}
+              <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:12}}>
+                {[
+                  {label:"Trades",value:wt.length,color:"var(--text)"},
+                  {label:"Wins",value:wins,color:"var(--green)"},
+                  {label:"Losses",value:losses,color:"var(--red)"},
+                  {label:"Total R",value:`${totalR>=0?"+":""}${totalR.toFixed(1)}R`,color:totalR>=0?"var(--green)":"var(--red)"},
+                ].map(s=>(
+                  <div key={s.label} style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:3,padding:"8px",textAlign:"center"}}>
+                    <div style={{fontSize:9,color:"var(--muted)",letterSpacing:"0.1em",marginBottom:3}}>{s.label}</div>
+                    <div style={{fontSize:14,fontWeight:700,color:s.color}}>{s.value}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Bias summary */}
+              {plan.pairs && Object.keys(plan.pairs).length > 0 && (
+                <div style={{display:"flex",flexWrap:"wrap",gap:4,marginBottom:12}}>
+                  {Object.entries(plan.pairs).map(([pair,bias])=>(
+                    <span key={pair} className={`bias-tag bias-${bias?.toLowerCase()}`}>{pair}: {bias}</span>
+                  ))}
+                </div>
+              )}
+
+              {/* Review preview or prompt */}
+              {hasReview ? (
+                <div style={{fontSize:11,color:"var(--text-dim)",lineHeight:1.6,background:"var(--surface2)",padding:"10px 12px",borderRadius:3,borderLeft:"2px solid var(--accent)",marginBottom:12}}>
+                  {plan.review.slice(0,200)}{plan.review.length>200?"...":""}
+                </div>
+              ) : (
+                <div style={{fontSize:11,color:"var(--muted)",marginBottom:12,fontStyle:"italic"}}>No review written yet</div>
+              )}
+
+              <button className="btn-add" style={{width:"100%",fontSize:10}} onClick={()=>openReview(plan)}>
+                {hasReview ? "Edit Review" : "Write Review"}
+              </button>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Review Modal */}
+      {selectedWeek && (
+        <div className="overlay" onClick={()=>setSelectedWeek(null)}>
+          <div className="modal" style={{maxWidth:680}} onClick={e=>e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Week Review — {selectedWeek.weekStart}</div>
+              <button className="modal-close" onClick={()=>setSelectedWeek(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              {/* Week performance */}
+              {(() => {
+                const {wt,wins,losses,totalR,winRate} = weekStats(selectedWeek)
+                return wt.length > 0 ? (
+                  <div>
+                    <div style={{fontSize:9,color:"var(--accent)",letterSpacing:"0.2em",marginBottom:8}}>WEEK PERFORMANCE</div>
+                    <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:8}}>
+                      {[{l:"Trades",v:wt.length},{l:"Win Rate",v:winRate+"%"},{l:"Wins",v:wins},{l:"Total R",v:`${totalR>=0?"+":""}${totalR.toFixed(1)}R`}].map(s=>(
+                        <div key={s.l} style={{background:"var(--surface2)",border:"1px solid var(--border)",padding:"8px",borderRadius:3,textAlign:"center"}}>
+                          <div style={{fontSize:9,color:"var(--muted)",marginBottom:3}}>{s.l}</div>
+                          <div style={{fontSize:14,fontWeight:700}}>{s.v}</div>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Trades this week */}
+                    <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:12}}>
+                      {wt.map(t=>(
+                        <div key={t._dbid} style={{display:"flex",alignItems:"center",gap:8,padding:"5px 8px",background:"var(--surface2)",borderRadius:3,fontSize:11}}>
+                          <span style={{color:"var(--accent)",fontWeight:600,minWidth:60}}>{t.pair}</span>
+                          <span className={`dir-badge dir-${t.direction?.toLowerCase()}`}>{t.direction}</span>
+                          <span className={`result-badge result-${t.result?.toLowerCase()}`}>{t.result}</span>
+                          <span className={t.rr>=0?"rr-pos":"rr-neg"} style={{marginLeft:"auto",fontWeight:700}}>{t.rr>=0?"+":""}{(t.rr||0).toFixed(2)}R</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : <div style={{fontSize:11,color:"var(--muted)",marginBottom:12}}>No trades logged for this week.</div>
+              })()}
+
+              {/* Review prompts */}
+              <div style={{fontSize:9,color:"var(--accent)",letterSpacing:"0.2em",marginBottom:8}}>REVIEW PROMPTS</div>
+              <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:12}}>
+                {REVIEW_PROMPTS.map((p,i)=>(
+                  <div key={i} style={{fontSize:11,color:"var(--text-dim)",padding:"5px 10px",background:"var(--surface2)",borderRadius:3,borderLeft:"2px solid var(--border)"}}>
+                    {i+1}. {p}
+                  </div>
+                ))}
+              </div>
+
+              <div style={{fontSize:9,color:"var(--muted)",letterSpacing:"0.15em",marginBottom:6}}>YOUR REVIEW</div>
+              <textarea
+                className="inp ta"
+                rows={8}
+                placeholder={"Write your weekly review here...\n\nTip: Answer the prompts above to structure your review."}
+                value={reviewText}
+                onChange={e=>setReviewText(e.target.value)}
+                style={{width:"100%"}}
+              />
+            </div>
+            <div className="modal-footer">
+              <button className="btn-add" disabled={saving} onClick={async ()=>{
+                setSaving(true)
+                // Update review in the weeklyPlans via parent — we emit via a custom event
+                const updated = {...selectedWeek, review: reviewText}
+                window._saveWeeklyReview && window._saveWeeklyReview(updated)
+                setSaving(false)
+                setSelectedWeek(null)
+              }}>{saving?"Saving...":"Save Review"}</button>
+              <button className="btn-ghost" onClick={()=>setSelectedWeek(null)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
