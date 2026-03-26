@@ -723,23 +723,12 @@ function Calculator() {
 const HIGH_IMPACT_KEYWORDS = ["NFP","Non-Farm","CPI","GDP","FOMC","Interest Rate","Fed","Inflation","Unemployment","Retail Sales","PMI","ISM","PPI","ECB","BOE","Jackson Hole"]
 
 async function fetchForexNews() {
-  // Try direct fetch from faireconomy (works on Vercel)
-  const urls = [
-    "https://nfs.faireconomy.media/ff_calendar_thisweek.json",
-    `https://corsproxy.io/?${encodeURIComponent("https://nfs.faireconomy.media/ff_calendar_thisweek.json")}`,
-  ]
-  for (const url of urls) {
-    try {
-      const r = await fetch(url, { cache: "no-store" })
-      if (!r.ok) continue
-      const data = await r.json()
-      return data.filter(e =>
-        ["USD","EUR","GBP"].includes(e.country) &&
-        ["High","Medium"].includes(e.impact)
-      )
-    } catch(e) { continue }
-  }
-  throw new Error("Could not load calendar")
+  // Call our own Next.js API route — never blocked by CORS
+  const r = await fetch("/api/news", { cache: "no-store" })
+  if (!r.ok) throw new Error("Calendar temporarily unavailable")
+  const data = await r.json()
+  if (data.error) throw new Error(data.error)
+  return data
 }
 
 // ── Economic Calendar (News) ──────────────────────────────────────────────────
