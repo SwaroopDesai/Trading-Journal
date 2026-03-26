@@ -322,6 +322,14 @@ export default function App() {
 }
 
 function Dashboard({stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily}) {
+  const [newsEvents,setNewsEvents] = useState([])
+  const [newsLoading,setNewsLoading] = useState(true)
+  useEffect(()=>{
+    fetchForexNews().then(d=>{
+      setNewsEvents(d.filter(e=>e.impact==="High"))
+      setNewsLoading(false)
+    }).catch(()=>setNewsLoading(false))
+  },[])
   const today=new Date().toISOString().split("T")[0];
   const todayTrades=trades.filter(t=>t.date===today);
   const latestDaily=[...dailyPlans].sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
@@ -351,6 +359,33 @@ function Dashboard({stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily}) 
         <div className="card"><div className="card-title">By Pair</div>
           {stats.byPair.filter(p=>p.count>0).length===0?<div className="empty-state" style={{fontSize:11}}>Log trades to see data</div>
           :stats.byPair.filter(p=>p.count>0).map(p=><div key={p.pair} className="bar-row"><span className="bar-label">{p.pair}</span><div className="bar-track"><div className="bar-fill" style={{width:`${Math.min(100,Math.abs(p.totalR)*12)}%`,background:p.totalR>=0?"var(--green)":"var(--red)"}}/></div><span className={p.totalR>=0?"rr-pos":"rr-neg"} style={{fontSize:11,minWidth:40,textAlign:"right"}}>{p.totalR>=0?"+":""}{p.totalR.toFixed(1)}R</span><span style={{fontSize:10,color:"var(--muted)",marginLeft:6}}>{p.wins}/{p.count}</span></div>)}
+        </div>
+        <div className="card span2">
+          <div className="card-title">
+            ⚡ HIGH IMPACT NEWS THIS WEEK
+            <span style={{fontSize:9,color:"var(--muted)",marginLeft:"auto"}}>USD · EUR · GBP</span>
+          </div>
+          {newsLoading ? (
+            <div style={{fontSize:11,color:"var(--muted)",padding:"8px 0"}}>Loading...</div>
+          ) : newsEvents.length===0 ? (
+            <div style={{fontSize:11,color:"var(--muted)",padding:"8px 0"}}>No high impact events this week</div>
+          ) : (
+            <div style={{display:"flex",flexDirection:"column",gap:6}}>
+              {newsEvents.slice(0,8).map((e,i)=>{
+                const isKey=["NFP","Non-Farm","CPI","GDP","FOMC","Interest Rate","Fed"].some(k=>e.title?.includes(k))
+                const cc=e.country==="USD"?"#3b82f6":e.country==="EUR"?"#00c9a7":"#8b5cf6"
+                return (
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 10px",background:isKey?"rgba(239,68,68,0.06)":"var(--surface2)",border:`1px solid ${isKey?"rgba(239,68,68,0.25)":"var(--border)"}`,borderRadius:3}}>
+                    {isKey&&<span style={{fontSize:8,background:"var(--red)",color:"#fff",padding:"1px 5px",borderRadius:2,fontWeight:700,letterSpacing:"0.08em",flexShrink:0}}>KEY</span>}
+                    <span style={{fontSize:9,color:"var(--text-dim)",minWidth:50,flexShrink:0}}>{e.date}</span>
+                    <span style={{fontSize:9,fontWeight:700,color:cc,minWidth:28,flexShrink:0}}>{e.country}</span>
+                    <span style={{fontSize:11,color:"var(--text)",flex:1}}>{e.title}</span>
+                    <span style={{fontSize:9,color:"var(--red)",letterSpacing:"0.08em",flexShrink:0}}>HIGH</span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -583,24 +618,21 @@ function WeeklyModal({initial,onSave,onClose,syncing}){
 function Calculator() {
   const [accountSize, setAccountSize] = useState("10000")
   const [riskPct, setRiskPct] = useState("1")
-  const [entry, setEntry] = useState("")
-  const [sl, setSl] = useState("")
+  const [slPipsInput, setSlPipsInput] = useState("")
   const [pair, setPair] = useState("EURUSD")
   const [pipValue, setPipValue] = useState("10")
 
   const PRESET_RISKS = ["0.5","1","1.5","2","3"]
+  const PRESET_PIPS = ["5","10","15","20","25","30","50"]
   const PIP_VALUES = {EURUSD:"10",GBPUSD:"10",USDCAD:"7.5",GER30:"1",SPX500:"1",NAS100:"1"}
 
   const calc = () => {
     const acc = parseFloat(accountSize)||0
     const risk = parseFloat(riskPct)||0
-    const ent = parseFloat(entry)||0
-    const stop = parseFloat(sl)||0
+    const slPips = parseFloat(slPipsInput)||0
     const pv = parseFloat(pipValue)||10
-    if(!acc||!risk||!ent||!stop) return null
+    if(!acc||!risk||!slPips||!pv) return null
     const riskAmt = acc * (risk/100)
-    const slPips = Math.abs(ent - stop) * (["GER30","SPX500","NAS100"].includes(pair) ? 1 : 10000)
-    if(!slPips) return null
     const lots = riskAmt / (slPips * pv)
     return { riskAmt: riskAmt.toFixed(2), slPips: slPips.toFixed(1), lots: lots.toFixed(2), units: Math.round(lots * 100000) }
   }
@@ -622,13 +654,12 @@ function Calculator() {
               {PAIRS.map(p=><option key={p}>{p}</option>)}
             </select>
           </div>
-          <div>
-            <div style={{fontSize:9,color:"var(--muted)",letterSpacing:"0.15em",marginBottom:5}}>ENTRY PRICE</div>
-            <input className="inp" type="number" placeholder="1.08420" value={entry} onChange={e=>setEntry(e.target.value)}/>
-          </div>
-          <div>
-            <div style={{fontSize:9,color:"var(--muted)",letterSpacing:"0.15em",marginBottom:5}}>STOP LOSS</div>
-            <input className="inp" type="number" placeholder="1.08220" value={sl} onChange={e=>setSl(e.target.value)}/>
+          <div style={{gridColumn:"1/-1"}}>
+            <div style={{fontSize:9,color:"var(--muted)",letterSpacing:"0.15em",marginBottom:5}}>STOP LOSS (PIPS)</div>
+            <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:6}}>
+              {PRESET_PIPS.map(p=><button key={p} className={`tog ${slPipsInput===p?"tog-active":""}`} onClick={()=>setSlPipsInput(p)}>{p}</button>)}
+            </div>
+            <input className="inp" type="number" placeholder="Enter pips manually e.g. 20" value={slPipsInput} onChange={e=>setSlPipsInput(e.target.value)}/>
           </div>
           <div>
             <div style={{fontSize:9,color:"var(--muted)",letterSpacing:"0.15em",marginBottom:5}}>PIP VALUE ($ per pip per lot)</div>
@@ -636,10 +667,10 @@ function Calculator() {
           </div>
           <div>
             <div style={{fontSize:9,color:"var(--muted)",letterSpacing:"0.15em",marginBottom:5}}>RISK %</div>
-            <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+            <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:6}}>
               {PRESET_RISKS.map(r=><button key={r} className={`tog ${riskPct===r?"tog-active":""}`} onClick={()=>setRiskPct(r)}>{r}%</button>)}
             </div>
-            <input className="inp" type="number" placeholder="1" value={riskPct} onChange={e=>setRiskPct(e.target.value)} style={{marginTop:6}}/>
+            <input className="inp" type="number" placeholder="1" value={riskPct} onChange={e=>setRiskPct(e.target.value)}/>
           </div>
         </div>
       </div>
@@ -688,6 +719,29 @@ function Calculator() {
   )
 }
 
+// ── Shared news fetch hook ────────────────────────────────────────────────────
+const HIGH_IMPACT_KEYWORDS = ["NFP","Non-Farm","CPI","GDP","FOMC","Interest Rate","Fed","Inflation","Unemployment","Retail Sales","PMI","ISM","PPI","ECB","BOE","Jackson Hole"]
+
+async function fetchForexNews() {
+  // Try direct fetch from faireconomy (works on Vercel)
+  const urls = [
+    "https://nfs.faireconomy.media/ff_calendar_thisweek.json",
+    `https://corsproxy.io/?${encodeURIComponent("https://nfs.faireconomy.media/ff_calendar_thisweek.json")}`,
+  ]
+  for (const url of urls) {
+    try {
+      const r = await fetch(url, { cache: "no-store" })
+      if (!r.ok) continue
+      const data = await r.json()
+      return data.filter(e =>
+        ["USD","EUR","GBP"].includes(e.country) &&
+        ["High","Medium"].includes(e.impact)
+      )
+    } catch(e) { continue }
+  }
+  throw new Error("Could not load calendar")
+}
+
 // ── Economic Calendar (News) ──────────────────────────────────────────────────
 function NewsCalendar() {
   const [events, setEvents] = useState([])
@@ -695,54 +749,41 @@ function NewsCalendar() {
   const [error, setError] = useState(null)
   const [filter, setFilter] = useState("ALL")
 
-  useEffect(() => {
-    fetchNews()
-  }, [])
+  useEffect(() => { load() }, [])
 
-  const fetchNews = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      // Using ForexFactory calendar via allorigins proxy
-      const url = `https://api.allorigins.win/get?url=${encodeURIComponent("https://nfs.faireconomy.media/ff_calendar_thisweek.json")}`
-      const r = await fetch(url)
-      const d = await r.json()
-      const data = JSON.parse(d.contents)
-      // Filter only USD, EUR, GBP high/medium impact
-      const filtered = data.filter(e =>
-        ["USD","EUR","GBP"].includes(e.country) &&
-        ["High","Medium"].includes(e.impact)
-      )
-      setEvents(filtered)
-    } catch(e) {
-      setError("Could not load calendar. Try refreshing.")
-    } finally {
-      setLoading(false)
-    }
+  const load = async () => {
+    setLoading(true); setError(null)
+    try { setEvents(await fetchForexNews()) }
+    catch(e) { setError(e.message) }
+    finally { setLoading(false) }
   }
 
-  const impactColor = i => i==="High" ? "var(--red)" : i==="Medium" ? "var(--amber)" : "var(--muted)"
-  const currencyColor = c => c==="USD" ? "#3b82f6" : c==="EUR" ? "#00c9a7" : c==="GBP" ? "#8b5cf6" : "var(--muted)"
+  const impactColor = i => i==="High"?"var(--red)":i==="Medium"?"var(--amber)":"var(--muted)"
+  const currencyColor = c => c==="USD"?"#3b82f6":c==="EUR"?"#00c9a7":c==="GBP"?"#8b5cf6":"var(--muted)"
+  const isKeyEvent = title => HIGH_IMPACT_KEYWORDS.some(k=>title?.includes(k))
 
-  const filtered = filter==="ALL" ? events : events.filter(e=>e.country===filter || (filter==="HIGH" && e.impact==="High"))
+  const filtered = filter==="ALL"?events:events.filter(e=>e.country===filter||(filter==="HIGH"&&e.impact==="High"))
 
-  const groupByDate = (evts) => {
-    const groups = {}
-    evts.forEach(e => {
-      const d = e.date || "Unknown"
-      if(!groups[d]) groups[d] = []
-      groups[d].push(e)
-    })
-    return groups
+  const groupByDate = evts => {
+    const g={}
+    evts.forEach(e=>{ const d=e.date||"Unknown"; if(!g[d])g[d]=[]; g[d].push(e) })
+    return g
   }
 
   const groups = groupByDate(filtered)
 
-  if(loading) return <div className="empty-state" style={{padding:"60px"}}>Loading economic calendar...</div>
+  if(loading) return (
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"60px",gap:12}}>
+      <div style={{display:"flex",gap:8}}>{[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:"50%",background:"#00c9a7",animation:`pulse 1.2s ${i*0.2}s infinite ease-in-out`}}/>)}</div>
+      <div style={{fontSize:11,color:"var(--muted)",letterSpacing:"0.15em"}}>LOADING CALENDAR</div>
+    </div>
+  )
+
   if(error) return (
     <div style={{textAlign:"center",padding:"40px"}}>
-      <div style={{color:"var(--red)",marginBottom:12,fontSize:12}}>{error}</div>
-      <button className="btn-add" onClick={fetchNews}>Try Again</button>
+      <div style={{color:"var(--red)",marginBottom:8,fontSize:12}}>⚠ {error}</div>
+      <div style={{fontSize:11,color:"var(--muted)",marginBottom:16}}>The calendar feed may be temporarily unavailable.</div>
+      <button className="btn-add" onClick={load}>↻ Try Again</button>
     </div>
   )
 
@@ -753,45 +794,42 @@ function NewsCalendar() {
         {["ALL","HIGH","USD","EUR","GBP"].map(f=>(
           <button key={f} className={`chip ${filter===f?"active":""}`} onClick={()=>setFilter(f)}>{f}</button>
         ))}
-        <button className="btn-sm" onClick={fetchNews} style={{marginLeft:"auto"}}>↻ Refresh</button>
+        <button className="btn-sm" onClick={load} style={{marginLeft:"auto"}}>↻ Refresh</button>
       </div>
 
-      {events.length===0 && (
-        <div className="empty-big">No high impact events found for this week.</div>
-      )}
+      {filtered.length===0 && <div className="empty-big">No events found for this filter.</div>}
 
       {Object.entries(groups).map(([date, evts]) => (
         <div key={date} style={{marginBottom:20}}>
-          <div style={{fontSize:9,color:"var(--accent)",letterSpacing:"0.2em",textTransform:"uppercase",marginBottom:8,paddingBottom:6,borderBottom:"1px solid rgba(0,201,167,.15)"}}>
-            {date}
-          </div>
+          <div style={{fontSize:9,color:"var(--accent)",letterSpacing:"0.2em",textTransform:"uppercase",marginBottom:8,paddingBottom:6,borderBottom:"1px solid rgba(0,201,167,.15)"}}>{date}</div>
           <div style={{display:"flex",flexDirection:"column",gap:6}}>
-            {evts.map((e,i) => (
-              <div key={i} style={{background:"var(--surface)",border:"1px solid var(--border)",borderRadius:4,padding:"12px 14px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
-                <div style={{minWidth:40,fontSize:11,color:"var(--text-dim)"}}>{e.time||"All Day"}</div>
-                <div style={{width:36,height:20,background:`${currencyColor(e.country)}22`,border:`1px solid ${currencyColor(e.country)}`,borderRadius:2,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,color:currencyColor(e.country)}}>{e.country}</div>
-                <div style={{flex:1,minWidth:160}}>
-                  <div style={{fontSize:12,color:"var(--text)",fontWeight:500}}>{e.title}</div>
-                  {(e.forecast||e.previous) && (
-                    <div style={{fontSize:10,color:"var(--text-dim)",marginTop:3,display:"flex",gap:12}}>
-                      {e.forecast && <span>Forecast: <b style={{color:"var(--text)"}}>{e.forecast}</b></span>}
-                      {e.previous && <span>Previous: <b style={{color:"var(--text)"}}>{e.previous}</b></span>}
-                    </div>
-                  )}
+            {evts.map((e,i) => {
+              const isKey = isKeyEvent(e.title)
+              return (
+                <div key={i} style={{background:isKey?"rgba(239,68,68,0.05)":"var(--surface)",border:`1px solid ${isKey?"rgba(239,68,68,0.3)":"var(--border)"}`,borderRadius:4,padding:"12px 14px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
+                  {isKey && <div style={{fontSize:9,background:"var(--red)",color:"#fff",padding:"1px 6px",borderRadius:2,letterSpacing:"0.1em",fontWeight:700}}>KEY</div>}
+                  <div style={{minWidth:55,fontSize:11,color:"var(--text-dim)"}}>{e.time||"All Day"}</div>
+                  <div style={{width:36,height:20,background:`${currencyColor(e.country)}22`,border:`1px solid ${currencyColor(e.country)}`,borderRadius:2,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,color:currencyColor(e.country)}}>{e.country}</div>
+                  <div style={{flex:1,minWidth:160}}>
+                    <div style={{fontSize:12,color:isKey?"var(--text)":"var(--text)",fontWeight:isKey?700:500}}>{e.title}</div>
+                    {(e.forecast||e.previous) && (
+                      <div style={{fontSize:10,color:"var(--text-dim)",marginTop:3,display:"flex",gap:12,flexWrap:"wrap"}}>
+                        {e.forecast&&<span>Forecast: <b style={{color:"var(--text)"}}>{e.forecast}</b></span>}
+                        {e.previous&&<span>Previous: <b style={{color:"var(--text)"}}>{e.previous}</b></span>}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    <div style={{width:6,height:6,borderRadius:"50%",background:impactColor(e.impact)}}/>
+                    <span style={{fontSize:9,color:impactColor(e.impact),letterSpacing:"0.1em"}}>{e.impact?.toUpperCase()}</span>
+                  </div>
                 </div>
-                <div style={{display:"flex",alignItems:"center",gap:6}}>
-                  <div style={{width:6,height:6,borderRadius:"50%",background:impactColor(e.impact)}}/>
-                  <span style={{fontSize:9,color:impactColor(e.impact),letterSpacing:"0.1em"}}>{e.impact?.toUpperCase()}</span>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       ))}
-
-      <div style={{fontSize:10,color:"var(--muted)",textAlign:"center",marginTop:16}}>
-        Data from ForexFactory · Updates weekly · Showing USD, EUR, GBP events only
-      </div>
+      <div style={{fontSize:10,color:"var(--muted)",textAlign:"center",marginTop:16}}>ForexFactory · USD, EUR, GBP · High & Medium Impact</div>
     </div>
   )
 }
