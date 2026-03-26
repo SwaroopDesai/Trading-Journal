@@ -135,6 +135,8 @@ export default function App() {
     try {
       const payload = { ...t, user_id: user.id }
       delete payload._dbid
+      delete payload.id
+      delete payload.created_at
       if (t._dbid) {
         const { error } = await supabase.from("trades").update(payload).eq("id", t._dbid).eq("user_id", user.id)
         if (error) throw error
@@ -158,6 +160,8 @@ export default function App() {
     try {
       const payload = { ...p, user_id: user.id }
       delete payload._dbid
+      delete payload.id
+      delete payload.created_at
       if (p._dbid) {
         const { error } = await supabase.from("daily_plans").update(payload).eq("id", p._dbid).eq("user_id", user.id)
         if (error) throw error
@@ -181,6 +185,8 @@ export default function App() {
     try {
       const payload = { ...p, user_id: user.id }
       delete payload._dbid
+      delete payload.id
+      delete payload.created_at
       if (p._dbid) {
         const { error } = await supabase.from("weekly_plans").update(payload).eq("id", p._dbid).eq("user_id", user.id)
         if (error) throw error
