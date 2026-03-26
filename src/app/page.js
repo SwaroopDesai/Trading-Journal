@@ -1,32 +1,6 @@
-"use client";
+"use client"
+import { createClient } from "@/lib/supabase"
 import { useState, useMemo, useEffect, useCallback } from "react";
-
-// ── Supabase Config ───────────────────────────────────────────────────────────
-const SUPA_URL = "https://mrdtmaihghmkbilhqjgo.supabase.co";
-const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yZHRtYWloZ2hta2JpbGhxamdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzM2OTYsImV4cCI6MjA4OTk0OTY5Nn0.oRsKEz3iwmbZEGrHQAPMLn4xjZ-CrRl-cE9cxclyGE8";
-const H = { "Content-Type":"application/json", "apikey":SUPA_KEY, "Authorization":`Bearer ${SUPA_KEY}`, "Prefer":"return=representation" };
-
-const db = {
-  async getAll(table) {
-    const r = await fetch(`${SUPA_URL}/rest/v1/${table}?select=*&order=created_at.desc`, { headers:H });
-    if (!r.ok) throw new Error(await r.text());
-    return (await r.json()).map(row => ({ ...row.data, _dbid: row.id }));
-  },
-  async insert(table, data) {
-    const r = await fetch(`${SUPA_URL}/rest/v1/${table}`, { method:"POST", headers:H, body:JSON.stringify({ data }) });
-    if (!r.ok) throw new Error(await r.text());
-    const rows = await r.json();
-    return { ...rows[0].data, _dbid: rows[0].id };
-  },
-  async update(table, dbid, data) {
-    const r = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${dbid}`, { method:"PATCH", headers:H, body:JSON.stringify({ data }) });
-    if (!r.ok) throw new Error(await r.text());
-  },
-  async remove(table, dbid) {
-    const r = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${dbid}`, { method:"DELETE", headers:H });
-    if (!r.ok) throw new Error(await r.text());
-  },
-};
 
 const PAIRS = ["EURUSD","GBPUSD","USDCAD","GER30","SPX500","NAS100"];
 const SESSIONS = ["London","New York","Asian","London/NY Overlap"];
@@ -40,68 +14,212 @@ const MANI_TYPES = ["Liquidity Sweep High","Liquidity Sweep Low","Stop Hunt","Fa
 const fmtDate = d => new Date(d).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"2-digit"});
 const fmtRR = rr => rr >= 0 ? `+${rr.toFixed(2)}R` : `${rr.toFixed(2)}R`;
 
+// ── Login Screen ──────────────────────────────────────────────────────────────
+function LoginScreen({ supabase }) {
+  const [email, setEmail] = useState("")
+  const [sent, setSent] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const sendMagicLink = async () => {
+    if (!email) return
+    setLoading(true)
+    setError(null)
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.origin }
+    })
+    if (error) { setError(error.message); setLoading(false); return; }
+    setSent(true)
+    setLoading(false)
+  }
+
+  return (
+    <div style={{minHeight:"100vh",background:"#080c10",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:24,fontFamily:"'DM Mono',monospace",padding:24}}>
+      <style>{"@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@800&display=swap');"}</style>
+      <div style={{fontFamily:"'Syne',sans-serif",fontSize:32,color:"#00c9a7",letterSpacing:"0.08em",fontWeight:800}}>FX<span style={{color:"#dce6f0"}}>EDGE</span></div>
+      <div style={{fontSize:11,color:"#4a5a6a",letterSpacing:"0.2em",marginTop:-16}}>TRADING JOURNAL</div>
+      {!sent ? (
+        <div style={{background:"#0d1117",border:"1px solid #1e2a35",borderRadius:6,padding:28,width:"100%",maxWidth:360,display:"flex",flexDirection:"column",gap:14}}>
+          <div style={{fontSize:11,color:"#6b7f8f",letterSpacing:"0.1em"}}>ENTER YOUR EMAIL TO LOGIN</div>
+          <input
+            type="email"
+            placeholder="your@email.com"
+            value={email}
+            onChange={e=>setEmail(e.target.value)}
+            onKeyDown={e=>e.key==="Enter"&&sendMagicLink()}
+            style={{background:"#131920",border:"1px solid #1e2a35",color:"#dce6f0",fontFamily:"'DM Mono',monospace",fontSize:13,padding:"10px 12px",borderRadius:3,outline:"none",width:"100%"}}
+          />
+          {error && <div style={{fontSize:11,color:"#ef4444"}}>{error}</div>}
+          <button
+            onClick={sendMagicLink}
+            disabled={loading}
+            style={{background:"#00c9a7",color:"#020f0d",border:"none",padding:"10px 20px",fontFamily:"'DM Mono',monospace",fontSize:12,fontWeight:600,cursor:"pointer",borderRadius:3,opacity:loading?0.6:1}}
+          >
+            {loading ? "Sending..." : "Send Magic Link"}
+          </button>
+        </div>
+      ) : (
+        <div style={{background:"#0d1117",border:"1px solid #1e2a35",borderRadius:6,padding:28,width:"100%",maxWidth:360,textAlign:"center",gap:12,display:"flex",flexDirection:"column"}}>
+          <div style={{fontSize:28}}>📬</div>
+          <div style={{fontSize:13,color:"#dce6f0"}}>Check your email</div>
+          <div style={{fontSize:11,color:"#6b7f8f",lineHeight:1.6}}>We sent a magic link to <b style={{color:"#00c9a7"}}>{email}</b>. Click it to sign in.</div>
+          <button onClick={()=>setSent(false)} style={{background:"none",border:"1px solid #1e2a35",color:"#6b7f8f",padding:"8px 16px",fontFamily:"'DM Mono',monospace",fontSize:11,cursor:"pointer",borderRadius:3,marginTop:8}}>Use different email</button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Main App ──────────────────────────────────────────────────────────────────
 export default function App() {
-  const [trades,setTrades] = useState([]);
-  const [dailyPlans,setDailyPlans] = useState([]);
-  const [weeklyPlans,setWeeklyPlans] = useState([]);
-  const [loading,setLoading] = useState(true);
-  const [syncing,setSyncing] = useState(false);
-  const [error,setError] = useState(null);
-  const [tab,setTab] = useState("dashboard");
-  const [tradeModal,setTradeModal] = useState(null);
-  const [dailyModal,setDailyModal] = useState(null);
-  const [weeklyModal,setWeeklyModal] = useState(null);
-  const [filterPair,setFilterPair] = useState("ALL");
-  const [filterResult,setFilterResult] = useState("ALL");
-  const [deleteTarget,setDeleteTarget] = useState(null);
-  const [imgViewer,setImgViewer] = useState(null);
+  const supabase = createClient()
+  const [user, setUser] = useState(null)
+  const [authLoading, setAuthLoading] = useState(true)
+  const [trades, setTrades] = useState([]);
+  const [dailyPlans, setDailyPlans] = useState([]);
+  const [weeklyPlans, setWeeklyPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [error, setError] = useState(null);
+  const [tab, setTab] = useState("dashboard");
+  const [tradeModal, setTradeModal] = useState(null);
+  const [dailyModal, setDailyModal] = useState(null);
+  const [weeklyModal, setWeeklyModal] = useState(null);
+  const [filterPair, setFilterPair] = useState("ALL");
+  const [filterResult, setFilterResult] = useState("ALL");
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [imgViewer, setImgViewer] = useState(null);
 
+  // ── Auth listener ──
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
+      setAuthLoading(false)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  // ── Load data ──
   const loadAll = useCallback(async () => {
-    setLoading(true); setError(null);
+    if (!user) return
+    setLoading(true)
+    setError(null)
     try {
-      const [t,d,w] = await Promise.all([db.getAll("trades"),db.getAll("daily_plans"),db.getAll("weekly_plans")]);
-      setTrades(t); setDailyPlans(d); setWeeklyPlans(w);
-    } catch(e) { setError("Could not connect. Check your internet and try refreshing."); }
-    finally { setLoading(false); }
-  }, []);
+      const [t, d, w] = await Promise.all([
+        supabase.from("trades").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("daily_plans").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("weekly_plans").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+      ])
+      if (t.error) throw t.error
+      if (d.error) throw d.error
+      if (w.error) throw w.error
+      setTrades((t.data || []).map(r => ({ ...r, _dbid: r.id })))
+      setDailyPlans((d.data || []).map(r => ({ ...r, _dbid: r.id })))
+      setWeeklyPlans((w.data || []).map(r => ({ ...r, _dbid: r.id })))
+    } catch (e) {
+      setError("Failed to load data: " + e.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [user])
 
-  useEffect(() => { loadAll(); }, [loadAll]);
+  useEffect(() => { if (user) loadAll() }, [user, loadAll])
 
+  // ── Save Trade ──
   const saveTrade = async (t) => {
-    setSyncing(true);
+    setSyncing(true)
     try {
-      if (t._dbid) { await db.update("trades",t._dbid,t); setTrades(ts=>ts.map(x=>x._dbid===t._dbid?t:x)); }
-      else { const s=await db.insert("trades",{...t,id:Date.now()}); setTrades(ts=>[s,...ts]); }
-      setTradeModal(null);
-    } catch(e) { setError("Failed to save trade."); } finally { setSyncing(false); }
-  };
+      const payload = { ...t, user_id: user.id }
+      delete payload._dbid
+      if (t._dbid) {
+        const { error } = await supabase.from("trades").update(payload).eq("id", t._dbid).eq("user_id", user.id)
+        if (error) throw error
+        setTrades(ts => ts.map(x => x._dbid === t._dbid ? { ...payload, _dbid: t._dbid } : x))
+      } else {
+        const { data, error } = await supabase.from("trades").insert([payload]).select()
+        if (error) throw error
+        setTrades(ts => [{ ...data[0], _dbid: data[0].id }, ...ts])
+      }
+      setTradeModal(null)
+    } catch (e) {
+      setError("Failed to save trade: " + e.message)
+    } finally {
+      setSyncing(false)
+    }
+  }
+
+  // ── Save Daily ──
   const saveDaily = async (p) => {
-    setSyncing(true);
+    setSyncing(true)
     try {
-      if (p._dbid) { await db.update("daily_plans",p._dbid,p); setDailyPlans(ps=>ps.map(x=>x._dbid===p._dbid?p:x)); }
-      else { const s=await db.insert("daily_plans",{...p,id:Date.now()}); setDailyPlans(ps=>[s,...ps]); }
-      setDailyModal(null);
-    } catch(e) { setError("Failed to save daily plan."); } finally { setSyncing(false); }
-  };
+      const payload = { ...p, user_id: user.id }
+      delete payload._dbid
+      if (p._dbid) {
+        const { error } = await supabase.from("daily_plans").update(payload).eq("id", p._dbid).eq("user_id", user.id)
+        if (error) throw error
+        setDailyPlans(ps => ps.map(x => x._dbid === p._dbid ? { ...payload, _dbid: p._dbid } : x))
+      } else {
+        const { data, error } = await supabase.from("daily_plans").insert([payload]).select()
+        if (error) throw error
+        setDailyPlans(ps => [{ ...data[0], _dbid: data[0].id }, ...ps])
+      }
+      setDailyModal(null)
+    } catch (e) {
+      setError("Failed to save daily plan: " + e.message)
+    } finally {
+      setSyncing(false)
+    }
+  }
+
+  // ── Save Weekly ──
   const saveWeekly = async (p) => {
-    setSyncing(true);
+    setSyncing(true)
     try {
-      if (p._dbid) { await db.update("weekly_plans",p._dbid,p); setWeeklyPlans(ps=>ps.map(x=>x._dbid===p._dbid?p:x)); }
-      else { const s=await db.insert("weekly_plans",{...p,id:Date.now()}); setWeeklyPlans(ps=>[s,...ps]); }
-      setWeeklyModal(null);
-    } catch(e) { setError("Failed to save weekly plan."); } finally { setSyncing(false); }
-  };
+      const payload = { ...p, user_id: user.id }
+      delete payload._dbid
+      if (p._dbid) {
+        const { error } = await supabase.from("weekly_plans").update(payload).eq("id", p._dbid).eq("user_id", user.id)
+        if (error) throw error
+        setWeeklyPlans(ps => ps.map(x => x._dbid === p._dbid ? { ...payload, _dbid: p._dbid } : x))
+      } else {
+        const { data, error } = await supabase.from("weekly_plans").insert([payload]).select()
+        if (error) throw error
+        setWeeklyPlans(ps => [{ ...data[0], _dbid: data[0].id }, ...ps])
+      }
+      setWeeklyModal(null)
+    } catch (e) {
+      setError("Failed to save weekly plan: " + e.message)
+    } finally {
+      setSyncing(false)
+    }
+  }
+
+  // ── Delete ──
   const confirmDelete = async () => {
-    setSyncing(true);
+    setSyncing(true)
     try {
-      const tbl = {trade:"trades",daily:"daily_plans",weekly:"weekly_plans"}[deleteTarget.type];
-      await db.remove(tbl,deleteTarget.dbid);
-      if (deleteTarget.type==="trade") setTrades(ts=>ts.filter(x=>x._dbid!==deleteTarget.dbid));
-      if (deleteTarget.type==="daily") setDailyPlans(ps=>ps.filter(x=>x._dbid!==deleteTarget.dbid));
-      if (deleteTarget.type==="weekly") setWeeklyPlans(ps=>ps.filter(x=>x._dbid!==deleteTarget.dbid));
-      setDeleteTarget(null);
-    } catch(e) { setError("Failed to delete."); } finally { setSyncing(false); }
-  };
+      const tbl = { trade: "trades", daily: "daily_plans", weekly: "weekly_plans" }[deleteTarget.type]
+      const { error } = await supabase.from(tbl).delete().eq("id", deleteTarget.dbid).eq("user_id", user.id)
+      if (error) throw error
+      if (deleteTarget.type === "trade") setTrades(ts => ts.filter(x => x._dbid !== deleteTarget.dbid))
+      if (deleteTarget.type === "daily") setDailyPlans(ps => ps.filter(x => x._dbid !== deleteTarget.dbid))
+      if (deleteTarget.type === "weekly") setWeeklyPlans(ps => ps.filter(x => x._dbid !== deleteTarget.dbid))
+      setDeleteTarget(null)
+    } catch (e) {
+      setError("Failed to delete: " + e.message)
+    } finally {
+      setSyncing(false)
+    }
+  }
+
+  const signOut = async () => {
+    await supabase.auth.signOut()
+    setTrades([]); setDailyPlans([]); setWeeklyPlans([])
+  }
 
   const stats = useMemo(() => {
     const t=trades, wins=t.filter(x=>x.result==="WIN"), losses=t.filter(x=>x.result==="LOSS"), be=t.filter(x=>x.result==="BREAKEVEN");
@@ -117,14 +235,26 @@ export default function App() {
 
   const TABS=[{id:"dashboard",icon:"◈",label:"Dashboard"},{id:"journal",icon:"◎",label:"Journal"},{id:"daily",icon:"◷",label:"Daily"},{id:"weekly",icon:"◻",label:"Weekly"},{id:"analytics",icon:"▦",label:"Analytics"},{id:"psychology",icon:"◉",label:"Mind"}];
 
+  // ── Auth loading ──
+  if (authLoading) return (
+    <div style={{minHeight:"100vh",background:"#080c10",display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <style>{"@import url('https://fonts.googleapis.com/css2?family=Syne:wght@800&display=swap'); @keyframes pulse{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}"}</style>
+      <div style={{display:"flex",gap:8}}>{[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:"50%",background:"#00c9a7",animation:`pulse 1.2s ${i*0.2}s infinite ease-in-out`}}/>)}</div>
+    </div>
+  )
+
+  // ── Not logged in ──
+  if (!user) return <LoginScreen supabase={supabase} />
+
+  // ── Data loading ──
   if (loading) return (
     <div style={{minHeight:"100vh",background:"#080c10",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:20,fontFamily:"monospace"}}>
       <style>{"@import url('https://fonts.googleapis.com/css2?family=Syne:wght@800&display=swap'); @keyframes pulse{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}"}</style>
       <div style={{fontFamily:"'Syne',sans-serif",fontSize:32,color:"#00c9a7",letterSpacing:"0.08em",fontWeight:800}}>FX<span style={{color:"#dce6f0"}}>EDGE</span></div>
       <div style={{display:"flex",gap:8}}>{[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:"50%",background:"#00c9a7",animation:`pulse 1.2s ${i*0.2}s infinite ease-in-out`}}/>)}</div>
-      <div style={{fontSize:11,color:"#4a5a6a",letterSpacing:"0.2em"}}>CONNECTING TO DATABASE</div>
+      <div style={{fontSize:11,color:"#4a5a6a",letterSpacing:"0.2em"}}>LOADING YOUR JOURNAL</div>
     </div>
-  );
+  )
 
   return (
     <div className="app">
@@ -133,7 +263,9 @@ export default function App() {
         <div className="logo">FX<span>EDGE</span></div>
         {TABS.map(t=><button key={t.id} className={`nav-item ${tab===t.id?"active":""}`} onClick={()=>setTab(t.id)}><span className="nav-icon">{t.icon}</span><span>{t.label}</span></button>)}
         <div style={{flex:1}}/>
+        <div className="user-email">{user.email}</div>
         <div className="sync-status" onClick={loadAll}>☁ {syncing?"Saving...":"Live Sync"}</div>
+        <button className="signout-btn" onClick={signOut}>Sign Out</button>
         <div className="sidebar-footer">ICT · SMC</div>
       </nav>
       <main className="main">
@@ -152,7 +284,7 @@ export default function App() {
         {error&&<div className="error-banner">⚠ {error}<button onClick={()=>setError(null)} style={{marginLeft:12,background:"none",border:"none",color:"inherit",cursor:"pointer",fontWeight:700}}>✕</button></div>}
         <div className="content">
           {tab==="dashboard"&&<Dashboard stats={stats} trades={trades} dailyPlans={dailyPlans} weeklyPlans={weeklyPlans} onNewTrade={()=>setTradeModal("new")} onNewDaily={()=>setDailyModal("new")}/>}
-          {tab==="journal"&&<Journal filtered={filtered} filterPair={filterPair} setFilterPair={setFilterPair} filterResult={filterResult} setFilterResult={setFilterResult} onEdit={t=>setTradeModal(t)} onDelete={(t)=>setDeleteTarget({type:"trade",dbid:t._dbid,name:`${t.pair} ${t.direction}`})} onViewImg={setImgViewer} onNew={()=>setTradeModal("new")}/>}
+          {tab==="journal"&&<Journal filtered={filtered} filterPair={filterPair} setFilterPair={setFilterPair} filterResult={filterResult} setFilterResult={setFilterResult} onEdit={t=>setTradeModal(t)} onDelete={t=>setDeleteTarget({type:"trade",dbid:t._dbid,name:`${t.pair} ${t.direction}`})} onViewImg={setImgViewer} onNew={()=>setTradeModal("new")}/>}
           {tab==="daily"&&<DailyTab plans={dailyPlans} onEdit={p=>setDailyModal(p)} onDelete={p=>setDeleteTarget({type:"daily",dbid:p._dbid,name:`Daily ${p.date}`})} onNew={()=>setDailyModal("new")}/>}
           {tab==="weekly"&&<WeeklyTab plans={weeklyPlans} onEdit={p=>setWeeklyModal(p)} onDelete={p=>setDeleteTarget({type:"weekly",dbid:p._dbid,name:`Week ${p.weekStart}`})} onNew={()=>setWeeklyModal("new")}/>}
           {tab==="analytics"&&<Analytics stats={stats} trades={trades}/>}
@@ -451,7 +583,10 @@ const CSS=`
   .logo{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;padding:20px 18px 16px;letter-spacing:.05em;}.logo span{color:var(--accent);}
   .nav-item{display:flex;align-items:center;gap:10px;padding:10px 18px;background:none;border:none;border-left:2px solid transparent;color:var(--text-dim);cursor:pointer;font-family:'DM Mono',monospace;font-size:12px;text-align:left;width:100%;transition:all .15s;}
   .nav-item:hover{color:var(--text);background:var(--surface2);}.nav-item.active{color:var(--accent);background:rgba(0,201,167,.07);border-left-color:var(--accent);}
-  .nav-icon{font-size:14px;}.sync-status{padding:10px 18px;font-size:9px;color:var(--accent);letter-spacing:.1em;cursor:pointer;opacity:.7;}.sync-status:hover{opacity:1;}
+  .nav-icon{font-size:14px;}
+  .user-email{padding:8px 18px;font-size:9px;color:var(--muted);letter-spacing:.05em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .sync-status{padding:4px 18px;font-size:9px;color:var(--accent);letter-spacing:.1em;cursor:pointer;opacity:.7;}.sync-status:hover{opacity:1;}
+  .signout-btn{margin:6px 12px;padding:7px 12px;background:none;border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;border-radius:3px;text-align:left;transition:.15s;}.signout-btn:hover{border-color:var(--red);color:var(--red);}
   .sidebar-footer{padding:8px 18px 16px;font-size:9px;color:var(--muted);letter-spacing:.2em;}
   .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
   .topbar{padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:sticky;top:0;z-index:40;}
