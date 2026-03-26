@@ -239,7 +239,7 @@ export default function App() {
 
   const filtered = useMemo(()=>trades.filter(t=>(filterPair==="ALL"||t.pair===filterPair)&&(filterResult==="ALL"||t.result===filterResult)).sort((a,b)=>new Date(b.date)-new Date(a.date)),[trades,filterPair,filterResult]);
 
-  const TABS=[{id:"dashboard",icon:"◈",label:"Dashboard"},{id:"journal",icon:"◎",label:"Journal"},{id:"daily",icon:"◷",label:"Daily"},{id:"weekly",icon:"◻",label:"Weekly"},{id:"analytics",icon:"▦",label:"Analytics"},{id:"psychology",icon:"◉",label:"Mind"}];
+  const TABS=[{id:"dashboard",icon:"◈",label:"Dashboard"},{id:"journal",icon:"◎",label:"Journal"},{id:"daily",icon:"◷",label:"Daily"},{id:"weekly",icon:"◻",label:"Weekly"},{id:"analytics",icon:"▦",label:"Analytics"},{id:"psychology",icon:"◉",label:"Mind"},{id:"calculator",icon:"◧",label:"Calc"},{id:"news",icon:"◨",label:"News"}];
 
   // ── Auth loading ──
   if (authLoading) return (
@@ -295,6 +295,8 @@ export default function App() {
           {tab==="weekly"&&<WeeklyTab plans={weeklyPlans} onEdit={p=>setWeeklyModal(p)} onDelete={p=>setDeleteTarget({type:"weekly",dbid:p._dbid,name:`Week ${p.weekStart}`})} onNew={()=>setWeeklyModal("new")}/>}
           {tab==="analytics"&&<Analytics stats={stats} trades={trades}/>}
           {tab==="psychology"&&<Psychology stats={stats} trades={trades}/>}
+          {tab==="calculator"&&<Calculator/>}
+          {tab==="news"&&<NewsCalendar/>}
         </div>
       </main>
       {tradeModal&&<TradeModal initial={tradeModal==="new"?null:tradeModal} onSave={saveTrade} onClose={()=>setTradeModal(null)} syncing={syncing}/>}
@@ -574,6 +576,224 @@ function WeeklyModal({initial,onSave,onClose,syncing}){
     </div>
     <div className="modal-footer"><button className="btn-add" onClick={()=>onSave(f)} disabled={syncing}>{syncing?"Saving...":initial?"Update":"Save Plan"}</button><button className="btn-ghost" onClick={onClose}>Cancel</button></div>
   </div></div>;
+}
+
+
+// ── Position Size Calculator ──────────────────────────────────────────────────
+function Calculator() {
+  const [accountSize, setAccountSize] = useState("10000")
+  const [riskPct, setRiskPct] = useState("1")
+  const [entry, setEntry] = useState("")
+  const [sl, setSl] = useState("")
+  const [pair, setPair] = useState("EURUSD")
+  const [pipValue, setPipValue] = useState("10")
+
+  const PRESET_RISKS = ["0.5","1","1.5","2","3"]
+  const PIP_VALUES = {EURUSD:"10",GBPUSD:"10",USDCAD:"7.5",GER30:"1",SPX500:"1",NAS100:"1"}
+
+  const calc = () => {
+    const acc = parseFloat(accountSize)||0
+    const risk = parseFloat(riskPct)||0
+    const ent = parseFloat(entry)||0
+    const stop = parseFloat(sl)||0
+    const pv = parseFloat(pipValue)||10
+    if(!acc||!risk||!ent||!stop) return null
+    const riskAmt = acc * (risk/100)
+    const slPips = Math.abs(ent - stop) * (["GER30","SPX500","NAS100"].includes(pair) ? 1 : 10000)
+    if(!slPips) return null
+    const lots = riskAmt / (slPips * pv)
+    return { riskAmt: riskAmt.toFixed(2), slPips: slPips.toFixed(1), lots: lots.toFixed(2), units: Math.round(lots * 100000) }
+  }
+
+  const result = calc()
+
+  return (
+    <div style={{maxWidth:600}}>
+      <div className="card" style={{marginBottom:12}}>
+        <div className="card-title">POSITION SIZE CALCULATOR</div>
+        <div className="form-grid" style={{gap:14}}>
+          <div>
+            <div style={{fontSize:9,color:"var(--muted)",letterSpacing:"0.15em",marginBottom:5}}>ACCOUNT SIZE ($)</div>
+            <input className="inp" type="number" placeholder="10000" value={accountSize} onChange={e=>setAccountSize(e.target.value)}/>
+          </div>
+          <div>
+            <div style={{fontSize:9,color:"var(--muted)",letterSpacing:"0.15em",marginBottom:5}}>PAIR</div>
+            <select className="inp" value={pair} onChange={e=>{setPair(e.target.value);setPipValue(PIP_VALUES[e.target.value]||"10")}}>
+              {PAIRS.map(p=><option key={p}>{p}</option>)}
+            </select>
+          </div>
+          <div>
+            <div style={{fontSize:9,color:"var(--muted)",letterSpacing:"0.15em",marginBottom:5}}>ENTRY PRICE</div>
+            <input className="inp" type="number" placeholder="1.08420" value={entry} onChange={e=>setEntry(e.target.value)}/>
+          </div>
+          <div>
+            <div style={{fontSize:9,color:"var(--muted)",letterSpacing:"0.15em",marginBottom:5}}>STOP LOSS</div>
+            <input className="inp" type="number" placeholder="1.08220" value={sl} onChange={e=>setSl(e.target.value)}/>
+          </div>
+          <div>
+            <div style={{fontSize:9,color:"var(--muted)",letterSpacing:"0.15em",marginBottom:5}}>PIP VALUE ($ per pip per lot)</div>
+            <input className="inp" type="number" placeholder="10" value={pipValue} onChange={e=>setPipValue(e.target.value)}/>
+          </div>
+          <div>
+            <div style={{fontSize:9,color:"var(--muted)",letterSpacing:"0.15em",marginBottom:5}}>RISK %</div>
+            <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+              {PRESET_RISKS.map(r=><button key={r} className={`tog ${riskPct===r?"tog-active":""}`} onClick={()=>setRiskPct(r)}>{r}%</button>)}
+            </div>
+            <input className="inp" type="number" placeholder="1" value={riskPct} onChange={e=>setRiskPct(e.target.value)} style={{marginTop:6}}/>
+          </div>
+        </div>
+      </div>
+
+      {result ? (
+        <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
+          <div className="card" style={{textAlign:"center"}}>
+            <div style={{fontSize:9,color:"var(--muted)",letterSpacing:"0.15em",marginBottom:8}}>RISK AMOUNT</div>
+            <div style={{fontFamily:"'Syne',sans-serif",fontSize:28,fontWeight:700,color:"var(--red)"}}>-${result.riskAmt}</div>
+            <div style={{fontSize:10,color:"var(--text-dim)",marginTop:4}}>{riskPct}% of account</div>
+          </div>
+          <div className="card" style={{textAlign:"center"}}>
+            <div style={{fontSize:9,color:"var(--muted)",letterSpacing:"0.15em",marginBottom:8}}>SL DISTANCE</div>
+            <div style={{fontFamily:"'Syne',sans-serif",fontSize:28,fontWeight:700,color:"var(--amber)"}}>{result.slPips}</div>
+            <div style={{fontSize:10,color:"var(--text-dim)",marginTop:4}}>pips</div>
+          </div>
+          <div className="card" style={{textAlign:"center"}}>
+            <div style={{fontSize:9,color:"var(--muted)",letterSpacing:"0.15em",marginBottom:8}}>LOT SIZE</div>
+            <div style={{fontFamily:"'Syne',sans-serif",fontSize:28,fontWeight:700,color:"var(--accent)"}}>{result.lots}</div>
+            <div style={{fontSize:10,color:"var(--text-dim)",marginTop:4}}>standard lots</div>
+          </div>
+          <div className="card" style={{textAlign:"center"}}>
+            <div style={{fontSize:9,color:"var(--muted)",letterSpacing:"0.15em",marginBottom:8}}>UNITS</div>
+            <div style={{fontFamily:"'Syne',sans-serif",fontSize:28,fontWeight:700,color:"var(--accent2)"}}>{result.units.toLocaleString()}</div>
+            <div style={{fontSize:10,color:"var(--text-dim)",marginTop:4}}>micro/nano units</div>
+          </div>
+        </div>
+      ) : (
+        <div className="card" style={{textAlign:"center",padding:"32px"}}>
+          <div style={{fontSize:11,color:"var(--muted)"}}>Fill in all fields to calculate position size</div>
+        </div>
+      )}
+
+      <div className="card" style={{marginTop:12}}>
+        <div className="card-title">QUICK REFERENCE — PIP VALUES (per standard lot)</div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
+          {[{p:"EURUSD",v:"$10"},{p:"GBPUSD",v:"$10"},{p:"USDCAD",v:"~$7.5"},{p:"GER30",v:"€1"},{p:"SPX500",v:"$1"},{p:"NAS100",v:"$1"}].map(x=>(
+            <div key={x.p} style={{background:"var(--surface2)",border:"1px solid var(--border)",padding:"8px 12px",borderRadius:3}}>
+              <div style={{fontSize:10,color:"var(--accent)",fontWeight:600}}>{x.p}</div>
+              <div style={{fontSize:12,color:"var(--text)",marginTop:2}}>{x.v} / pip</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Economic Calendar (News) ──────────────────────────────────────────────────
+function NewsCalendar() {
+  const [events, setEvents] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [filter, setFilter] = useState("ALL")
+
+  useEffect(() => {
+    fetchNews()
+  }, [])
+
+  const fetchNews = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      // Using ForexFactory calendar via allorigins proxy
+      const url = `https://api.allorigins.win/get?url=${encodeURIComponent("https://nfs.faireconomy.media/ff_calendar_thisweek.json")}`
+      const r = await fetch(url)
+      const d = await r.json()
+      const data = JSON.parse(d.contents)
+      // Filter only USD, EUR, GBP high/medium impact
+      const filtered = data.filter(e =>
+        ["USD","EUR","GBP"].includes(e.country) &&
+        ["High","Medium"].includes(e.impact)
+      )
+      setEvents(filtered)
+    } catch(e) {
+      setError("Could not load calendar. Try refreshing.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const impactColor = i => i==="High" ? "var(--red)" : i==="Medium" ? "var(--amber)" : "var(--muted)"
+  const currencyColor = c => c==="USD" ? "#3b82f6" : c==="EUR" ? "#00c9a7" : c==="GBP" ? "#8b5cf6" : "var(--muted)"
+
+  const filtered = filter==="ALL" ? events : events.filter(e=>e.country===filter || (filter==="HIGH" && e.impact==="High"))
+
+  const groupByDate = (evts) => {
+    const groups = {}
+    evts.forEach(e => {
+      const d = e.date || "Unknown"
+      if(!groups[d]) groups[d] = []
+      groups[d].push(e)
+    })
+    return groups
+  }
+
+  const groups = groupByDate(filtered)
+
+  if(loading) return <div className="empty-state" style={{padding:"60px"}}>Loading economic calendar...</div>
+  if(error) return (
+    <div style={{textAlign:"center",padding:"40px"}}>
+      <div style={{color:"var(--red)",marginBottom:12,fontSize:12}}>{error}</div>
+      <button className="btn-add" onClick={fetchNews}>Try Again</button>
+    </div>
+  )
+
+  return (
+    <div>
+      <div style={{display:"flex",gap:8,marginBottom:16,flexWrap:"wrap",alignItems:"center"}}>
+        <div style={{fontSize:9,color:"var(--muted)",letterSpacing:"0.15em",alignSelf:"center"}}>FILTER:</div>
+        {["ALL","HIGH","USD","EUR","GBP"].map(f=>(
+          <button key={f} className={`chip ${filter===f?"active":""}`} onClick={()=>setFilter(f)}>{f}</button>
+        ))}
+        <button className="btn-sm" onClick={fetchNews} style={{marginLeft:"auto"}}>↻ Refresh</button>
+      </div>
+
+      {events.length===0 && (
+        <div className="empty-big">No high impact events found for this week.</div>
+      )}
+
+      {Object.entries(groups).map(([date, evts]) => (
+        <div key={date} style={{marginBottom:20}}>
+          <div style={{fontSize:9,color:"var(--accent)",letterSpacing:"0.2em",textTransform:"uppercase",marginBottom:8,paddingBottom:6,borderBottom:"1px solid rgba(0,201,167,.15)"}}>
+            {date}
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:6}}>
+            {evts.map((e,i) => (
+              <div key={i} style={{background:"var(--surface)",border:"1px solid var(--border)",borderRadius:4,padding:"12px 14px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
+                <div style={{minWidth:40,fontSize:11,color:"var(--text-dim)"}}>{e.time||"All Day"}</div>
+                <div style={{width:36,height:20,background:`${currencyColor(e.country)}22`,border:`1px solid ${currencyColor(e.country)}`,borderRadius:2,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,color:currencyColor(e.country)}}>{e.country}</div>
+                <div style={{flex:1,minWidth:160}}>
+                  <div style={{fontSize:12,color:"var(--text)",fontWeight:500}}>{e.title}</div>
+                  {(e.forecast||e.previous) && (
+                    <div style={{fontSize:10,color:"var(--text-dim)",marginTop:3,display:"flex",gap:12}}>
+                      {e.forecast && <span>Forecast: <b style={{color:"var(--text)"}}>{e.forecast}</b></span>}
+                      {e.previous && <span>Previous: <b style={{color:"var(--text)"}}>{e.previous}</b></span>}
+                    </div>
+                  )}
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:6}}>
+                  <div style={{width:6,height:6,borderRadius:"50%",background:impactColor(e.impact)}}/>
+                  <span style={{fontSize:9,color:impactColor(e.impact),letterSpacing:"0.1em"}}>{e.impact?.toUpperCase()}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <div style={{fontSize:10,color:"var(--muted)",textAlign:"center",marginTop:16}}>
+        Data from ForexFactory · Updates weekly · Showing USD, EUR, GBP events only
+      </div>
+    </div>
+  )
 }
 
 function F({label,children,full}){return <div style={{gridColumn:full?"1/-1":"auto"}}><div style={{fontSize:9,color:"var(--muted)",letterSpacing:"0.15em",textTransform:"uppercase",marginBottom:5}}>{label}</div>{children}</div>;}
