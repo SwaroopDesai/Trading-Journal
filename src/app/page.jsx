@@ -200,15 +200,20 @@ export default function App() {
 
   const signOut = async()=>{ await supabase.auth.signOut(); setTrades([]); setDailyPlans([]); setWeeklyPlans([]) }
 
-  const stats = useMemo(()=>{
+  const stats = useMemo(()=> {
     const t=trades, wins=t.filter(x=>x.result==="WIN"), losses=t.filter(x=>x.result==="LOSS"), be=t.filter(x=>x.result==="BREAKEVEN")
     const totalR=t.reduce((s,x)=>s+(x.rr||0),0), avgRR=wins.length?wins.reduce((s,x)=>s+x.rr,0)/wins.length:0, winRate=t.length?(wins.length/t.length)*100:0
     const byPair=PAIRS.map(p=>{ const pt=t.filter(x=>x.pair===p); return{pair:p,count:pt.length,wins:pt.filter(x=>x.result==="WIN").length,totalR:pt.reduce((s,x)=>s+(x.rr||0),0)} })
     const bySession=SESSIONS.map(s=>{ const st=t.filter(x=>x.session===s); return{session:s,count:st.length,wins:st.filter(x=>x.result==="WIN").length,totalR:st.reduce((s2,x)=>s2+(x.rr||0),0)} }).filter(x=>x.count>0)
     const equityCurve=[]; let cum=0
-    [...t].sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(x=>{ cum+=(x.rr||0); equityCurve.push({r:cum,result:x.result}) })
+    }, [trades])
+  .sort((a, b) => new Date(a.date) - new Date(b.date))
+  .forEach(x => {
+    cum += x.rr || 0
+    equityCurve.push({ r: cum, result: x.result })
+  })
     return {total:t.length,wins:wins.length,losses:losses.length,be:be.length,totalR,avgRR,winRate,byPair,bySession,equityCurve}
-  },[trades])
+  ,[trades] 
 
   const filtered = useMemo(()=>trades.filter(t=>(filterPair==="ALL"||t.pair===filterPair)&&(filterResult==="ALL"||t.result===filterResult)).sort((a,b)=>new Date(b.date)-new Date(a.date)),[trades,filterPair,filterResult])
 
@@ -224,7 +229,7 @@ export default function App() {
     {id:"review",icon:"⬡",label:"Review"},
   ]
 
-  const css = buildCSS(T)
+  const css = buildCSS(trades)
 
   if(authLoading) return <Spinner T={T}/>
   if(!user) return <LoginScreen supabase={supabase}/>
