@@ -221,6 +221,7 @@ export default function App() {
     {id:"weekly",icon:"⬡",label:"Weekly"},
     {id:"analytics",icon:"⬡",label:"Analytics"},
     {id:"psychology",icon:"⬡",label:"Mind"},
+    {id:"heatmap",icon:"⬡",label:"Heatmap"},
     {id:"calculator",icon:"⬡",label:"Calculator"},
     {id:"gallery",icon:"⬡",label:"Gallery"},
     {id:"review",icon:"⬡",label:"Review"},
@@ -288,10 +289,12 @@ export default function App() {
           {tab==="calculator"&&<Calculator T={T}/>}
           {tab==="gallery"&&<ScreenshotGallery T={T} trades={trades} onViewImg={setImgViewer}/>}
           {tab==="review"&&<WeeklyReview T={T} weeklyPlans={weeklyPlans} trades={trades} saveWeekly={saveWeekly}/>}
+          {tab==="heatmap"&&<Heatmap T={T} trades={trades}/>}
         </div>
       </main>
 
-      {tradeModal&&<TradeModal T={T} initial={tradeModal==="new"?null:tradeModal} onSave={saveTrade} onClose={()=>setTradeModal(null)} syncing={syncing}/>}
+      {tradeModal&&(tradeModal!=="new"?<TradeModal T={T} initial={tradeModal} onSave={saveTrade} onClose={()=>setTradeModal(null)} syncing={syncing}/>:<ChecklistGate T={T} onPass={()=>setTradeModal("go")} onClose={()=>setTradeModal(null)}/>)}
+      {tradeModal==="go"&&<TradeModal T={T} initial={null} onSave={saveTrade} onClose={()=>setTradeModal(null)} syncing={syncing}/>}
       {dailyModal&&<DailyModal T={T} initial={dailyModal==="new"?null:dailyModal} onSave={saveDaily} onClose={()=>setDailyModal(null)} syncing={syncing}/>}
       {weeklyModal&&<WeeklyModal T={T} initial={weeklyModal==="new"?null:weeklyModal} onSave={saveWeekly} onClose={()=>setWeeklyModal(null)} syncing={syncing}/>}
       {deleteTarget&&(
@@ -918,6 +921,302 @@ function WeeklyReview({T,weeklyPlans,trades,saveWeekly}) {
           </div>
         </Overlay>
       )}
+    </div>
+  )
+}
+
+
+// ── Pre-Trade Checklist Gate ──────────────────────────────────────────────────
+const CHECKLIST_RULES = [
+  { id:"bias",     icon:"🧭", label:"I have confirmed the Daily Bias",          detail:"HTF is aligned with your trade direction" },
+  { id:"manip",    icon:"🎯", label:"Manipulation / Liquidity Sweep happened",  detail:"Judas swing, stop hunt or sweep confirmed" },
+  { id:"kz",       icon:"⏰", label:"I am in a Kill Zone",                      detail:"London, NY Open, or valid session window" },
+  { id:"poi",      icon:"📍", label:"I have identified a valid POI",            detail:"Order Block, FVG, Breaker or Mitigation" },
+  { id:"risk",     icon:"🛡", label:"Risk is calculated & SL is set",           detail:"Position size and pip risk confirmed" },
+  { id:"higher",   icon:"📈", label:"Higher timeframe structure is aligned",    detail:"H4/Daily agrees with your entry direction" },
+  { id:"no_revenge",icon:"🧘",label:"I am NOT in revenge mode",                detail:"Calm, focused, and following the plan" },
+]
+
+function ChecklistGate({T, onPass, onClose}) {
+  const [checked, setChecked] = useState({})
+  const [attempted, setAttempted] = useState(false)
+  const toggle = id => setChecked(c => ({...c, [id]: !c[id]}))
+  const allChecked = CHECKLIST_RULES.every(r => checked[r.id])
+  const score = CHECKLIST_RULES.filter(r => checked[r.id]).length
+
+  const handleProceed = () => {
+    setAttempted(true)
+    if(allChecked) onPass()
+  }
+
+  const pct = Math.round((score / CHECKLIST_RULES.length) * 100)
+  const progressColor = pct === 100 ? T.green : pct >= 70 ? T.amber : T.red
+
+  return (
+    <Overlay onClose={onClose}>
+      <div style={{background:T.surface, border:`1px solid ${T.border}`, borderRadius:20, width:"min(520px,96vw)", maxHeight:"92vh", display:"flex", flexDirection:"column", overflow:"hidden"}}>
+        {/* Header */}
+        <div style={{padding:"22px 24px 18px", background:`linear-gradient(135deg,${T.accent}20,${T.pink}10)`, borderBottom:`1px solid ${T.border}`}}>
+          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:4}}>
+            <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize:20, fontWeight:800, color:T.text}}>Pre-Trade Checklist</div>
+            <button onClick={onClose} style={{background:"none", border:"none", color:T.textDim, cursor:"pointer", fontSize:20}}>✕</button>
+          </div>
+          <div style={{fontSize:13, color:T.textDim}}>Tick every rule before logging your trade</div>
+          {/* Progress bar */}
+          <div style={{marginTop:14}}>
+            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6}}>
+              <span style={{fontSize:12, fontWeight:700, color:progressColor}}>{score}/{CHECKLIST_RULES.length} rules checked</span>
+              <span style={{fontSize:12, fontWeight:800, color:progressColor}}>{pct}%</span>
+            </div>
+            <div style={{height:6, background:T.surface2, borderRadius:3, overflow:"hidden"}}>
+              <div style={{height:"100%", borderRadius:3, background:`linear-gradient(90deg,${progressColor},${T.pink})`, width:`${pct}%`, transition:"width .4s ease"}}/>
+            </div>
+          </div>
+        </div>
+
+        {/* Rules */}
+        <div style={{padding:"16px 24px", overflowY:"auto", flex:1, display:"flex", flexDirection:"column", gap:8}}>
+          {CHECKLIST_RULES.map(rule => {
+            const isChecked = !!checked[rule.id]
+            const isError = attempted && !isChecked
+            return (
+              <div key={rule.id}
+                onClick={() => toggle(rule.id)}
+                style={{
+                  display:"flex", alignItems:"center", gap:14, padding:"14px 16px",
+                  background: isChecked ? `${T.green}12` : isError ? `${T.red}08` : T.surface2,
+                  border:`1.5px solid ${isChecked ? T.green : isError ? T.red : T.border}`,
+                  borderRadius:12, cursor:"pointer", transition:"all .15s",
+                  transform: isChecked ? "none" : "none",
+                }}
+              >
+                {/* Checkbox */}
+                <div style={{
+                  width:24, height:24, borderRadius:8, flexShrink:0,
+                  background: isChecked ? T.green : "none",
+                  border:`2px solid ${isChecked ? T.green : isError ? T.red : T.border}`,
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  transition:"all .2s",
+                }}>
+                  {isChecked && <span style={{color:"#fff", fontSize:14, fontWeight:700}}>✓</span>}
+                </div>
+                {/* Icon + text */}
+                <span style={{fontSize:20, flexShrink:0}}>{rule.icon}</span>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:13, fontWeight:700, color: isChecked ? T.green : T.text, marginBottom:2}}>{rule.label}</div>
+                  <div style={{fontSize:11, color:T.muted}}>{rule.detail}</div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Footer */}
+        <div style={{padding:"16px 24px", borderTop:`1px solid ${T.border}`}}>
+          {attempted && !allChecked && (
+            <div style={{fontSize:12, color:T.red, marginBottom:10, textAlign:"center", fontWeight:600}}>
+              ⚠ Tick all {CHECKLIST_RULES.length} rules before logging a trade
+            </div>
+          )}
+          <button
+            onClick={handleProceed}
+            style={{
+              width:"100%", padding:"13px",
+              background: allChecked ? `linear-gradient(135deg,${T.accentBright},${T.pink})` : T.surface2,
+              color: allChecked ? "#fff" : T.muted,
+              border:`1px solid ${allChecked ? "transparent" : T.border}`,
+              borderRadius:12, cursor: allChecked ? "pointer" : "default",
+              fontFamily:"'Plus Jakarta Sans',sans-serif", fontWeight:800, fontSize:15,
+              transition:"all .3s",
+            }}
+          >
+            {allChecked ? "✅ All rules checked — Log Trade" : `${CHECKLIST_RULES.length - score} rule${CHECKLIST_RULES.length - score !== 1 ? "s" : ""} remaining`}
+          </button>
+          <div style={{textAlign:"center", marginTop:8}}>
+            <button onClick={onPass} style={{background:"none", border:"none", color:T.muted, cursor:"pointer", fontSize:11, textDecoration:"underline"}}>Skip checklist (not recommended)</button>
+          </div>
+        </div>
+      </div>
+    </Overlay>
+  )
+}
+
+// ── Monthly P&L Heatmap ───────────────────────────────────────────────────────
+function Heatmap({T, trades}) {
+  const now = new Date()
+  const [year, setYear] = useState(now.getFullYear())
+  const [month, setMonth] = useState(now.getMonth()) // 0-indexed
+
+  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+  const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
+
+  // Build daily P&L map for selected month
+  const dailyMap = useMemo(() => {
+    const map = {}
+    trades.forEach(t => {
+      if(!t.date) return
+      const d = new Date(t.date)
+      if(d.getFullYear() !== year || d.getMonth() !== month) return
+      const key = t.date
+      if(!map[key]) map[key] = { r: 0, count: 0, wins: 0 }
+      map[key].r += (t.rr || 0)
+      map[key].count++
+      if(t.result === "WIN") map[key].wins++
+    })
+    return map
+  }, [trades, year, month])
+
+  // Monthly stats
+  const monthTrades = trades.filter(t => {
+    if(!t.date) return false
+    const d = new Date(t.date)
+    return d.getFullYear() === year && d.getMonth() === month
+  })
+  const monthR = monthTrades.reduce((s,t)=>s+(t.rr||0),0)
+  const monthWins = monthTrades.filter(t=>t.result==="WIN").length
+  const monthWR = monthTrades.length ? (monthWins/monthTrades.length*100).toFixed(0) : 0
+
+  // Build calendar grid
+  const firstDay = new Date(year, month, 1)
+  let startDow = firstDay.getDay() // 0=Sun
+  startDow = startDow === 0 ? 6 : startDow - 1 // convert to Mon=0
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  const totalCells = Math.ceil((startDow + daysInMonth) / 7) * 7
+  const cells = []
+  for(let i = 0; i < totalCells; i++) {
+    const dayNum = i - startDow + 1
+    if(dayNum < 1 || dayNum > daysInMonth) { cells.push(null); continue }
+    const dateStr = `${year}-${String(month+1).padStart(2,"0")}-${String(dayNum).padStart(2,"0")}`
+    const data = dailyMap[dateStr] || null
+    const dow = new Date(year, month, dayNum).getDay() // 0=Sun
+    cells.push({ dayNum, dateStr, data, isWeekend: dow === 0 || dow === 6 })
+  }
+
+  const getColor = (data, isWeekend) => {
+    if(isWeekend) return T.isDark ? "#1a1a24" : "#f0f0f5"
+    if(!data) return T.surface2
+    if(data.r > 3) return T.isDark ? "#15532a" : "#dcfce7"
+    if(data.r > 1) return T.isDark ? "#166534" : "#bbf7d0"
+    if(data.r > 0) return T.isDark ? "#14532d" : "#d1fae5"
+    if(data.r > -1) return T.isDark ? "#7f1d1d" : "#fee2e2"
+    if(data.r > -3) return T.isDark ? "#991b1b" : "#fca5a5"
+    return T.isDark ? "#450a0a" : "#ef4444"
+  }
+  const getBorder = (data) => {
+    if(!data) return T.border
+    return data.r > 0 ? `${T.green}60` : data.r < 0 ? `${T.red}60` : T.border
+  }
+
+  // Year overview — monthly totals
+  const yearlyData = useMemo(() => {
+    return MONTHS.map((m, mi) => {
+      const mt = trades.filter(t => {
+        if(!t.date) return false
+        const d = new Date(t.date)
+        return d.getFullYear() === year && d.getMonth() === mi
+      })
+      return {
+        month: m,
+        r: mt.reduce((s,t)=>s+(t.rr||0),0),
+        count: mt.length,
+        wins: mt.filter(t=>t.result==="WIN").length,
+      }
+    })
+  }, [trades, year])
+
+  const maxAbsR = Math.max(1, ...yearlyData.map(d => Math.abs(d.r)))
+
+  return (
+    <div>
+      {/* Year bar chart */}
+      <Card T={T} style={{marginBottom:16}} glow>
+        <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16, flexWrap:"wrap", gap:8}}>
+          <CardTitle T={T}>Year Overview — {year}</CardTitle>
+          <div style={{display:"flex", gap:8}}>
+            <button onClick={()=>setYear(y=>y-1)} style={{background:T.surface2, border:`1px solid ${T.border}`, color:T.textDim, padding:"5px 12px", borderRadius:8, cursor:"pointer", fontSize:13}}>◀ {year-1}</button>
+            <button onClick={()=>setYear(y=>y+1)} style={{background:T.surface2, border:`1px solid ${T.border}`, color:T.textDim, padding:"5px 12px", borderRadius:8, cursor:"pointer", fontSize:13}}>{year+1} ▶</button>
+          </div>
+        </div>
+        <div style={{display:"flex", gap:6, alignItems:"flex-end", height:80}}>
+          {yearlyData.map((d,i) => (
+            <div key={d.month} style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:4, cursor:"pointer"}} onClick={()=>{setMonth(i)}}>
+              <div style={{
+                width:"100%", borderRadius:"4px 4px 0 0",
+                height: d.count === 0 ? 4 : Math.max(4, Math.abs(d.r) / maxAbsR * 64),
+                background: d.r > 0 ? `linear-gradient(180deg,${T.green},${T.green}88)` : d.r < 0 ? `linear-gradient(180deg,${T.red},${T.red}88)` : T.surface2,
+                border: `1px solid ${i===month?T.accentBright:T.border}`,
+                transition:"all .3s",
+                opacity: i===month?1:0.7,
+              }}/>
+              <div style={{fontSize:9, fontWeight:700, color:i===month?T.accentBright:T.muted}}>{d.month}</div>
+              {d.count > 0 && <div style={{fontSize:9, fontWeight:700, color:d.r>=0?T.green:T.red}}>{d.r>=0?"+":""}{d.r.toFixed(1)}R</div>}
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      {/* Monthly calendar */}
+      <Card T={T} glow>
+        <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16, flexWrap:"wrap", gap:8}}>
+          <div>
+            <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize:18, fontWeight:800, color:T.text}}>{MONTHS[month]} {year}</div>
+            <div style={{display:"flex", gap:12, marginTop:4, flexWrap:"wrap"}}>
+              <span style={{fontSize:12, color:T.muted}}>{monthTrades.length} trades</span>
+              <span style={{fontSize:12, fontWeight:700, color:monthR>=0?T.green:T.red}}>{monthR>=0?"+":""}{monthR.toFixed(2)}R</span>
+              <span style={{fontSize:12, color:T.textDim}}>{monthWR}% win rate</span>
+            </div>
+          </div>
+          <div style={{display:"flex", gap:8}}>
+            <button onClick={()=>{ if(month===0){setMonth(11);setYear(y=>y-1)}else setMonth(m=>m-1)}} style={{background:T.surface2, border:`1px solid ${T.border}`, color:T.textDim, padding:"6px 14px", borderRadius:8, cursor:"pointer", fontSize:13}}>◀</button>
+            <button onClick={()=>{ if(month===11){setMonth(0);setYear(y=>y+1)}else setMonth(m=>m+1)}} style={{background:T.surface2, border:`1px solid ${T.border}`, color:T.textDim, padding:"6px 14px", borderRadius:8, cursor:"pointer", fontSize:13}}>▶</button>
+          </div>
+        </div>
+
+        {/* Day headers */}
+        <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4, marginBottom:4}}>
+          {DAYS.map(d=><div key={d} style={{textAlign:"center", fontSize:11, fontWeight:700, color:T.muted, padding:"4px 0"}}>{d}</div>)}
+        </div>
+
+        {/* Calendar cells */}
+        <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4}}>
+          {cells.map((cell, i) => {
+            if(!cell) return <div key={i} style={{aspectRatio:"1", borderRadius:10}}/>
+            const isToday = cell.dateStr === new Date().toISOString().split("T")[0]
+            return (
+              <div key={cell.dateStr}
+                style={{
+                  aspectRatio:"1", borderRadius:10, padding:"6px",
+                  background: getColor(cell.data, cell.isWeekend),
+                  border:`1.5px solid ${isToday?T.accentBright:getBorder(cell.data)}`,
+                  display:"flex", flexDirection:"column", justifyContent:"space-between",
+                  cursor: cell.data ? "pointer" : "default",
+                  position:"relative", overflow:"hidden",
+                }}
+              >
+                <div style={{fontSize:11, fontWeight:700, color:cell.isWeekend?T.muted:cell.data?(cell.data.r>=0?T.green:T.red):T.textDim}}>{cell.dayNum}</div>
+                {cell.data && (
+                  <>
+                    <div style={{fontSize:10, fontWeight:800, color:cell.data.r>=0?T.green:T.red, lineHeight:1}}>{cell.data.r>=0?"+":""}{cell.data.r.toFixed(1)}R</div>
+                    <div style={{fontSize:9, color:T.muted}}>{cell.data.count}t</div>
+                  </>
+                )}
+                {isToday && <div style={{position:"absolute",top:3,right:5,width:5,height:5,borderRadius:"50%",background:T.accentBright}}/>}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Legend */}
+        <div style={{display:"flex", gap:12, marginTop:14, alignItems:"center", flexWrap:"wrap"}}>
+          <span style={{fontSize:11, color:T.muted}}>Legend:</span>
+          {[{c:T.isDark?"#15532a":"#dcfce7",l:"Big Win (3R+)"},{c:T.isDark?"#166534":"#bbf7d0",l:"Win"},{c:T.surface2,l:"No Trade"},{c:T.isDark?"#7f1d1d":"#fee2e2",l:"Loss"},{c:T.isDark?"#450a0a":"#ef4444",l:"Big Loss (-3R+)"}].map(x=>(
+            <div key={x.l} style={{display:"flex",alignItems:"center",gap:5}}>
+              <div style={{width:14,height:14,borderRadius:4,background:x.c,border:`1px solid ${T.border}`}}/>
+              <span style={{fontSize:10,color:T.muted}}>{x.l}</span>
+            </div>
+          ))}
+        </div>
+      </Card>
     </div>
   )
 }
