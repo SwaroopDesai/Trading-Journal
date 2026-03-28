@@ -234,6 +234,8 @@ export default function App() {
   ]
   const ALL_TABS=TABS.filter(t=>t.id!=="more")
   const MOBILE_PRIMARY=TABS.filter(t=>t.mobile)
+  const SIDEBAR_PRIMARY=ALL_TABS.filter(t=>["dashboard","journal","daily","heatmap"].includes(t.id))
+  const SIDEBAR_SECONDARY=ALL_TABS.filter(t=>!["dashboard","journal","daily","heatmap"].includes(t.id))
 
   const css = buildCSS(T)
 
@@ -251,13 +253,25 @@ export default function App() {
           <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,fontWeight:800,background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>FXEDGE</div>
           <div style={{fontSize:9,color:T.muted,letterSpacing:"0.12em",marginTop:2}}>ICT · SMC</div>
         </div>
-        {TABS.map(t=>(
-          <button key={t.id} className={`nav-btn ${tab===t.id?"nav-active":""}`}
-            style={{color:tab===t.id?T.accentBright:T.textDim,background:tab===t.id?`${T.accent}18`:"none",borderLeft:tab===t.id?`3px solid ${T.accentBright}`:"3px solid transparent"}}
-            onClick={()=>setTab(t.id)}>
-            {t.label}
-          </button>
-        ))}
+        <div style={{padding:"8px 12px 0"}}>
+          {SIDEBAR_PRIMARY.map(t=>(
+            <button key={t.id} className={`nav-btn ${tab===t.id?"nav-active":""}`}
+              style={{color:tab===t.id?T.text:T.textDim,background:tab===t.id?`linear-gradient(135deg,${T.accent}22,${T.pink}10)`:"none",borderLeft:tab===t.id?`3px solid ${T.accentBright}`:"3px solid transparent",boxShadow:tab===t.id?`inset 0 0 0 1px ${T.accent}28`:"none"}}
+              onClick={()=>setTab(t.id)}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <div style={{padding:"18px 20px 8px",fontSize:10,color:T.muted,letterSpacing:"0.16em",textTransform:"uppercase"}}>Workspace</div>
+        <div style={{padding:"0 12px"}}>
+          {SIDEBAR_SECONDARY.map(t=>(
+            <button key={t.id} className={`nav-btn ${tab===t.id?"nav-active":""}`}
+              style={{color:tab===t.id?T.text:T.textDim,background:tab===t.id?`linear-gradient(135deg,${T.accent}22,${T.pink}10)`:"none",borderLeft:tab===t.id?`3px solid ${T.accentBright}`:"3px solid transparent",boxShadow:tab===t.id?`inset 0 0 0 1px ${T.accent}28`:"none"}}
+              onClick={()=>setTab(t.id)}>
+              {t.label}
+            </button>
+          ))}
+        </div>
         <div style={{flex:1}}/>
         <div style={{padding:"8px 20px",fontSize:11,color:T.muted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.email}</div>
         <div style={{padding:"4px 20px 4px",fontSize:11,color:syncing?T.amber:T.green,cursor:"pointer"}} onClick={loadAll}>{syncing?"⟳ Saving...":"● Synced"}</div>
@@ -272,7 +286,7 @@ export default function App() {
         {/* Topbar */}
         <div style={{padding:"14px 28px",borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",background:T.surface,position:"sticky",top:0,zIndex:40}}>
           <div>
-            <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:20,fontWeight:800,color:T.text}}>{TABS.find(t=>t.id===tab)?.label}</div>
+            <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:20,fontWeight:800,color:T.text}}>{ALL_TABS.find(t=>t.id===tab)?.label || TABS.find(t=>t.id===tab)?.label}</div>
             <div style={{fontSize:11,color:T.muted,marginTop:1}}>{new Date().toLocaleDateString("en-GB",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}</div>
           </div>
           <div style={{display:"flex",gap:8,alignItems:"center"}}>
