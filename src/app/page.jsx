@@ -1338,7 +1338,7 @@ function Heatmap({T, trades}) {
       {activeView==="calendar"&&(
         <div>
           {/* Year overview */}
-          <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"18px 20px",marginBottom:14}}>
+          <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:18,padding:"16px 18px",marginBottom:14,boxShadow:`0 10px 30px ${T.cardGlow}`}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,flexWrap:"wrap",gap:8}}>
               <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text}}>Year Overview — {year}</div>
               <div style={{display:"flex",gap:8}}>
@@ -1346,26 +1346,26 @@ function Heatmap({T, trades}) {
                 <button onClick={()=>setYear(y=>y+1)} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontSize:12}}>{year+1} ▶</button>
               </div>
             </div>
-            <div style={{display:"flex",gap:6,alignItems:"flex-end",height:90}}>
+            <div style={{display:"flex",gap:5,alignItems:"flex-end",height:78}}>
               {yearlyData.map((d,i)=>(
-                <div key={d.month} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4,cursor:"pointer"}} onClick={()=>{setMonth(i);setActiveView("calendar")}}>
-                  <div style={{fontSize:10,fontWeight:700,color:d.r>=0?T.green:T.red,marginBottom:2}}>{d.count>0?`${d.r>=0?"+":""}${d.r.toFixed(1)}`:""}</div>
+                <div key={d.month} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3,cursor:"pointer"}} onClick={()=>{setMonth(i);setActiveView("calendar")}}>
+                  <div style={{fontSize:9,fontWeight:700,color:d.r>=0?T.green:T.red,marginBottom:1}}>{d.count>0?`${d.r>=0?"+":""}${d.r.toFixed(1)}`:""}</div>
                   <div style={{
                     width:"100%",borderRadius:"6px 6px 0 0",
-                    height:d.count===0?4:Math.max(6,Math.abs(d.r)/maxAbsR*64),
+                    height:d.count===0?4:Math.max(6,Math.abs(d.r)/maxAbsR*52),
                     background:d.r>0?`linear-gradient(180deg,${T.green},${T.green}66)`:d.r<0?`linear-gradient(180deg,${T.red},${T.red}66)`:T.surface2,
                     border:`1px solid ${i===month?T.accentBright:T.border}`,
                     boxShadow:i===month?`0 0 12px ${T.accentBright}40`:"none",
                     transition:"all .2s",
                   }}/>
-                  <div style={{fontSize:10,fontWeight:700,color:i===month?T.accentBright:T.muted}}>{d.month}</div>
+                  <div style={{fontSize:9,fontWeight:700,color:i===month?T.accentBright:T.muted,letterSpacing:"0.04em"}}>{d.month}</div>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Monthly calendar */}
-          <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"18px 20px"}}>
+          <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:18,padding:"16px 18px",boxShadow:`0 10px 30px ${T.cardGlow}`}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,flexWrap:"wrap",gap:8}}>
               <div>
                 <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:18,fontWeight:800,color:T.text}}>{MONTHS[month]} {year}</div>
@@ -1381,27 +1381,27 @@ function Heatmap({T, trades}) {
                 <button onClick={()=>{if(month===11){setMonth(0);setYear(y=>y+1)}else setMonth(m=>m+1)}} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:"6px 14px",borderRadius:8,cursor:"pointer"}}>▶</button>
               </div>
             </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4,marginBottom:4}}>
-              {DAYS_SHORT.map(d=><div key={d} style={{textAlign:"center",fontSize:11,fontWeight:700,color:T.muted,padding:"4px 0"}}>{d}</div>)}
+            <div style={{display:"grid",gridTemplateColumns:"repeat(7,minmax(0,1fr))",gap:6,marginBottom:6}}>
+              {DAYS_SHORT.map(d=><div key={d} style={{textAlign:"center",fontSize:10,fontWeight:700,color:T.muted,padding:"2px 0",letterSpacing:"0.08em",textTransform:"uppercase"}}>{d}</div>)}
             </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(7,minmax(0,1fr))",gap:6}}>
               {cells.map((cell,i)=>{
-                if(!cell) return <div key={i} style={{aspectRatio:"1"}}/>
+                if(!cell) return <div key={i} style={{minHeight:74}}/>
                 const isToday=cell.dateStr===new Date().toISOString().split("T")[0]
                 return (
                   <div key={cell.dateStr} style={{
-                    aspectRatio:"1",borderRadius:10,padding:"6px",
+                    minHeight:74,borderRadius:14,padding:"7px 8px",
                     background:getCalColor(cell.data,cell.isWeekend),
                     border:getCellBorder(cell.data,isToday),
                     display:"flex",flexDirection:"column",justifyContent:"space-between",
                     position:"relative",cursor:cell.data?"pointer":"default",
-                    boxShadow:isToday?`0 0 0 2px ${T.accentBright}40`:"none",
+                    boxShadow:isToday?`0 0 0 2px ${T.accentBright}40`:`inset 0 1px 0 rgba(255,255,255,0.02)`,
                   }}>
                     <div style={{fontSize:11,fontWeight:700,color:cell.isWeekend?T.muted:cell.data?(cell.data.r>=0?"#fff":T.red):T.textDim}}>{cell.dayNum}</div>
                     {cell.data&&(
                       <>
-                        <div style={{fontSize:10,fontWeight:800,color:cell.data.r>=0?"#fff":T.red,lineHeight:1}}>{cell.data.r>=0?"+":""}{cell.data.r.toFixed(1)}R</div>
-                        <div style={{fontSize:9,color:"rgba(255,255,255,0.7)"}}>{cell.data.count}t · {cell.data.wins}W</div>
+                        <div style={{fontSize:11,fontWeight:800,color:cell.data.r>=0?"#fff":T.red,lineHeight:1.1}}>{cell.data.r>=0?"+":""}{cell.data.r.toFixed(1)}R</div>
+                        <div style={{fontSize:9,color:cell.data.r>=0?"rgba(255,255,255,0.75)":T.textDim,letterSpacing:"0.02em"}}>{cell.data.count}t � {cell.data.wins}W</div>
                       </>
                     )}
                     {isToday&&<div style={{position:"absolute",top:4,right:5,width:5,height:5,borderRadius:"50%",background:T.accentBright}}/>}
