@@ -531,6 +531,80 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily}
   )
 }
 
+function renderInlineMarkdown(text) {
+  const parts = String(text).split(/(\*\*.*?\*\*)/g)
+  return parts.filter(Boolean).map((part, index) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>
+    }
+    return <span key={index}>{part}</span>
+  })
+}
+
+function AIResultView({ T, text }) {
+  const sections = String(text)
+    .replace(/\r/g, "")
+    .split(/\n\s*\n/)
+    .map(block => block.trim())
+    .filter(Boolean)
+
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:14}}>
+      {sections.map((section, index) => {
+        const lines = section.split("\n").map(line => line.trim()).filter(Boolean)
+        if (!lines.length) return null
+
+        const isHeading = lines.length === 1 && /^#{1,3}\s+/.test(lines[0])
+        if (isHeading) {
+          const title = lines[0].replace(/^#{1,3}\s+/, "")
+          return (
+            <div key={index} style={{paddingTop:index===0?0:6}}>
+              <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:16,fontWeight:800,color:T.text}}>
+                {title}
+              </div>
+            </div>
+          )
+        }
+
+        const headingLine = lines[0].match(/^#{1,3}\s+(.+)/)?.[1]
+        const bulletLines = headingLine ? lines.slice(1).filter(line => line.startsWith("* ")) : lines.filter(line => line.startsWith("* "))
+        const nonBulletLines = headingLine ? lines.slice(1).filter(line => !line.startsWith("* ")) : lines.filter(line => !line.startsWith("* "))
+
+        return (
+          <div key={index} style={{background:T.surface2,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px 18px"}}>
+            {headingLine && (
+              <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:14,fontWeight:800,color:T.accentBright,marginBottom:bulletLines.length || nonBulletLines.length ? 12 : 0}}>
+                {headingLine}
+              </div>
+            )}
+            {nonBulletLines.length > 0 && (
+              <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:bulletLines.length ? 12 : 0}}>
+                {nonBulletLines.map((line, lineIndex) => (
+                  <div key={lineIndex} style={{fontSize:13,color:T.text,lineHeight:1.8}}>
+                    {renderInlineMarkdown(line)}
+                  </div>
+                ))}
+              </div>
+            )}
+            {bulletLines.length > 0 && (
+              <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                {bulletLines.map((line, lineIndex) => (
+                  <div key={lineIndex} style={{display:"grid",gridTemplateColumns:"14px 1fr",gap:10,alignItems:"start"}}>
+                    <div style={{width:6,height:6,borderRadius:"50%",background:T.pink,marginTop:8}} />
+                    <div style={{fontSize:13,color:T.text,lineHeight:1.8}}>
+                      {renderInlineMarkdown(line.replace(/^\*\s+/, ""))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function MiniEquityCurve({T,data}) {
   if(!data.length) return <div style={{color:T.muted,fontSize:13,textAlign:"center",padding:"24px 0"}}>Your equity curve will appear after logging trades</div>
   const W=500,H=90,vals=data.map(d=>d.r),mn=Math.min(0,...vals),mx=Math.max(0,...vals),rng=mx-mn||1
@@ -2028,12 +2102,15 @@ Be concise, direct and actionable.`
       )}
 
       {result&&(
-        <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"20px"}}>
+        <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:18,padding:"20px",boxShadow:`0 10px 40px ${T.cardGlow}`}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
-            <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text}}>Analysis Results</div>
+            <div>
+              <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text}}>Analysis Results</div>
+              <div style={{fontSize:11,color:T.muted,marginTop:3,letterSpacing:"0.08em",textTransform:"uppercase"}}>Structured AI Report</div>
+            </div>
             <button onClick={()=>setResult(null)} style={{background:"none",border:`1px solid ${T.border}`,color:T.textDim,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontSize:12}}>Clear</button>
           </div>
-          <div style={{fontSize:13,color:T.text,lineHeight:1.8,whiteSpace:"pre-wrap"}}>{result}</div>
+          <AIResultView T={T} text={result}/>
         </div>
       )}
     </div>
