@@ -1990,7 +1990,7 @@ Be concise, direct and actionable.`
     <div style={{maxWidth:720}}>
       <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"20px",marginBottom:14}}>
         <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:17,fontWeight:800,color:T.text,marginBottom:6}}>🤖 AI Trading Coach</div>
-        <div style={{fontSize:13,color:T.textDim,marginBottom:16}}>Powered by Claude — your personal ICT/SMC trading analyst</div>
+        <div style={{fontSize:13,color:T.textDim,marginBottom:16}}>Powered by Gemini — your personal ICT/SMC trading analyst</div>
         <div style={{display:"flex",gap:8,marginBottom:16}}>
           {[{id:"journal",label:"📊 Analyze My Journal"},{id:"notes",label:"📝 Analyze Trade Notes"}].map(m=>(
             <button key={m.id} onClick={()=>{setMode(m.id);setResult(null)}} style={{padding:"9px 18px",borderRadius:20,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif",background:mode===m.id?`linear-gradient(135deg,${T.accentBright},${T.pink})`:`${T.surface2}`,color:mode===m.id?"#fff":T.textDim,border:`1px solid ${mode===m.id?"transparent":T.border}`}}>{m.label}</button>
@@ -2023,7 +2023,7 @@ Be concise, direct and actionable.`
       {loading&&(
         <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"32px",textAlign:"center"}}>
           <div style={{display:"flex",gap:8,justifyContent:"center",marginBottom:12}}>{[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:"50%",background:T.accentBright,animation:`pulse 1.2s ${i*0.2}s infinite ease-in-out`}}/>)}</div>
-          <div style={{fontSize:13,color:T.textDim}}>Claude is analyzing your trading data...</div>
+          <div style={{fontSize:13,color:T.textDim}}>Gemini is analyzing your trading data...</div>
         </div>
       )}
 

@@ -12,28 +12,33 @@ export async function POST(request) {
       })
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY
+    const apiKey = process.env.GEMINI_API_KEY
 
     if (!apiKey) {
       return new Response(JSON.stringify({
-        error: "Missing ANTHROPIC_API_KEY. Add it to your local env and Vercel project settings.",
+        error: "Missing GEMINI_API_KEY. Add it to your local env and Vercel project settings.",
       }), {
         status: 500,
         headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
       })
     }
 
-    const upstream = await fetch("https://api.anthropic.com/v1/messages", {
+    const upstream = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=" + encodeURIComponent(apiKey), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
-        messages: [{ role: "user", content: prompt }],
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: prompt }],
+          },
+        ],
+        generationConfig: {
+          maxOutputTokens: 1000,
+          temperature: 0.7,
+        },
       }),
       cache: "no-store",
     })
@@ -41,14 +46,17 @@ export async function POST(request) {
     const data = await upstream.json()
 
     if (!upstream.ok) {
-      const message = data?.error?.message || "Anthropic request failed."
+      const message = data?.error?.message || "Gemini request failed."
       return new Response(JSON.stringify({ error: message }), {
         status: upstream.status,
         headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
       })
     }
 
-    const text = data?.content?.map(block => block?.text || "").join("\n").trim()
+    const text = data?.candidates?.[0]?.content?.parts
+      ?.map(part => part?.text || "")
+      .join("\n")
+      .trim()
 
     return new Response(JSON.stringify({ text: text || "No response" }), {
       status: 200,
