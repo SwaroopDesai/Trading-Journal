@@ -728,9 +728,8 @@ function DailyTab({T,plans,onEdit,onDelete,onNew}) {
     <div>
       {sorted.length===0&&(
         <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px dashed ${T.border}`,borderRadius:22,padding:"44px 28px",textAlign:"center",marginBottom:16,boxShadow:`inset 0 18px 40px ${T.bg}40`}}>
-          <div style={{display:"inline-flex",alignItems:"center",gap:8,background:`linear-gradient(135deg,${T.accent}22,${T.pink}18)`,border:`1px solid ${T.accent}36`,color:T.accentBright,padding:"7px 14px",borderRadius:999,fontSize:11,fontWeight:800,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:14}}>Daily Focus</div>
           <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:24,fontWeight:800,color:T.text,marginBottom:10}}>Build your session plan before the market opens</div>
-          <div style={{maxWidth:520,margin:"0 auto",fontSize:14,color:T.textDim,lineHeight:1.7}}>Capture your bias, levels, manipulation ideas, and notes in one place so execution feels deliberate instead of rushed.</div>
+          <div style={{maxWidth:460,margin:"0 auto",fontSize:14,color:T.textDim,lineHeight:1.7}}>Keep the plan short, clear, and ready before you start executing.</div>
           <button onClick={onNew} style={{marginTop:20,background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,color:"#fff",border:"none",padding:"12px 24px",borderRadius:12,cursor:"pointer",fontWeight:800,fontSize:14,boxShadow:`0 14px 28px ${T.accent}28`}}>Create Daily Plan</button>
         </div>
       )}
@@ -739,7 +738,6 @@ function DailyTab({T,plans,onEdit,onDelete,onNew}) {
           <Card key={p._dbid} T={T} style={{padding:22,borderRadius:22,background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,boxShadow:`0 24px 40px ${T.bg}32`}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:18,gap:16}}>
               <div>
-                <div style={{display:"inline-flex",alignItems:"center",gap:8,background:`linear-gradient(135deg,${T.accent}18,${T.blue}12)`,border:`1px solid ${T.accent}30`,color:T.accentBright,padding:"6px 12px",borderRadius:999,fontSize:11,fontWeight:800,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:10}}>Daily Plan</div>
                 <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:20,fontWeight:800,color:T.text}}>{fmtDate(p.date)}</div>
                 <div style={{display:"flex",flexWrap:"wrap",gap:8,marginTop:10}}>{p.pairs?.map(pair=><Badge key={pair} color={p.biases?.[pair]==="Bullish"?T.green:p.biases?.[pair]==="Bearish"?T.red:T.amber}>{pair}: {p.biases?.[pair]}</Badge>)}</div>
               </div>
@@ -771,9 +769,8 @@ function WeeklyTab({T,plans,onEdit,onDelete,onNew}) {
     <div>
       {sorted.length===0&&(
         <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px dashed ${T.border}`,borderRadius:22,padding:"44px 28px",textAlign:"center",marginBottom:16,boxShadow:`inset 0 18px 40px ${T.bg}40`}}>
-          <div style={{display:"inline-flex",alignItems:"center",gap:8,background:`linear-gradient(135deg,${T.blue}18,${T.accent}16)`,border:`1px solid ${T.blue}30`,color:T.blue,padding:"7px 14px",borderRadius:999,fontSize:11,fontWeight:800,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:14}}>Weekly Bias</div>
           <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:24,fontWeight:800,color:T.text,marginBottom:10}}>Frame the week before the sessions get noisy</div>
-          <div style={{maxWidth:540,margin:"0 auto",fontSize:14,color:T.textDim,lineHeight:1.7}}>Map structure, catalysts, pair bias, and targets once so the rest of your workflow stays aligned through the week.</div>
+          <div style={{maxWidth:470,margin:"0 auto",fontSize:14,color:T.textDim,lineHeight:1.7}}>Define the bias, key events, and targets once so the rest of the week stays focused.</div>
           <button onClick={onNew} style={{marginTop:20,background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,color:"#fff",border:"none",padding:"12px 24px",borderRadius:12,cursor:"pointer",fontWeight:800,fontSize:14,boxShadow:`0 14px 28px ${T.accent}28`}}>Create Weekly Plan</button>
         </div>
       )}
@@ -782,7 +779,6 @@ function WeeklyTab({T,plans,onEdit,onDelete,onNew}) {
           <Card key={p._dbid} T={T} style={{padding:22,borderRadius:22,background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,boxShadow:`0 24px 40px ${T.bg}32`}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:18,gap:16}}>
               <div>
-                <div style={{display:"inline-flex",alignItems:"center",gap:8,background:`linear-gradient(135deg,${T.blue}18,${T.accent}14)`,border:`1px solid ${T.blue}30`,color:T.blue,padding:"6px 12px",borderRadius:999,fontSize:11,fontWeight:800,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:10}}>Weekly Plan</div>
                 <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:20,fontWeight:800,color:T.text}}>Week {p.weekStart} to {p.weekEnd}</div>
                 {p.overallBias&&<div style={{display:"inline-block",background:`${T.accent}20`,border:`1px solid ${T.accent}50`,color:T.accentBright,padding:"5px 12px",borderRadius:20,fontSize:12,fontWeight:700,marginTop:8}}>{p.overallBias}</div>}
               </div>
@@ -796,7 +792,6 @@ function WeeklyTab({T,plans,onEdit,onDelete,onNew}) {
                 <div key={pair} style={{background:`linear-gradient(180deg,${T.surface2} 0%,${T.surface} 100%)`,border:`1px solid ${T.border}`,padding:"12px 13px",borderRadius:14,boxShadow:`0 12px 22px ${T.bg}18`}}>
                   <div style={{fontSize:10,fontWeight:800,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>{pair}</div>
                   <div style={{fontSize:13,fontWeight:800,color:p.pairs?.[pair]==="Bullish"?T.green:p.pairs?.[pair]==="Bearish"?T.red:T.textDim}}>{p.pairs?.[pair]||"Neutral"}</div>
-                  {p.premiumDiscount?.[pair]&&<div style={{fontSize:10,color:T.muted,marginTop:6,lineHeight:1.5}}>{p.premiumDiscount[pair]}</div>}
                 </div>
               ))}
             </div>
@@ -1752,10 +1747,10 @@ function DailyModal({T,initial,onSave,onClose,syncing}) {
               </div>
             ))}
           </Section>
-          <FL label="Weekly Theme / Context" T={T}><Textarea T={T} rows={2} value={f.weeklyTheme} onChange={e=>upd("weeklyTheme",e.target.value)}/></FL>
+          <FL label="Context" T={T}><Textarea T={T} rows={2} value={f.weeklyTheme} onChange={e=>upd("weeklyTheme",e.target.value)}/></FL>
           <FL label="Key Levels" T={T}><Textarea T={T} rows={2} value={f.keyLevels} onChange={e=>upd("keyLevels",e.target.value)}/></FL>
-          <FL label="Expected Manipulation" T={T}><Textarea T={T} rows={2} placeholder="Where do you expect the Judas swing / liquidity sweep?" value={f.manipulation} onChange={e=>upd("manipulation",e.target.value)}/></FL>
-          <FL label="Watchlist / Trade Plan" T={T}><Textarea T={T} rows={2} value={f.watchlist} onChange={e=>upd("watchlist",e.target.value)}/></FL>
+          <FL label="Expected Manipulation" T={T}><Textarea T={T} rows={2} placeholder="Expected sweep, trap, or expansion" value={f.manipulation} onChange={e=>upd("manipulation",e.target.value)}/></FL>
+          <FL label="Trade Plan" T={T}><Textarea T={T} rows={2} value={f.watchlist} onChange={e=>upd("watchlist",e.target.value)}/></FL>
           <FL label="Notes" T={T}><Textarea T={T} rows={2} value={f.notes} onChange={e=>upd("notes",e.target.value)}/></FL>
           <FL label="Chart / Analysis Image — Ctrl+V to paste" T={T}><PasteImageInput T={T} label="Chart" value={f.chartImage||""} onChange={v=>upd("chartImage",v)}/></FL>
         </div>
@@ -1790,21 +1785,20 @@ function WeeklyModal({T,initial,onSave,onClose,syncing}) {
             <FL label="Week Start" T={T}><Inp T={T} type="date" value={f.weekStart} onChange={e=>upd("weekStart",e.target.value)}/></FL>
             <FL label="Week End" T={T}><Inp T={T} type="date" value={f.weekEnd} onChange={e=>upd("weekEnd",e.target.value)}/></FL>
           </div>
-          <FL label="Overall Bias / Theme" T={T}><Inp T={T} placeholder="USD Weakness, Risk-on, DXY retracement..." value={f.overallBias} onChange={e=>upd("overallBias",e.target.value)}/></FL>
-          <Section T={T} title="Pair Bias & Premium / Discount">
+          <FL label="Weekly Bias" T={T}><Inp T={T} placeholder="USD weakness, risk-on, DXY retracement" value={f.overallBias} onChange={e=>upd("overallBias",e.target.value)}/></FL>
+          <Section T={T} title="Pair Bias">
             {PAIRS.map(p=>(
               <div key={p} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:`1px solid ${T.border}`,flexWrap:"wrap"}}>
                 <span style={{fontSize:13,fontWeight:700,color:T.text,minWidth:70}}>{p}</span>
                 <Toggle T={T} value={f.pairs?.[p]||""} opts={["Bullish","Bearish","Neutral"]} onChange={v=>setPair(p,v)}/>
-                <Toggle T={T} value={f.premiumDiscount?.[p]||""} opts={[{l:"Prem",v:"Premium"},{l:"Disc",v:"Discount"},{l:"EQ",v:"EQ"}]} onChange={v=>setPD(p,v)}/>
               </div>
             ))}
           </Section>
           <FL label="Market Structure" T={T}><Textarea T={T} rows={2} placeholder="DXY position, correlations..." value={f.marketStructure} onChange={e=>upd("marketStructure",e.target.value)}/></FL>
           <FL label="Key Economic Events" T={T}><Textarea T={T} rows={2} placeholder="NFP Fri, FOMC Wed, CPI Tue..." value={f.keyEvents} onChange={e=>upd("keyEvents",e.target.value)}/></FL>
           <FL label="Weekly Targets" T={T}><Textarea T={T} rows={2} placeholder="EURUSD 1.0950, GBPUSD 1.2800..." value={f.targets} onChange={e=>upd("targets",e.target.value)}/></FL>
-          <FL label="Rules / Notes" T={T}><Textarea T={T} rows={2} value={f.notes} onChange={e=>upd("notes",e.target.value)}/></FL>
-          <FL label="End of Week Review" T={T}><Textarea T={T} rows={3} placeholder="Fill at end of week..." value={f.review} onChange={e=>upd("review",e.target.value)}/></FL>
+          <FL label="Notes" T={T}><Textarea T={T} rows={2} value={f.notes} onChange={e=>upd("notes",e.target.value)}/></FL>
+          <FL label="Week Review" T={T}><Textarea T={T} rows={3} placeholder="Fill this in at the end of the week" value={f.review} onChange={e=>upd("review",e.target.value)}/></FL>
         </div>
         <div style={{padding:"14px 22px",borderTop:`1px solid ${T.border}`,display:"flex",gap:10}}>
           <Btn T={T} onClick={()=>onSave(f)}>{syncing?"Saving...":initial?"Update":"Save Plan"}</Btn>
