@@ -391,6 +391,34 @@ function Sel({T,val,opts,on}){return <select value={val} onChange={e=>on(e.targe
 function Textarea({T,...props}){return <textarea style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.text,fontFamily:"Inter,sans-serif",fontSize:13,padding:"9px 12px",width:"100%",outline:"none",borderRadius:10,resize:"vertical"}} onFocus={e=>e.target.style.borderColor=T.accentBright} onBlur={e=>e.target.style.borderColor=T.border} {...props}/>}
 function FL({label,T,children,full}){return <div style={{gridColumn:full?"1/-1":"auto"}}><div style={{fontSize:11,fontWeight:600,color:T.textDim,marginBottom:6}}>{label}</div>{children}</div>}
 
+const normalizeImageList = (value) => {
+  if(Array.isArray(value)) return value.filter(Boolean)
+  if(typeof value==="string") {
+    const trimmed = value.trim()
+    if(!trimmed) return []
+    if(trimmed.startsWith("[")) {
+      try {
+        const parsed = JSON.parse(trimmed)
+        return Array.isArray(parsed) ? parsed.filter(Boolean) : []
+      } catch {
+        return [trimmed]
+      }
+    }
+    return [trimmed]
+  }
+  return []
+}
+
+const serializeImageList = (value) => {
+  const images = normalizeImageList(value)
+  if(images.length===0) return ""
+  if(images.length===1) return images[0]
+  return JSON.stringify(images)
+}
+
+const getDailyPlanImages = (plan) => normalizeImageList(plan?.chartImage)
+const getWeeklyPlanImages = (plan) => normalizeImageList(plan?.premiumDiscount?.__screenshots)
+
 // Paste-enabled image input
 function PasteImageInput({T, value, onChange, label}) {
   const [pasting, setPasting] = useState(false)
@@ -443,6 +471,73 @@ function PasteImageInput({T, value, onChange, label}) {
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+function MultiImageInput({T, values, onChange, label, max=6}) {
+  const [pasting, setPasting] = useState(false)
+  const images = normalizeImageList(values)
+
+  const addImage = useCallback((src) => {
+    if(!src) return
+    const next = [...images, src].slice(0, max)
+    onChange(next)
+  }, [images, max, onChange])
+
+  const removeImage = (index) => onChange(images.filter((_, i) => i!==index))
+
+  const handlePaste = useCallback((e) => {
+    const items = e.clipboardData?.items
+    if(!items) return
+    for(const item of items) {
+      if(item.type.startsWith("image/")) {
+        const file = item.getAsFile()
+        const reader = new FileReader()
+        reader.onload = ev => { addImage(ev.target.result); setPasting(false) }
+        reader.readAsDataURL(file)
+        e.preventDefault()
+        setPasting(true)
+        break
+      }
+    }
+  }, [addImage])
+
+  const handleFiles = (e) => {
+    const files = Array.from(e.target.files||[])
+    files.forEach(file => {
+      const reader = new FileReader()
+      reader.onload = ev => addImage(ev.target.result)
+      reader.readAsDataURL(file)
+    })
+    e.target.value = ""
+  }
+
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:10}}>
+      <div
+        tabIndex={0}
+        onPaste={handlePaste}
+        style={{border:`2px dashed ${images.length?T.accentBright:T.border}`,borderRadius:12,padding:"14px",textAlign:"center",outline:"none",background:T.surface2,transition:"border .2s"}}
+        onFocus={e=>e.currentTarget.style.borderColor=T.accentBright}
+        onBlur={e=>e.currentTarget.style.borderColor=images.length?T.accentBright:T.border}
+      >
+        <div style={{color:T.muted,fontSize:12}}>
+          <div style={{fontWeight:700,color:T.textDim,marginBottom:4}}>{pasting?"Processing...":"Paste or upload screenshots"}</div>
+          <div>{images.length}/{max} added</div>
+          <div style={{marginTop:6}}>or <label style={{color:T.accentBright,cursor:"pointer"}}><input type="file" accept="image/*" multiple style={{display:"none"}} onChange={handleFiles}/> browse files</label></div>
+        </div>
+      </div>
+      {images.length>0&&(
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))",gap:10}}>
+          {images.map((src, index)=>(
+            <div key={`${label}-${index}`} style={{position:"relative",background:T.surface2,border:`1px solid ${T.border}`,borderRadius:12,overflow:"hidden"}}>
+              <img src={src} alt={`${label} ${index+1}`} style={{width:"100%",height:100,objectFit:"cover"}}/>
+              <button onClick={()=>removeImage(index)} style={{position:"absolute",top:6,right:6,background:"rgba(0,0,0,.7)",border:"none",color:"#fff",borderRadius:999,width:22,height:22,cursor:"pointer",fontSize:12,fontWeight:700}}>x</button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -754,7 +849,13 @@ function DailyTab({T,plans,onEdit,onDelete,onNew}) {
                 </div>
               ))}
             </div>
-            {p.chartImage&&<div style={{marginTop:10}}><img src={p.chartImage} alt="chart" style={{width:"100%",maxHeight:220,objectFit:"cover",borderRadius:10,border:`1px solid ${T.border}`,cursor:"pointer"}} onClick={()=>window._viewImg&&window._viewImg(p.chartImage)}/></div>}
+            {getDailyPlanImages(p).length>0&&(
+              <div style={{marginTop:12,display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:10}}>
+                {getDailyPlanImages(p).map((src, index)=>(
+                  <img key={index} src={src} alt={`daily chart ${index+1}`} style={{width:"100%",height:120,objectFit:"cover",borderRadius:12,border:`1px solid ${T.border}`,cursor:"pointer"}} onClick={()=>window._viewImg&&window._viewImg(src)}/>
+                ))}
+              </div>
+            )}
           </Card>
         ))}
       </div>
@@ -803,6 +904,13 @@ function WeeklyTab({T,plans,onEdit,onDelete,onNew}) {
                 </div>
               ))}
             </div>
+            {getWeeklyPlanImages(p).length>0&&(
+              <div style={{marginTop:12,display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:10}}>
+                {getWeeklyPlanImages(p).map((src, index)=>(
+                  <img key={index} src={src} alt={`weekly chart ${index+1}`} style={{width:"100%",height:120,objectFit:"cover",borderRadius:12,border:`1px solid ${T.border}`,cursor:"pointer"}} onClick={()=>window._viewImg&&window._viewImg(src)}/>
+                ))}
+              </div>
+            )}
           </Card>
         ))}
       </div>
@@ -1722,10 +1830,14 @@ function TradeModal({T,initial,onSave,onClose,syncing}) {
 // ── Daily Modal ───────────────────────────────────────────────────────────────
 function DailyModal({T,initial,onSave,onClose,syncing}) {
   const blank={date:new Date().toISOString().split("T")[0],pairs:["EURUSD","GBPUSD"],biases:{},weeklyTheme:"",keyLevels:"",manipulation:"",watchlist:"",notes:"",chartImage:""}
-  const [f,setF]=useState(initial||blank)
+  const [f,setF]=useState(()=>initial?{...initial,chartImages:getDailyPlanImages(initial)}:{...blank,chartImages:[]})
   const upd=(k,v)=>setF(x=>({...x,[k]:v}))
   const togglePair=p=>setF(x=>({...x,pairs:x.pairs.includes(p)?x.pairs.filter(pp=>pp!==p):[...x.pairs,p]}))
   const setBias=(pair,bias)=>setF(x=>({...x,biases:{...x.biases,[pair]:bias}}))
+  const submit=()=>{
+    const {chartImages,...rest}=f
+    onSave({...rest,chartImage:serializeImageList(chartImages)})
+  }
 
   return (
     <Overlay onClose={onClose}>
@@ -1752,10 +1864,10 @@ function DailyModal({T,initial,onSave,onClose,syncing}) {
           <FL label="Expected Manipulation" T={T}><Textarea T={T} rows={2} placeholder="Expected sweep, trap, or expansion" value={f.manipulation} onChange={e=>upd("manipulation",e.target.value)}/></FL>
           <FL label="Trade Plan" T={T}><Textarea T={T} rows={2} value={f.watchlist} onChange={e=>upd("watchlist",e.target.value)}/></FL>
           <FL label="Notes" T={T}><Textarea T={T} rows={2} value={f.notes} onChange={e=>upd("notes",e.target.value)}/></FL>
-          <FL label="Chart / Analysis Image — Ctrl+V to paste" T={T}><PasteImageInput T={T} label="Chart" value={f.chartImage||""} onChange={v=>upd("chartImage",v)}/></FL>
+          <FL label="Daily Screenshots" T={T}><MultiImageInput T={T} label="Daily screenshot" values={f.chartImages} onChange={v=>upd("chartImages",v)}/></FL>
         </div>
         <div style={{padding:"14px 22px",borderTop:`1px solid ${T.border}`,display:"flex",gap:10}}>
-          <Btn T={T} onClick={()=>onSave(f)}>{syncing?"Saving...":initial?"Update":"Save Plan"}</Btn>
+          <Btn T={T} onClick={submit}>{syncing?"Saving...":initial?"Update":"Save Plan"}</Btn>
           <Btn T={T} ghost onClick={onClose}>Cancel</Btn>
         </div>
       </div>
@@ -1768,9 +1880,17 @@ function WeeklyModal({T,initial,onSave,onClose,syncing}) {
   const mon=()=>{const d=new Date();d.setDate(d.getDate()-d.getDay()+1);return d.toISOString().split("T")[0]}
   const fri=()=>{const d=new Date();d.setDate(d.getDate()-d.getDay()+5);return d.toISOString().split("T")[0]}
   const blank={weekStart:mon(),weekEnd:fri(),overallBias:"",pairs:{},marketStructure:"",keyEvents:"",targets:"",notes:"",review:""}
-  const [f,setF]=useState(initial||blank)
+  const [f,setF]=useState(()=>initial?{...initial,chartImages:getWeeklyPlanImages(initial)}:{...blank,premiumDiscount:{},chartImages:[]})
   const upd=(k,v)=>setF(x=>({...x,[k]:v}))
   const setPair=(p,v)=>setF(x=>({...x,pairs:{...x.pairs,[p]:v}}))
+  const submit=()=>{
+    const {chartImages,...rest}=f
+    const premiumDiscount = {...(rest.premiumDiscount||{})}
+    const images = normalizeImageList(chartImages)
+    if(images.length>0) premiumDiscount.__screenshots = images
+    else delete premiumDiscount.__screenshots
+    onSave({...rest,premiumDiscount})
+  }
 
   return (
     <Overlay onClose={onClose}>
@@ -1797,9 +1917,10 @@ function WeeklyModal({T,initial,onSave,onClose,syncing}) {
           <FL label="Key Economic Events" T={T}><Textarea T={T} rows={2} placeholder="NFP Fri, FOMC Wed, CPI Tue..." value={f.keyEvents} onChange={e=>upd("keyEvents",e.target.value)}/></FL>
           <FL label="Weekly Targets" T={T}><Textarea T={T} rows={2} placeholder="EURUSD 1.0950, GBPUSD 1.2800..." value={f.targets} onChange={e=>upd("targets",e.target.value)}/></FL>
           <FL label="Notes" T={T}><Textarea T={T} rows={2} value={f.notes} onChange={e=>upd("notes",e.target.value)}/></FL>
+          <FL label="Weekly Screenshots" T={T}><MultiImageInput T={T} label="Weekly screenshot" values={f.chartImages} onChange={v=>upd("chartImages",v)}/></FL>
         </div>
         <div style={{padding:"14px 22px",borderTop:`1px solid ${T.border}`,display:"flex",gap:10}}>
-          <Btn T={T} onClick={()=>onSave(f)}>{syncing?"Saving...":initial?"Update":"Save Plan"}</Btn>
+          <Btn T={T} onClick={submit}>{syncing?"Saving...":initial?"Update":"Save Plan"}</Btn>
           <Btn T={T} ghost onClick={onClose}>Cancel</Btn>
         </div>
       </div>
