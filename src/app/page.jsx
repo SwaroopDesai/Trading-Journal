@@ -453,39 +453,48 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily}
   const todayTrades = trades.filter(t=>t.date===today)
   const latestDaily = [...dailyPlans].sort((a,b)=>new Date(b.date)-new Date(a.date))[0]
   const latestWeekly = [...weeklyPlans].sort((a,b)=>new Date(b.weekStart)-new Date(a.weekStart))[0]
+  const bestPair = [...stats.byPair].sort((a,b)=>b.totalR-a.totalR)[0]
+  const kpis = [
+    {label:"Total R",value:`${stats.totalR>=0?"+":""}${stats.totalR.toFixed(2)}R`,color:stats.totalR>=0?T.green:T.red,sub:`${stats.total} trades logged`,gradient:stats.totalR>=0?`linear-gradient(135deg,${T.green}18,${T.green}05)`:`linear-gradient(135deg,${T.red}18,${T.red}05)`,eyebrow:"Performance"},
+    {label:"Win Rate",value:`${stats.winRate.toFixed(1)}%`,color:stats.winRate>=55?T.green:stats.winRate>=45?T.amber:T.red,sub:`${stats.wins}W / ${stats.losses}L / ${stats.be}BE`,gradient:`linear-gradient(135deg,${T.blue}18,${T.blue}05)`,eyebrow:"Consistency"},
+    {label:"Avg RR",value:`${stats.avgRR.toFixed(2)}R`,color:stats.avgRR>=2?T.green:stats.avgRR>=1?T.amber:T.red,sub:"Average on winning trades",gradient:`linear-gradient(135deg,${T.accent}18,${T.accent}05)`,eyebrow:"Execution"},
+    {label:"Best Pair",value:bestPair?.pair||"�",color:T.accentBright,sub:`${(bestPair?.totalR||0)>=0?"+":""}${(bestPair?.totalR||0).toFixed(1)}R total`,gradient:`linear-gradient(135deg,${T.pink}18,${T.pink}05)`,eyebrow:"Edge"},
+  ]
 
   return (
     <div>
-      {/* KPI Row */}
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14,marginBottom:20}}>
-        {[
-          {label:"Total R",value:`${stats.totalR>=0?"+":""}${stats.totalR.toFixed(2)}R`,color:stats.totalR>=0?T.green:T.red,sub:`${stats.total} trades`,gradient:stats.totalR>=0?`linear-gradient(135deg,${T.green}20,${T.green}08)`:`linear-gradient(135deg,${T.red}20,${T.red}08)`},
-          {label:"Win Rate",value:`${stats.winRate.toFixed(1)}%`,color:stats.winRate>=55?T.green:stats.winRate>=45?T.amber:T.red,sub:`${stats.wins}W · ${stats.losses}L · ${stats.be}BE`,gradient:`linear-gradient(135deg,${T.blue}20,${T.blue}08)`},
-          {label:"Avg RR",value:`${stats.avgRR.toFixed(2)}R`,color:stats.avgRR>=2?T.green:stats.avgRR>=1?T.amber:T.red,sub:"on winning trades",gradient:`linear-gradient(135deg,${T.accent}20,${T.accent}08)`},
-          {label:"Best Pair",value:[...stats.byPair].sort((a,b)=>b.totalR-a.totalR)[0]?.pair||"—",color:T.accentBright,sub:`${([...stats.byPair].sort((a,b)=>b.totalR-a.totalR)[0]?.totalR||0)>=0?"+":""}${([...stats.byPair].sort((a,b)=>b.totalR-a.totalR)[0]?.totalR||0).toFixed(1)}R`,gradient:`linear-gradient(135deg,${T.pink}20,${T.pink}08)`},
-        ].map(k=>(
-          <div key={k.label} style={{background:k.gradient||T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"18px 20px"}}>
-            <div style={{fontSize:11,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}}>{k.label}</div>
-            <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:26,fontWeight:800,color:k.color,lineHeight:1}}>{k.value}</div>
-            <div style={{fontSize:11,color:T.textDim,marginTop:6}}>{k.sub}</div>
+        {kpis.map(k=>(
+          <div key={k.label} style={{background:k.gradient||T.surface,border:`1px solid ${T.border}`,borderRadius:18,padding:"18px 18px 16px",boxShadow:`0 10px 28px ${T.cardGlow}`,position:"relative",overflow:"hidden"}}>
+            <div style={{position:"absolute",inset:"0 auto auto 0",width:54,height:54,background:`radial-gradient(circle, ${k.color}18 0%, transparent 70%)`}} />
+            <div style={{position:"relative"}}>
+              <div style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 10px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:999,fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>
+                <span style={{width:6,height:6,borderRadius:"50%",background:k.color,display:"inline-block"}} />
+                {k.eyebrow}
+              </div>
+              <div style={{fontSize:11,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}}>{k.label}</div>
+              <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:28,fontWeight:800,color:k.color,lineHeight:1.02,letterSpacing:"-0.03em"}}>{k.value}</div>
+              <div style={{fontSize:11,color:T.textDim,marginTop:8,lineHeight:1.5}}>{k.sub}</div>
+              <div style={{height:4,borderRadius:999,background:T.surface,marginTop:14,overflow:"hidden"}}>
+                <div style={{width:"62%",height:"100%",background:`linear-gradient(90deg,${k.color},${T.pink})`,borderRadius:999}} />
+              </div>
+            </div>
           </div>
         ))}
       </div>
 
       <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:14}}>
-        {/* Equity Curve */}
-        <Card T={T} style={{gridColumn:"1/-1"}} glow>
+        <Card T={T} style={{gridColumn:"1/-1",borderRadius:18,padding:"20px 22px"}} glow>
           <CardTitle T={T}>Equity Curve (R)</CardTitle>
           <MiniEquityCurve T={T} data={stats.equityCurve}/>
         </Card>
 
-        {/* Today */}
-        <Card T={T}>
+        <Card T={T} style={{borderRadius:18,padding:"20px 22px"}}>
           <CardTitle T={T}>Today&apos;s Trades</CardTitle>
           {todayTrades.length===0
-            ?<div style={{textAlign:"center",padding:"20px 0",color:T.muted,fontSize:13}}>No trades today<br/><button onClick={onNewTrade} style={{marginTop:10,background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,color:"#fff",border:"none",padding:"8px 18px",borderRadius:8,cursor:"pointer",fontWeight:700,fontSize:13}}>+ Log Trade</button></div>
+            ?<div style={{textAlign:"center",padding:"28px 8px",color:T.muted,fontSize:13,background:T.surface2,border:`1px dashed ${T.border}`,borderRadius:14}}>No trades today<br/><button onClick={onNewTrade} style={{marginTop:12,background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,color:"#fff",border:"none",padding:"9px 18px",borderRadius:10,cursor:"pointer",fontWeight:700,fontSize:13}}>+ Log Trade</button></div>
             :todayTrades.map(t=>(
-              <div key={t._dbid} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:`1px solid ${T.border}`}}>
+              <div key={t._dbid} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderBottom:`1px solid ${T.border}`}}>
                 <span style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:800,color:T.accentBright,minWidth:65}}>{t.pair}</span>
                 <Badge color={t.direction==="LONG"?T.green:T.red}>{t.direction}</Badge>
                 <Badge color={t.result==="WIN"?T.green:t.result==="LOSS"?T.red:T.amber}>{t.result}</Badge>
@@ -495,8 +504,7 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily}
           }
         </Card>
 
-        {/* Daily Bias */}
-        <Card T={T}>
+        <Card T={T} style={{borderRadius:18,padding:"20px 22px"}}>
           <CardTitle T={T}>Daily Bias {latestDaily&&<span style={{color:T.accent,fontWeight:400}}>{fmtDate(latestDaily.date)}</span>}</CardTitle>
           {latestDaily
             ?<div>{latestDaily.pairs?.map(p=>(
@@ -506,12 +514,11 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily}
                 </div>
               ))}<div style={{fontSize:12,color:T.textDim,marginTop:10,lineHeight:1.5}}>{latestDaily.notes}</div>
             </div>
-            :<div style={{textAlign:"center",padding:"20px 0",color:T.muted,fontSize:13}}>No daily plan<br/><button onClick={onNewDaily} style={{marginTop:10,background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,color:"#fff",border:"none",padding:"8px 18px",borderRadius:8,cursor:"pointer",fontWeight:700,fontSize:13}}>+ Add Plan</button></div>
+            :<div style={{textAlign:"center",padding:"28px 8px",color:T.muted,fontSize:13,background:T.surface2,border:`1px dashed ${T.border}`,borderRadius:14}}>No daily plan<br/><button onClick={onNewDaily} style={{marginTop:12,background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,color:"#fff",border:"none",padding:"9px 18px",borderRadius:10,cursor:"pointer",fontWeight:700,fontSize:13}}>+ Add Plan</button></div>
           }
         </Card>
 
-        {/* Weekly Theme */}
-        <Card T={T}>
+        <Card T={T} style={{borderRadius:18,padding:"20px 22px"}}>
           <CardTitle T={T}>Weekly Theme {latestWeekly&&<span style={{color:T.accent,fontWeight:400}}>{latestWeekly.weekStart}</span>}</CardTitle>
           {latestWeekly
             ?<div>
@@ -524,17 +531,16 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily}
           }
         </Card>
 
-        {/* Pair Performance */}
-        <Card T={T} style={{gridColumn:"1/-1"}}>
+        <Card T={T} style={{gridColumn:"1/-1",borderRadius:18,padding:"20px 22px"}}>
           <CardTitle T={T}>Performance by Pair</CardTitle>
           {stats.byPair.filter(p=>p.count>0).length===0
             ?<div style={{color:T.muted,fontSize:13,textAlign:"center",padding:20}}>Log trades to see pair performance</div>
             :<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:10}}>
               {stats.byPair.filter(p=>p.count>0).map(p=>(
-                <div key={p.pair} style={{background:T.surface2,border:`1px solid ${T.border}`,borderRadius:10,padding:"12px 14px"}}>
+                <div key={p.pair} style={{background:`linear-gradient(180deg,${T.surface2},${T.surface})`,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 14px",boxShadow:`0 6px 18px ${T.cardGlow}`}}>
                   <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:14,fontWeight:800,color:T.accentBright,marginBottom:4}}>{p.pair}</div>
                   <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:18,fontWeight:800,color:p.totalR>=0?T.green:T.red}}>{p.totalR>=0?"+":""}{p.totalR.toFixed(1)}R</div>
-                  <div style={{fontSize:11,color:T.muted,marginTop:2}}>{p.wins}/{p.count} · {p.count>0?(p.wins/p.count*100).toFixed(0):0}%</div>
+                  <div style={{fontSize:11,color:T.muted,marginTop:4}}>{p.wins}/{p.count} win ratio / {p.count>0?(p.wins/p.count*100).toFixed(0):0}%</div>
                 </div>
               ))}
             </div>
@@ -640,24 +646,40 @@ function MiniEquityCurve({T,data}) {
 function Journal({T,filtered,filterPair,setFilterPair,filterResult,setFilterResult,onEdit,onDelete,onViewImg,onNew}) {
   return (
     <div>
-      <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:20}}>
-        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-          {["ALL",...PAIRS].map(p=><Chip key={p} T={T} active={filterPair===p} onClick={()=>setFilterPair(p)}>{p}</Chip>)}
+      <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:18,padding:"16px 18px",marginBottom:20,boxShadow:`0 10px 28px ${T.cardGlow}`}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap",marginBottom:14}}>
+          <div>
+            <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:16,fontWeight:800,color:T.text}}>Trade Journal</div>
+            <div style={{fontSize:12,color:T.muted,marginTop:3}}>Filter by market and outcome to review your execution faster.</div>
+          </div>
+          <Btn T={T} onClick={onNew}>+ Log Trade</Btn>
         </div>
-        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-          {["ALL","WIN","LOSS","BREAKEVEN"].map(r=><Chip key={r} T={T} active={filterResult===r} onClick={()=>setFilterResult(r)}>{r}</Chip>)}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+          <div style={{background:T.surface2,border:`1px solid ${T.border}`,borderRadius:14,padding:"12px 12px 10px"}}>
+            <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:10}}>Pairs</div>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+              {["ALL",...PAIRS].map(p=><Chip key={p} T={T} active={filterPair===p} onClick={()=>setFilterPair(p)}>{p}</Chip>)}
+            </div>
+          </div>
+          <div style={{background:T.surface2,border:`1px solid ${T.border}`,borderRadius:14,padding:"12px 12px 10px"}}>
+            <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:10}}>Results</div>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+              {["ALL","WIN","LOSS","BREAKEVEN"].map(r=><Chip key={r} T={T} active={filterResult===r} onClick={()=>setFilterResult(r)}>{r}</Chip>)}
+            </div>
+          </div>
         </div>
       </div>
-      {filtered.length===0&&<div style={{textAlign:"center",padding:"60px 20px",color:T.muted,fontSize:14}}>Your journal is empty.<br/><button onClick={onNew} style={{marginTop:16,background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,color:"#fff",border:"none",padding:"10px 24px",borderRadius:10,cursor:"pointer",fontWeight:700,fontSize:14}}>+ Log Your First Trade</button></div>}
+      {filtered.length===0&&<div style={{textAlign:"center",padding:"60px 20px",color:T.muted,fontSize:14,background:T.surface,border:`1px dashed ${T.border}`,borderRadius:18}}>Your journal is empty.<br/><button onClick={onNew} style={{marginTop:16,background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,color:"#fff",border:"none",padding:"10px 24px",borderRadius:10,cursor:"pointer",fontWeight:700,fontSize:14}}>+ Log Your First Trade</button></div>}
       <div style={{display:"flex",flexDirection:"column",gap:12}}>
         {filtered.map(t=>(
-          <div key={t._dbid} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"18px 20px",transition:"border-color .15s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=T.accent} onMouseLeave={e=>e.currentTarget.style.borderColor=T.border}>
+          <div key={t._dbid} style={{background:`linear-gradient(180deg,${T.surface},${T.surface2})`,border:`1px solid ${T.border}`,borderRadius:18,padding:"18px 20px",transition:"border-color .15s, transform .15s, box-shadow .15s",boxShadow:`0 10px 26px ${T.cardGlow}`,position:"relative",overflow:"hidden"}} onMouseEnter={e=>{e.currentTarget.style.borderColor=T.accent; e.currentTarget.style.transform="translateY(-1px)"; e.currentTarget.style.boxShadow=`0 14px 32px ${T.cardGlow}`}} onMouseLeave={e=>{e.currentTarget.style.borderColor=T.border; e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow=`0 10px 26px ${T.cardGlow}`}}>
+            <div style={{position:"absolute",left:0,top:0,bottom:0,width:4,background:t.result==="WIN"?`linear-gradient(180deg,${T.green},${T.blue})`:t.result==="LOSS"?`linear-gradient(180deg,${T.red},${T.pink})`:`linear-gradient(180deg,${T.amber},${T.accentBright})`}} />
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,flexWrap:"wrap",gap:8}}>
               <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
                 <span style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:20,fontWeight:800,color:T.accentBright}}>{t.pair}</span>
                 <Badge color={t.direction==="LONG"?T.green:T.red}>{t.direction}</Badge>
                 <span style={{fontSize:12,color:T.muted}}>{fmtDate(t.date)}</span>
-                <span style={{fontSize:11,color:T.textDim,background:T.surface2,padding:"2px 8px",borderRadius:6}}>{t.session}</span>
+                <span style={{fontSize:11,color:T.textDim,background:T.surface,padding:"3px 8px",borderRadius:999,border:`1px solid ${T.border}`}}>{t.session}</span>
               </div>
               <div style={{display:"flex",alignItems:"center",gap:10}}>
                 <Badge color={t.result==="WIN"?T.green:t.result==="LOSS"?T.red:T.amber}>{t.result}</Badge>
@@ -666,28 +688,30 @@ function Journal({T,filtered,filterPair,setFilterPair,filterResult,setFilterResu
             </div>
             <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:10}}>
               {[{l:"D.Bias",v:t.dailyBias,c:t.dailyBias==="Bullish"?T.green:t.dailyBias==="Bearish"?T.red:T.muted},{l:"W.Bias",v:t.weeklyBias,c:t.weeklyBias==="Bullish"?T.green:t.weeklyBias==="Bearish"?T.red:T.muted},{l:"Manip",v:t.manipulation},{l:"POI",v:t.poi},{l:"KZ",v:t.killzone?.split(" ")[0]},{l:"Setup",v:t.setup},{l:"Emotion",v:t.emotion},{l:"Mistake",v:t.mistakes!=="None"?t.mistakes:null,c:T.red}].filter(x=>x.v).map((x,i)=>(
-                <div key={i} style={{display:"flex",alignItems:"center",gap:4,background:T.surface2,border:`1px solid ${T.border}`,padding:"3px 8px",borderRadius:6}}>
+                <div key={i} style={{display:"flex",alignItems:"center",gap:4,background:T.surface,border:`1px solid ${T.border}`,padding:"4px 9px",borderRadius:999}}>
                   <span style={{fontSize:9,fontWeight:700,color:T.muted,letterSpacing:"0.1em"}}>{x.l}</span>
-                  <span style={{fontSize:11,color:x.c||T.textDim,fontWeight:500}}>{x.v}</span>
+                  <span style={{fontSize:11,color:x.c||T.textDim,fontWeight:600}}>{x.v}</span>
                 </div>
               ))}
             </div>
-            {t.notes&&<div style={{fontSize:12,color:T.textDim,lineHeight:1.6,marginBottom:10,padding:"10px 12px",background:T.surface2,borderRadius:8,borderLeft:`3px solid ${T.accent}`}}>{t.notes}</div>}
-            {t.tags?.length>0&&<div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:10}}>{t.tags.map(tag=><span key={tag} style={{background:`${T.blue}18`,border:`1px solid ${T.blue}40`,color:T.blue,padding:"2px 10px",fontSize:11,borderRadius:20,fontWeight:600}}>{tag}</span>)}</div>}
-            <div style={{display:"flex",gap:16,fontSize:12,color:T.textDim,marginBottom:10,flexWrap:"wrap"}}>
-              <span>Entry <b style={{color:T.text}}>{t.entry}</b></span>
-              <span>SL <b style={{color:T.red}}>{t.sl}</b></span>
-              <span>TP <b style={{color:T.green}}>{t.tp}</b></span>
-              <span>Pips <b style={{color:T.text}}>{t.pips>=0?"+":""}{t.pips}</b></span>
+            {t.notes&&<div style={{fontSize:12,color:T.textDim,lineHeight:1.7,marginBottom:12,padding:"12px 14px",background:T.surface,borderRadius:12,border:`1px solid ${T.border}`}}>{t.notes}</div>}
+            {t.tags?.length>0&&<div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:12}}>{t.tags.map(tag=><span key={tag} style={{background:`${T.blue}18`,border:`1px solid ${T.blue}40`,color:T.blue,padding:"3px 10px",fontSize:11,borderRadius:20,fontWeight:700}}>{tag}</span>)}</div>}
+            <div style={{display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",gap:8,marginBottom:12}}>
+              {[{l:"Entry",v:t.entry,c:T.text},{l:"Stop",v:t.sl,c:T.red},{l:"Target",v:t.tp,c:T.green},{l:"Pips",v:`${t.pips>=0?"+":""}${t.pips}`,c:T.text}].map(item=>(
+                <div key={item.l} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:"10px 12px"}}>
+                  <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:5}}>{item.l}</div>
+                  <div style={{fontSize:13,fontWeight:700,color:item.c}}>{item.v}</div>
+                </div>
+              ))}
             </div>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
               <div style={{display:"flex",gap:8}}>
-                {t.preScreenshot&&<button onClick={()=>onViewImg(t.preScreenshot)} style={{background:`${T.accent}15`,border:`1px solid ${T.accent}40`,color:T.accentBright,padding:"4px 12px",borderRadius:8,cursor:"pointer",fontSize:12,fontWeight:600}}>📸 Pre</button>}
-                {t.postScreenshot&&<button onClick={()=>onViewImg(t.postScreenshot)} style={{background:`${T.accent}15`,border:`1px solid ${T.accent}40`,color:T.accentBright,padding:"4px 12px",borderRadius:8,cursor:"pointer",fontSize:12,fontWeight:600}}>📸 Post</button>}
+                {t.preScreenshot&&<button onClick={()=>onViewImg(t.preScreenshot)} style={{background:`linear-gradient(135deg,${T.accent}16,${T.blue}12)`,border:`1px solid ${T.accent}40`,color:T.accentBright,padding:"6px 12px",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:700}}>Pre Chart</button>}
+                {t.postScreenshot&&<button onClick={()=>onViewImg(t.postScreenshot)} style={{background:`linear-gradient(135deg,${T.accent}16,${T.blue}12)`,border:`1px solid ${T.accent}40`,color:T.accentBright,padding:"6px 12px",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:700}}>Post Chart</button>}
               </div>
               <div style={{display:"flex",gap:6}}>
-                <button onClick={()=>onEdit(t)} style={{background:"none",border:`1px solid ${T.border}`,color:T.textDim,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontSize:12}}>✎ Edit</button>
-                <button onClick={()=>onDelete(t)} style={{background:"none",border:`1px solid ${T.border}`,color:T.red,padding:"5px 10px",borderRadius:8,cursor:"pointer",fontSize:12}}>✕</button>
+                <button onClick={()=>onEdit(t)} style={{background:"none",border:`1px solid ${T.border}`,color:T.textDim,padding:"6px 12px",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:700}}>Edit</button>
+                <button onClick={()=>onDelete(t)} style={{background:"none",border:`1px solid ${T.border}`,color:T.red,padding:"6px 10px",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:700}}>Delete</button>
               </div>
             </div>
           </div>
@@ -2255,3 +2279,4 @@ function buildCSS(T) {
     }
   `
 }
+
