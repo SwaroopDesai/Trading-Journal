@@ -1401,7 +1401,7 @@ function Heatmap({T, trades}) {
                     {cell.data&&(
                       <>
                         <div style={{fontSize:11,fontWeight:800,color:cell.data.r>=0?"#fff":T.red,lineHeight:1.1}}>{cell.data.r>=0?"+":""}{cell.data.r.toFixed(1)}R</div>
-                        <div style={{fontSize:9,color:cell.data.r>=0?"rgba(255,255,255,0.75)":T.textDim,letterSpacing:"0.02em"}}>{cell.data.count}t · {cell.data.wins}W</div>
+                        <div style={{fontSize:9,color:cell.data.r>=0?"rgba(255,255,255,0.75)":T.textDim,letterSpacing:"0.02em"}}>{cell.data.count}t / {cell.data.wins}W</div>
                       </>
                     )}
                     {isToday&&<div style={{position:"absolute",top:4,right:5,width:5,height:5,borderRadius:"50%",background:T.accentBright}}/>}
