@@ -458,7 +458,7 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily}
     {label:"Total R",value:`${stats.totalR>=0?"+":""}${stats.totalR.toFixed(2)}R`,color:stats.totalR>=0?T.green:T.red,sub:`${stats.total} trades logged`,gradient:stats.totalR>=0?`linear-gradient(135deg,${T.green}18,${T.green}05)`:`linear-gradient(135deg,${T.red}18,${T.red}05)`,eyebrow:"Performance"},
     {label:"Win Rate",value:`${stats.winRate.toFixed(1)}%`,color:stats.winRate>=55?T.green:stats.winRate>=45?T.amber:T.red,sub:`${stats.wins}W / ${stats.losses}L / ${stats.be}BE`,gradient:`linear-gradient(135deg,${T.blue}18,${T.blue}05)`,eyebrow:"Consistency"},
     {label:"Avg RR",value:`${stats.avgRR.toFixed(2)}R`,color:stats.avgRR>=2?T.green:stats.avgRR>=1?T.amber:T.red,sub:"Average on winning trades",gradient:`linear-gradient(135deg,${T.accent}18,${T.accent}05)`,eyebrow:"Execution"},
-    {label:"Best Pair",value:bestPair?.pair||"—",color:T.accentBright,sub:`${(bestPair?.totalR||0)>=0?"+":""}${(bestPair?.totalR||0).toFixed(1)}R total`,gradient:`linear-gradient(135deg,${T.pink}18,${T.pink}05)`,eyebrow:"Edge"},
+    {label:"Best Pair",value:bestPair?.pair||"-",color:T.accentBright,sub:`${(bestPair?.totalR||0)>=0?"+":""}${(bestPair?.totalR||0).toFixed(1)}R total`,gradient:`linear-gradient(135deg,${T.pink}18,${T.pink}05)`,eyebrow:"Edge"},
   ]
 
   return (
