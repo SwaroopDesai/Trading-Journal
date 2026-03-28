@@ -363,9 +363,9 @@ function BottomNav({T,tab,setTab,TABS,MOBILE_PRIMARY}){
     </nav>
   )
 }
-function Btn({T,onClick,children,ghost,danger}){
+function Btn({T,onClick,children,ghost,danger,disabled}){
   const bg = danger?T.red:ghost?"none":`linear-gradient(135deg,${T.accentBright},${T.pink})`
-  return <button onClick={onClick} style={{background:bg,color:ghost?T.textDim:"#fff",border:ghost?`1px solid ${T.border}`:"none",padding:"9px 18px",fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:700,fontSize:13,borderRadius:10,cursor:"pointer",whiteSpace:"nowrap"}}>{children}</button>
+  return <button disabled={disabled} onClick={onClick} style={{background:bg,color:ghost?T.textDim:"#fff",border:ghost?`1px solid ${T.border}`:"none",padding:"9px 18px",fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:700,fontSize:13,borderRadius:10,cursor:disabled?"not-allowed":"pointer",whiteSpace:"nowrap",opacity:disabled?0.6:1}}>{children}</button>
 }
 function Card({T,children,style={},glow}){return <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"18px 20px",boxShadow:glow?`0 4px 30px ${T.cardGlow}`:"none",...style}}>{children}</div>}
 function CardTitle({T,children}){return <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:11,fontWeight:700,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:14,display:"flex",alignItems:"center",gap:8}}>{children}</div>}
@@ -1969,18 +1969,16 @@ Provide:
 
 Be concise, direct and actionable.`
 
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
+      const response = await fetch("/api/analysis", {
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
-          model:"claude-sonnet-4-20250514",
-          max_tokens:1000,
-          messages:[{role:"user",content:prompt}]
+          prompt
         })
       })
       const data = await response.json()
-      if(data.error) throw new Error(data.error.message)
-      setResult(data.content?.[0]?.text||"No response")
+      if(!response.ok) throw new Error(data.error || data.message || "Request failed")
+      setResult(data.text || "No response")
     } catch(e) {
       setError("Analysis failed: "+e.message)
     } finally {
