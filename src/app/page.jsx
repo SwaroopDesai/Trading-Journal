@@ -726,26 +726,36 @@ function DailyTab({T,plans,onEdit,onDelete,onNew}) {
   const sorted=[...plans].sort((a,b)=>new Date(b.date)-new Date(a.date))
   return (
     <div>
-      {sorted.length===0&&<div style={{textAlign:"center",padding:"60px 20px",color:T.muted,fontSize:14}}>No daily plans yet.<br/><button onClick={onNew} style={{marginTop:16,background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,color:"#fff",border:"none",padding:"10px 24px",borderRadius:10,cursor:"pointer",fontWeight:700,fontSize:14}}>+ Create Daily Plan</button></div>}
+      {sorted.length===0&&(
+        <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px dashed ${T.border}`,borderRadius:22,padding:"44px 28px",textAlign:"center",marginBottom:16,boxShadow:`inset 0 18px 40px ${T.bg}40`}}>
+          <div style={{display:"inline-flex",alignItems:"center",gap:8,background:`linear-gradient(135deg,${T.accent}22,${T.pink}18)`,border:`1px solid ${T.accent}36`,color:T.accentBright,padding:"7px 14px",borderRadius:999,fontSize:11,fontWeight:800,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:14}}>Daily Focus</div>
+          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:24,fontWeight:800,color:T.text,marginBottom:10}}>Build your session plan before the market opens</div>
+          <div style={{maxWidth:520,margin:"0 auto",fontSize:14,color:T.textDim,lineHeight:1.7}}>Capture your bias, levels, manipulation ideas, and notes in one place so execution feels deliberate instead of rushed.</div>
+          <button onClick={onNew} style={{marginTop:20,background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,color:"#fff",border:"none",padding:"12px 24px",borderRadius:12,cursor:"pointer",fontWeight:800,fontSize:14,boxShadow:`0 14px 28px ${T.accent}28`}}>Create Daily Plan</button>
+        </div>
+      )}
       <div style={{display:"flex",flexDirection:"column",gap:14}}>
         {sorted.map(p=>(
-          <Card key={p._dbid} T={T}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
+          <Card key={p._dbid} T={T} style={{padding:22,borderRadius:22,background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,boxShadow:`0 24px 40px ${T.bg}32`}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:18,gap:16}}>
               <div>
-                <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:17,fontWeight:800,color:T.text}}>{fmtDate(p.date)}</div>
-                <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:6}}>{p.pairs?.map(pair=><Badge key={pair} color={p.biases?.[pair]==="Bullish"?T.green:p.biases?.[pair]==="Bearish"?T.red:T.amber}>{pair}: {p.biases?.[pair]}</Badge>)}</div>
+                <div style={{display:"inline-flex",alignItems:"center",gap:8,background:`linear-gradient(135deg,${T.accent}18,${T.blue}12)`,border:`1px solid ${T.accent}30`,color:T.accentBright,padding:"6px 12px",borderRadius:999,fontSize:11,fontWeight:800,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:10}}>Daily Plan</div>
+                <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:20,fontWeight:800,color:T.text}}>{fmtDate(p.date)}</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:8,marginTop:10}}>{p.pairs?.map(pair=><Badge key={pair} color={p.biases?.[pair]==="Bullish"?T.green:p.biases?.[pair]==="Bearish"?T.red:T.amber}>{pair}: {p.biases?.[pair]}</Badge>)}</div>
               </div>
               <div style={{display:"flex",gap:6}}>
-                <button onClick={()=>onEdit(p)} style={{background:"none",border:`1px solid ${T.border}`,color:T.textDim,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontSize:12}}>✎</button>
-                <button onClick={()=>onDelete(p)} style={{background:"none",border:`1px solid ${T.border}`,color:T.red,padding:"5px 10px",borderRadius:8,cursor:"pointer",fontSize:12}}>✕</button>
+                <button onClick={()=>onEdit(p)} style={{background:`linear-gradient(135deg,${T.surface2},${T.surface})`,border:`1px solid ${T.border}`,color:T.textDim,padding:"8px 14px",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:700}}>Edit</button>
+                <button onClick={()=>onDelete(p)} style={{background:"none",border:`1px solid ${T.border}`,color:T.red,padding:"8px 12px",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:700}}>Delete</button>
               </div>
             </div>
-            {[{l:"Weekly Theme",v:p.weeklyTheme},{l:"Key Levels",v:p.keyLevels},{l:"Expected Manipulation",v:p.manipulation,c:T.amber},{l:"Watchlist",v:p.watchlist},{l:"Notes",v:p.notes}].filter(x=>x.v).map(x=>(
-              <div key={x.l} style={{marginBottom:10}}>
-                <div style={{fontSize:11,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:4}}>{x.l}</div>
-                <div style={{fontSize:13,color:x.c||T.textDim,lineHeight:1.6}}>{x.v}</div>
-              </div>
-            ))}
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:12}}>
+              {[{l:"Weekly Theme",v:p.weeklyTheme},{l:"Key Levels",v:p.keyLevels},{l:"Expected Manipulation",v:p.manipulation,c:T.amber},{l:"Watchlist",v:p.watchlist},{l:"Notes",v:p.notes}].filter(x=>x.v).map(x=>(
+                <div key={x.l} style={{background:`linear-gradient(180deg,${T.surface2} 0%,${T.surface} 100%)`,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px 15px"}}>
+                  <div style={{fontSize:10,fontWeight:800,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>{x.l}</div>
+                  <div style={{fontSize:13,color:x.c||T.textDim,lineHeight:1.7}}>{x.v}</div>
+                </div>
+              ))}
+            </div>
             {p.chartImage&&<div style={{marginTop:10}}><img src={p.chartImage} alt="chart" style={{width:"100%",maxHeight:220,objectFit:"cover",borderRadius:10,border:`1px solid ${T.border}`,cursor:"pointer"}} onClick={()=>window._viewImg&&window._viewImg(p.chartImage)}/></div>}
           </Card>
         ))}
@@ -759,35 +769,45 @@ function WeeklyTab({T,plans,onEdit,onDelete,onNew}) {
   const sorted=[...plans].sort((a,b)=>new Date(b.weekStart)-new Date(a.weekStart))
   return (
     <div>
-      {sorted.length===0&&<div style={{textAlign:"center",padding:"60px 20px",color:T.muted,fontSize:14}}>No weekly plans yet.<br/><button onClick={onNew} style={{marginTop:16,background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,color:"#fff",border:"none",padding:"10px 24px",borderRadius:10,cursor:"pointer",fontWeight:700,fontSize:14}}>+ Create Weekly Plan</button></div>}
+      {sorted.length===0&&(
+        <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px dashed ${T.border}`,borderRadius:22,padding:"44px 28px",textAlign:"center",marginBottom:16,boxShadow:`inset 0 18px 40px ${T.bg}40`}}>
+          <div style={{display:"inline-flex",alignItems:"center",gap:8,background:`linear-gradient(135deg,${T.blue}18,${T.accent}16)`,border:`1px solid ${T.blue}30`,color:T.blue,padding:"7px 14px",borderRadius:999,fontSize:11,fontWeight:800,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:14}}>Weekly Bias</div>
+          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:24,fontWeight:800,color:T.text,marginBottom:10}}>Frame the week before the sessions get noisy</div>
+          <div style={{maxWidth:540,margin:"0 auto",fontSize:14,color:T.textDim,lineHeight:1.7}}>Map structure, catalysts, pair bias, and targets once so the rest of your workflow stays aligned through the week.</div>
+          <button onClick={onNew} style={{marginTop:20,background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,color:"#fff",border:"none",padding:"12px 24px",borderRadius:12,cursor:"pointer",fontWeight:800,fontSize:14,boxShadow:`0 14px 28px ${T.accent}28`}}>Create Weekly Plan</button>
+        </div>
+      )}
       <div style={{display:"flex",flexDirection:"column",gap:14}}>
         {sorted.map(p=>(
-          <Card key={p._dbid} T={T}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
+          <Card key={p._dbid} T={T} style={{padding:22,borderRadius:22,background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,boxShadow:`0 24px 40px ${T.bg}32`}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:18,gap:16}}>
               <div>
-                <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:17,fontWeight:800,color:T.text}}>Week {p.weekStart} → {p.weekEnd}</div>
-                {p.overallBias&&<div style={{display:"inline-block",background:`${T.accent}20`,border:`1px solid ${T.accent}50`,color:T.accentBright,padding:"3px 12px",borderRadius:20,fontSize:12,fontWeight:700,marginTop:6}}>{p.overallBias}</div>}
+                <div style={{display:"inline-flex",alignItems:"center",gap:8,background:`linear-gradient(135deg,${T.blue}18,${T.accent}14)`,border:`1px solid ${T.blue}30`,color:T.blue,padding:"6px 12px",borderRadius:999,fontSize:11,fontWeight:800,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:10}}>Weekly Plan</div>
+                <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:20,fontWeight:800,color:T.text}}>Week {p.weekStart} to {p.weekEnd}</div>
+                {p.overallBias&&<div style={{display:"inline-block",background:`${T.accent}20`,border:`1px solid ${T.accent}50`,color:T.accentBright,padding:"5px 12px",borderRadius:20,fontSize:12,fontWeight:700,marginTop:8}}>{p.overallBias}</div>}
               </div>
               <div style={{display:"flex",gap:6}}>
-                <button onClick={()=>onEdit(p)} style={{background:"none",border:`1px solid ${T.border}`,color:T.textDim,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontSize:12}}>✎</button>
-                <button onClick={()=>onDelete(p)} style={{background:"none",border:`1px solid ${T.border}`,color:T.red,padding:"5px 10px",borderRadius:8,cursor:"pointer",fontSize:12}}>✕</button>
+                <button onClick={()=>onEdit(p)} style={{background:`linear-gradient(135deg,${T.surface2},${T.surface})`,border:`1px solid ${T.border}`,color:T.textDim,padding:"8px 14px",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:700}}>Edit</button>
+                <button onClick={()=>onDelete(p)} style={{background:"none",border:`1px solid ${T.border}`,color:T.red,padding:"8px 12px",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:700}}>Delete</button>
               </div>
             </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:14}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:16}}>
               {PAIRS.map(pair=>(
-                <div key={pair} style={{background:T.surface2,border:`1px solid ${T.border}`,padding:"8px 12px",borderRadius:10}}>
-                  <div style={{fontSize:11,fontWeight:700,color:T.muted,marginBottom:3}}>{pair}</div>
-                  <div style={{fontSize:12,fontWeight:700,color:p.pairs?.[pair]==="Bullish"?T.green:p.pairs?.[pair]==="Bearish"?T.red:T.textDim}}>{p.pairs?.[pair]||"—"}</div>
-                  {p.premiumDiscount?.[pair]&&<div style={{fontSize:10,color:T.muted,marginTop:2}}>{p.premiumDiscount[pair]}</div>}
+                <div key={pair} style={{background:`linear-gradient(180deg,${T.surface2} 0%,${T.surface} 100%)`,border:`1px solid ${T.border}`,padding:"12px 13px",borderRadius:14,boxShadow:`0 12px 22px ${T.bg}18`}}>
+                  <div style={{fontSize:10,fontWeight:800,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>{pair}</div>
+                  <div style={{fontSize:13,fontWeight:800,color:p.pairs?.[pair]==="Bullish"?T.green:p.pairs?.[pair]==="Bearish"?T.red:T.textDim}}>{p.pairs?.[pair]||"Neutral"}</div>
+                  {p.premiumDiscount?.[pair]&&<div style={{fontSize:10,color:T.muted,marginTop:6,lineHeight:1.5}}>{p.premiumDiscount[pair]}</div>}
                 </div>
               ))}
             </div>
-            {[{l:"Market Structure",v:p.marketStructure},{l:"Key Events",v:p.keyEvents,c:T.amber},{l:"Targets",v:p.targets},{l:"Notes",v:p.notes},{l:"Week Review",v:p.review,c:T.accentBright}].filter(x=>x.v).map(x=>(
-              <div key={x.l} style={{marginBottom:10}}>
-                <div style={{fontSize:11,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:4}}>{x.l}</div>
-                <div style={{fontSize:13,color:x.c||T.textDim,lineHeight:1.6}}>{x.v}</div>
-              </div>
-            ))}
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:12}}>
+              {[{l:"Market Structure",v:p.marketStructure},{l:"Key Events",v:p.keyEvents,c:T.amber},{l:"Targets",v:p.targets},{l:"Notes",v:p.notes},{l:"Week Review",v:p.review,c:T.accentBright}].filter(x=>x.v).map(x=>(
+                <div key={x.l} style={{background:`linear-gradient(180deg,${T.surface2} 0%,${T.surface} 100%)`,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px 15px"}}>
+                  <div style={{fontSize:10,fontWeight:800,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>{x.l}</div>
+                  <div style={{fontSize:13,color:x.c||T.textDim,lineHeight:1.7}}>{x.v}</div>
+                </div>
+              ))}
+            </div>
           </Card>
         ))}
       </div>
