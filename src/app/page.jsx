@@ -796,7 +796,7 @@ function WeeklyTab({T,plans,onEdit,onDelete,onNew}) {
               ))}
             </div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:12}}>
-              {[{l:"Market Structure",v:p.marketStructure},{l:"Key Events",v:p.keyEvents,c:T.amber},{l:"Targets",v:p.targets},{l:"Notes",v:p.notes},{l:"Week Review",v:p.review,c:T.accentBright}].filter(x=>x.v).map(x=>(
+              {[{l:"Market Structure",v:p.marketStructure},{l:"Key Events",v:p.keyEvents,c:T.amber},{l:"Targets",v:p.targets},{l:"Notes",v:p.notes}].filter(x=>x.v).map(x=>(
                 <div key={x.l} style={{background:`linear-gradient(180deg,${T.surface2} 0%,${T.surface} 100%)`,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px 15px"}}>
                   <div style={{fontSize:10,fontWeight:800,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>{x.l}</div>
                   <div style={{fontSize:13,color:x.c||T.textDim,lineHeight:1.7}}>{x.v}</div>
@@ -1767,11 +1767,10 @@ function DailyModal({T,initial,onSave,onClose,syncing}) {
 function WeeklyModal({T,initial,onSave,onClose,syncing}) {
   const mon=()=>{const d=new Date();d.setDate(d.getDate()-d.getDay()+1);return d.toISOString().split("T")[0]}
   const fri=()=>{const d=new Date();d.setDate(d.getDate()-d.getDay()+5);return d.toISOString().split("T")[0]}
-  const blank={weekStart:mon(),weekEnd:fri(),overallBias:"",pairs:{},premiumDiscount:{},marketStructure:"",keyEvents:"",targets:"",notes:"",review:""}
+  const blank={weekStart:mon(),weekEnd:fri(),overallBias:"",pairs:{},marketStructure:"",keyEvents:"",targets:"",notes:"",review:""}
   const [f,setF]=useState(initial||blank)
   const upd=(k,v)=>setF(x=>({...x,[k]:v}))
   const setPair=(p,v)=>setF(x=>({...x,pairs:{...x.pairs,[p]:v}}))
-  const setPD=(p,v)=>setF(x=>({...x,premiumDiscount:{...x.premiumDiscount,[p]:v}}))
 
   return (
     <Overlay onClose={onClose}>
@@ -1798,7 +1797,6 @@ function WeeklyModal({T,initial,onSave,onClose,syncing}) {
           <FL label="Key Economic Events" T={T}><Textarea T={T} rows={2} placeholder="NFP Fri, FOMC Wed, CPI Tue..." value={f.keyEvents} onChange={e=>upd("keyEvents",e.target.value)}/></FL>
           <FL label="Weekly Targets" T={T}><Textarea T={T} rows={2} placeholder="EURUSD 1.0950, GBPUSD 1.2800..." value={f.targets} onChange={e=>upd("targets",e.target.value)}/></FL>
           <FL label="Notes" T={T}><Textarea T={T} rows={2} value={f.notes} onChange={e=>upd("notes",e.target.value)}/></FL>
-          <FL label="Week Review" T={T}><Textarea T={T} rows={3} placeholder="Fill this in at the end of the week" value={f.review} onChange={e=>upd("review",e.target.value)}/></FL>
         </div>
         <div style={{padding:"14px 22px",borderTop:`1px solid ${T.border}`,display:"flex",gap:10}}>
           <Btn T={T} onClick={()=>onSave(f)}>{syncing?"Saving...":initial?"Update":"Save Plan"}</Btn>
