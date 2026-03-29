@@ -2,7 +2,7 @@
 import { createClient } from "@/lib/supabase"
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 
-// ── Constants ─────────────────────────────────────────────────────────────────
+// â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const PAIRS = ["EURUSD","GBPUSD","USDCAD","GER30","SPX500","NAS100"];
 const SESSIONS = ["London","New York","Asian","London/NY Overlap"];
 const BIASES = ["Bullish","Bearish","Neutral"];
@@ -16,7 +16,7 @@ const HIGH_IMPACT = ["NFP","Non-Farm","CPI","GDP","FOMC","Interest Rate","Fed","
 const fmtDate = d => new Date(d).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"2-digit"});
 const fmtRR = rr => rr >= 0 ? `+${Number(rr).toFixed(2)}R` : `${Number(rr).toFixed(2)}R`;
 
-// ── Paste Image Hook ──────────────────────────────────────────────────────────
+// â”€â”€ Paste Image Hook â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function usePasteImage(onImage) {
   useEffect(() => {
     const handler = (e) => {
@@ -38,7 +38,7 @@ function usePasteImage(onImage) {
   }, [onImage]);
 }
 
-// ── Theme ─────────────────────────────────────────────────────────────────────
+// â”€â”€ Theme â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const DARK = {
   bg:"#0f0f13", surface:"#18181f", surface2:"#22222c", border:"#2d2d3d",
   text:"#f0f0ff", textDim:"#8888aa", muted:"#55556a",
@@ -54,7 +54,7 @@ const LIGHT = {
   cardGlow:"rgba(124,58,237,0.04)", isDark: false
 }
 
-// ── Login ─────────────────────────────────────────────────────────────────────
+// â”€â”€ Login â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function LoginScreen({ supabase }) {
   const [email,setEmail] = useState("")
   const [sent,setSent] = useState(false)
@@ -75,7 +75,7 @@ function LoginScreen({ supabase }) {
     <div style={{minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:24,padding:24,transition:"background .3s"}}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500&display=swap'); *{box-sizing:border-box;margin:0;padding:0;} @keyframes pulse{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}`}</style>
       <button onClick={()=>setDark(!dark)} style={{position:"absolute",top:20,right:20,background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:"6px 14px",borderRadius:20,cursor:"pointer",fontSize:13,fontFamily:"Inter,sans-serif"}}>
-        {dark?"☀ Light":"🌙 Dark"}
+        {dark?"â˜€ Light":"ðŸŒ™ Dark"}
       </button>
       <div style={{textAlign:"center"}}>
         <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:40,fontWeight:800,background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",letterSpacing:"-0.02em"}}>FXEDGE</div>
@@ -87,12 +87,12 @@ function LoginScreen({ supabase }) {
           <input type="email" placeholder="your@email.com" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.text,fontFamily:"Inter,sans-serif",fontSize:14,padding:"11px 14px",borderRadius:10,outline:"none",width:"100%"}}/>
           {error && <div style={{fontSize:12,color:T.red}}>{error}</div>}
           <button onClick={send} disabled={loading} style={{background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,color:"#fff",border:"none",padding:"12px",fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:14,fontWeight:700,cursor:"pointer",borderRadius:10,opacity:loading?.6:1}}>
-            {loading?"Sending...":"Send Magic Link ✨"}
+            {loading?"Sending...":"Send Magic Link âœ¨"}
           </button>
         </div>
       ) : (
         <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,padding:32,width:"100%",maxWidth:380,textAlign:"center",boxShadow:`0 8px 40px ${T.cardGlow}`}}>
-          <div style={{fontSize:40,marginBottom:12}}>📬</div>
+          <div style={{fontSize:40,marginBottom:12}}>ðŸ“¬</div>
           <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:16,fontWeight:700,color:T.text,marginBottom:8}}>Check your email!</div>
           <div style={{fontFamily:"Inter,sans-serif",fontSize:13,color:T.textDim,lineHeight:1.6}}>Magic link sent to <b style={{color:T.accent}}>{email}</b></div>
           <button onClick={()=>setSent(false)} style={{marginTop:16,background:"none",border:`1px solid ${T.border}`,color:T.textDim,padding:"8px 20px",borderRadius:8,cursor:"pointer",fontFamily:"Inter,sans-serif",fontSize:13}}>Use different email</button>
@@ -102,7 +102,7 @@ function LoginScreen({ supabase }) {
   )
 }
 
-// ── App ───────────────────────────────────────────────────────────────────────
+// â”€â”€ App â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function App() {
   const supabase = createClient()
   const [user,setUser] = useState(null)
@@ -216,21 +216,21 @@ export default function App() {
 
   // Mobile shows only 5 primary tabs; rest accessible via More
   const TABS=[
-    {id:"dashboard",icon:"🏠",label:"Dashboard",mobile:true},
-    {id:"journal",icon:"📒",label:"Journal",mobile:true},
-    {id:"daily",icon:"📅",label:"Daily",mobile:true},
-    {id:"heatmap",icon:"📊",label:"Heatmap",mobile:true},
-    {id:"more",icon:"⋯",label:"More",mobile:true},
+    {id:"dashboard",icon:"ðŸ ",label:"Dashboard",mobile:true},
+    {id:"journal",icon:"ðŸ“’",label:"Journal",mobile:true},
+    {id:"daily",icon:"ðŸ“…",label:"Daily",mobile:true},
+    {id:"heatmap",icon:"ðŸ“Š",label:"Heatmap",mobile:true},
+    {id:"more",icon:"â‹¯",label:"More",mobile:true},
     // Desktop only (accessible via sidebar + More on mobile)
-    {id:"weekly",icon:"📋",label:"Weekly",mobile:false},
-    {id:"analytics",icon:"📈",label:"Analytics",mobile:false},
-    {id:"psychology",icon:"🧠",label:"Mind",mobile:false},
-    {id:"playbook",icon:"📖",label:"Playbook",mobile:false},
-    {id:"calculator",icon:"🧮",label:"Calculator",mobile:false},
-    {id:"gallery",icon:"🖼",label:"Gallery",mobile:false},
-    {id:"review",icon:"✍",label:"Review",mobile:false},
-    {id:"ai",icon:"🤖",label:"AI Analysis",mobile:false},
-    {id:"export",icon:"📤",label:"Export",mobile:false},
+    {id:"weekly",icon:"ðŸ“‹",label:"Weekly",mobile:false},
+    {id:"analytics",icon:"ðŸ“ˆ",label:"Analytics",mobile:false},
+    {id:"psychology",icon:"ðŸ§ ",label:"Mind",mobile:false},
+    {id:"playbook",icon:"ðŸ“–",label:"Playbook",mobile:false},
+    {id:"calculator",icon:"ðŸ§®",label:"Calculator",mobile:false},
+    {id:"gallery",icon:"ðŸ–¼",label:"Gallery",mobile:false},
+    {id:"review",icon:"âœ",label:"Review",mobile:false},
+    {id:"ai",icon:"ðŸ¤–",label:"AI Analysis",mobile:false},
+    {id:"export",icon:"ðŸ“¤",label:"Export",mobile:false},
   ]
   const ALL_TABS=TABS.filter(t=>t.id!=="more")
   const MOBILE_PRIMARY=TABS.filter(t=>t.mobile)
@@ -251,7 +251,7 @@ export default function App() {
       <nav className="sidebar" style={{background:T.surface,borderRight:`1px solid ${T.border}`}}>
         <div style={{padding:"22px 20px 16px"}}>
           <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,fontWeight:800,background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>FXEDGE</div>
-          <div style={{fontSize:9,color:T.muted,letterSpacing:"0.12em",marginTop:2}}>ICT · SMC</div>
+          <div style={{fontSize:9,color:T.muted,letterSpacing:"0.12em",marginTop:2}}>ICT Â· SMC</div>
         </div>
         <div style={{padding:"8px 12px 0"}}>
           {SIDEBAR_PRIMARY.map(t=>(
@@ -274,9 +274,9 @@ export default function App() {
         </div>
         <div style={{flex:1}}/>
         <div style={{padding:"8px 20px",fontSize:11,color:T.muted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.email}</div>
-        <div style={{padding:"4px 20px 4px",fontSize:11,color:syncing?T.amber:T.green,cursor:"pointer"}} onClick={loadAll}>{syncing?"⟳ Saving...":"● Synced"}</div>
+        <div style={{padding:"4px 20px 4px",fontSize:11,color:syncing?T.amber:T.green,cursor:"pointer"}} onClick={loadAll}>{syncing?"âŸ³ Saving...":"â— Synced"}</div>
         <button onClick={()=>setDark(!dark)} style={{margin:"6px 12px",padding:"8px 14px",background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,borderRadius:8,cursor:"pointer",fontSize:12,fontFamily:"Inter,sans-serif",textAlign:"left"}}>
-          {dark?"☀ Light Mode":"🌙 Dark Mode"}
+          {dark?"â˜€ Light Mode":"ðŸŒ™ Dark Mode"}
         </button>
         <button onClick={signOut} style={{margin:"4px 12px 16px",padding:"8px 14px",background:"none",border:`1px solid ${T.border}`,color:T.muted,borderRadius:8,cursor:"pointer",fontSize:12,fontFamily:"Inter,sans-serif",textAlign:"left"}}>Sign Out</button>
       </nav>
@@ -291,7 +291,7 @@ export default function App() {
           </div>
           <div style={{display:"flex",gap:8,alignItems:"center"}}>
             <button onClick={()=>setDark(!dark)} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:"7px 14px",borderRadius:20,cursor:"pointer",fontSize:13}}>
-              {dark?"☀":"🌙"}
+              {dark?"â˜€":"ðŸŒ™"}
             </button>
             {tab==="journal"&&<Btn T={T} onClick={()=>setTradeModal("new")}>+ Log Trade</Btn>}
             {tab==="daily"&&<Btn T={T} onClick={()=>setDailyModal("new")}>+ Daily Plan</Btn>}
@@ -299,7 +299,7 @@ export default function App() {
           </div>
         </div>
 
-        {error&&<div style={{background:"#450a0a",borderBottom:"1px solid #991b1b",color:"#fca5a5",padding:"10px 28px",fontSize:13,display:"flex",alignItems:"center"}}>⚠ {error}<button onClick={()=>setError(null)} style={{marginLeft:12,background:"none",border:"none",color:"inherit",cursor:"pointer",fontWeight:700}}>✕</button></div>}
+        {error&&<div style={{background:"#450a0a",borderBottom:"1px solid #991b1b",color:"#fca5a5",padding:"10px 28px",fontSize:13,display:"flex",alignItems:"center"}}>âš  {error}<button onClick={()=>setError(null)} style={{marginLeft:12,background:"none",border:"none",color:"inherit",cursor:"pointer",fontWeight:700}}>âœ•</button></div>}
 
         <div style={{padding:"24px 28px",flex:1}}>
           {tab==="dashboard"&&<Dashboard T={T} stats={stats} trades={trades} dailyPlans={dailyPlans} weeklyPlans={weeklyPlans} onNewTrade={()=>setTradeModal("new")} onNewDaily={()=>setDailyModal("new")}/>}
@@ -342,7 +342,7 @@ export default function App() {
   )
 }
 
-// ── Shared UI ─────────────────────────────────────────────────────────────────
+// â”€â”€ Shared UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function Spinner({T,label}) {
   const th = T||DARK
   return (
@@ -461,11 +461,11 @@ function PasteImageInput({T, value, onChange, label}) {
         {value ? (
           <div style={{position:"relative"}}>
             <img src={value} alt={label} style={{width:"100%",maxHeight:180,objectFit:"cover",borderRadius:8}}/>
-            <button onClick={()=>onChange("")} style={{position:"absolute",top:6,right:6,background:"rgba(0,0,0,.7)",border:"none",color:"#fff",borderRadius:"50%",width:24,height:24,cursor:"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
+            <button onClick={()=>onChange("")} style={{position:"absolute",top:6,right:6,background:"rgba(0,0,0,.7)",border:"none",color:"#fff",borderRadius:"50%",width:24,height:24,cursor:"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>âœ•</button>
           </div>
         ) : (
           <div style={{color:T.muted,fontSize:12}}>
-            <div style={{fontSize:24,marginBottom:6}}>📋</div>
+            <div style={{fontSize:24,marginBottom:6}}>ðŸ“‹</div>
             <div style={{fontWeight:600,color:T.textDim,marginBottom:2}}>{pasting?"Processing...":"Ctrl+V to paste"}</div>
             <div>or <label style={{color:T.accentBright,cursor:"pointer"}}><input type="file" accept="image/*" style={{display:"none"}} onChange={handleFile}/> browse file</label></div>
           </div>
@@ -542,7 +542,7 @@ function MultiImageInput({T, values, onChange, label, max=6}) {
   )
 }
 
-// ── Dashboard ─────────────────────────────────────────────────────────────────
+// â”€â”€ Dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily}) {
   const today = new Date().toISOString().split("T")[0]
   const todayTrades = trades.filter(t=>t.date===today)
@@ -737,7 +737,7 @@ function MiniEquityCurve({T,data}) {
   )
 }
 
-// ── Journal ───────────────────────────────────────────────────────────────────
+// â”€â”€ Journal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function Journal({T,filtered,filterPair,setFilterPair,filterResult,setFilterResult,onEdit,onDelete,onViewImg,onNew}) {
   return (
     <div>
@@ -816,7 +816,7 @@ function Journal({T,filtered,filterPair,setFilterPair,filterResult,setFilterResu
   )
 }
 
-// ── Daily Tab ─────────────────────────────────────────────────────────────────
+// â”€â”€ Daily Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function DailyTab({T,plans,onEdit,onDelete,onNew}) {
   const sorted=[...plans].sort((a,b)=>new Date(b.date)-new Date(a.date))
   return (
@@ -863,7 +863,7 @@ function DailyTab({T,plans,onEdit,onDelete,onNew}) {
   )
 }
 
-// ── Weekly Tab ────────────────────────────────────────────────────────────────
+// â”€â”€ Weekly Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function WeeklyTab({T,plans,onEdit,onDelete,onNew}) {
   const sorted=[...plans].sort((a,b)=>new Date(b.weekStart)-new Date(a.weekStart))
   return (
@@ -918,7 +918,7 @@ function WeeklyTab({T,plans,onEdit,onDelete,onNew}) {
   )
 }
 
-// ── Analytics ─────────────────────────────────────────────────────────────────
+// â”€â”€ Analytics â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function Analytics({T,stats,trades}) {
   const byKZ=KILL_ZONES.map(kz=>{const t=trades.filter(x=>x.killzone===kz);return{kz:kz.split(" ")[0],count:t.length,wins:t.filter(x=>x.result==="WIN").length,totalR:t.reduce((s,x)=>s+(x.rr||0),0)}}).filter(x=>x.count>0)
   const byManip=MANI_TYPES.filter(m=>m!=="None").map(m=>{const t=trades.filter(x=>x.manipulation===m);return{m,count:t.length,wins:t.filter(x=>x.result==="WIN").length}}).filter(x=>x.count>0)
@@ -944,7 +944,7 @@ function Analytics({T,stats,trades}) {
   )
 }
 
-// ── Psychology ────────────────────────────────────────────────────────────────
+// â”€â”€ Psychology â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function Psychology({T,stats,trades}) {
   const byEmotion=EMOTIONS.map(e=>{const t=trades.filter(x=>x.emotion===e);return{emotion:e,count:t.length,wins:t.filter(x=>x.result==="WIN").length,totalR:t.reduce((s,x)=>s+(x.rr||0),0)}}).filter(x=>x.count>0).sort((a,b)=>b.count-a.count)
   const mistakes=MISTAKES.filter(m=>m!=="None").map(m=>{const t=trades.filter(x=>x.mistakes===m);return{mistake:m,count:t.length,totalR:t.reduce((s,x)=>s+(x.rr||0),0)}}).filter(x=>x.count>0).sort((a,b)=>b.count-a.count)
@@ -956,7 +956,7 @@ function Psychology({T,stats,trades}) {
       <Card T={T} style={{gridColumn:"1/-1"}}>
         <CardTitle T={T}>Psychology Overview</CardTitle>
         <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
-          {[{l:"Perfect Execution",v:perfect.length,s:`${trades.length>0?(perfect.length/trades.length*100).toFixed(0):0}% of trades`,c:T.green},{l:"With Mistakes",v:mistakeTrades.length,s:`${trades.length>0?(mistakeTrades.length/trades.length*100).toFixed(0):0}% of trades`,c:T.red},{l:"R Lost to Mistakes",v:`${mistakeTrades.reduce((s,t)=>s+Math.min(0,t.rr||0),0).toFixed(1)}R`,s:"estimated cost",c:T.amber},{l:"Best State",v:[...byEmotion].sort((a,b)=>b.totalR-a.totalR)[0]?.emotion||"—",s:"highest R",c:T.accentBright}].map(k=>(
+          {[{l:"Perfect Execution",v:perfect.length,s:`${trades.length>0?(perfect.length/trades.length*100).toFixed(0):0}% of trades`,c:T.green},{l:"With Mistakes",v:mistakeTrades.length,s:`${trades.length>0?(mistakeTrades.length/trades.length*100).toFixed(0):0}% of trades`,c:T.red},{l:"R Lost to Mistakes",v:`${mistakeTrades.reduce((s,t)=>s+Math.min(0,t.rr||0),0).toFixed(1)}R`,s:"estimated cost",c:T.amber},{l:"Best State",v:[...byEmotion].sort((a,b)=>b.totalR-a.totalR)[0]?.emotion||"â€”",s:"highest R",c:T.accentBright}].map(k=>(
             <div key={k.l} style={{background:T.surface2,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px",textAlign:"center"}}>
               <div style={{fontSize:11,fontWeight:700,color:T.muted,letterSpacing:"0.08em",marginBottom:8}}>{k.l}</div>
               <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,fontWeight:800,color:k.c}}>{k.v}</div>
@@ -978,11 +978,11 @@ function Psychology({T,stats,trades}) {
       </Card>
       <Card T={T}>
         <CardTitle T={T}>Mistake Tracker</CardTitle>
-        {mistakes.length===0?<div style={{color:T.green,fontSize:13,textAlign:"center",padding:16}}>No mistakes logged 🎯</div>:mistakes.map(m=>(
+        {mistakes.length===0?<div style={{color:T.green,fontSize:13,textAlign:"center",padding:16}}>No mistakes logged ðŸŽ¯</div>:mistakes.map(m=>(
           <div key={m.mistake} style={{display:"flex",alignItems:"center",gap:10,padding:"6px 0",borderBottom:`1px solid ${T.border}`}}>
             <span style={{fontSize:12,color:T.red,minWidth:130}}>{m.mistake}</span>
             <div style={{flex:1,height:6,background:T.surface2,borderRadius:3,overflow:"hidden"}}><div style={{height:"100%",background:T.red,width:`${Math.min(100,m.count*20)}%`}}/></div>
-            <span style={{fontSize:11,color:T.textDim,minWidth:25,textAlign:"right"}}>{m.count}×</span>
+            <span style={{fontSize:11,color:T.textDim,minWidth:25,textAlign:"right"}}>{m.count}Ã—</span>
             <span style={{fontSize:11,fontWeight:700,color:m.totalR>=0?T.green:T.red,minWidth:44,textAlign:"right"}}>{m.totalR>=0?"+":""}{m.totalR.toFixed(1)}R</span>
           </div>
         ))}
@@ -991,7 +991,7 @@ function Psychology({T,stats,trades}) {
   )
 }
 
-// ── Calculator ────────────────────────────────────────────────────────────────
+// â”€â”€ Calculator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function Calculator({T}) {
   const [acc,setAcc]=useState("10000")
   const [risk,setRisk]=useState("1")
@@ -1046,7 +1046,7 @@ function Calculator({T}) {
   )
 }
 
-// ── Screenshot Gallery ────────────────────────────────────────────────────────
+// â”€â”€ Screenshot Gallery â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function ScreenshotGallery({T,trades,onViewImg}) {
   const [filterPair,setFilterPair]=useState("ALL")
   const [filterType,setFilterType]=useState("ALL")
@@ -1081,7 +1081,7 @@ function ScreenshotGallery({T,trades,onViewImg}) {
                     <span style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.accentBright}}>{img.trade.pair}</span>
                     <span style={{fontWeight:800,color:img.trade.rr>=0?T.green:T.red,fontSize:13}}>{fmtRR(img.trade.rr||0)}</span>
                   </div>
-                  <div style={{fontSize:11,color:T.muted}}>{fmtDate(img.trade.date)} · {img.trade.direction}</div>
+                  <div style={{fontSize:11,color:T.muted}}>{fmtDate(img.trade.date)} Â· {img.trade.direction}</div>
                 </div>
               </div>
             ))}
@@ -1098,7 +1098,7 @@ function ScreenshotGallery({T,trades,onViewImg}) {
               <span style={{fontWeight:800,color:selected.trade.rr>=0?T.green:T.red}}>{fmtRR(selected.trade.rr||0)}</span>
               <span style={{fontSize:12,color:T.muted,marginLeft:4}}>{fmtDate(selected.trade.date)}</span>
               <span style={{fontSize:11,background:T.surface2,color:T.textDim,padding:"2px 8px",borderRadius:6}}>{selected.type}</span>
-              <button onClick={()=>setSelected(null)} style={{marginLeft:"auto",background:"none",border:"none",color:T.textDim,cursor:"pointer",fontSize:20}}>✕</button>
+              <button onClick={()=>setSelected(null)} style={{marginLeft:"auto",background:"none",border:"none",color:T.textDim,cursor:"pointer",fontSize:20}}>âœ•</button>
             </div>
             <img src={selected.src} alt="chart" style={{maxWidth:"92vw",maxHeight:"80vh",borderRadius:"0 0 12px 12px",objectFit:"contain",border:`1px solid ${T.border}`,borderTop:"none"}}/>
           </div>
@@ -1108,7 +1108,7 @@ function ScreenshotGallery({T,trades,onViewImg}) {
   )
 }
 
-// ── Weekly Review ─────────────────────────────────────────────────────────────
+// â”€â”€ Weekly Review â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function WeeklyReview({T,weeklyPlans,trades,saveWeekly}) {
   const [selected,setSelected]=useState(null)
   const [reviewText,setReviewText]=useState("")
@@ -1118,34 +1118,116 @@ function WeeklyReview({T,weeklyPlans,trades,saveWeekly}) {
   const open=p=>{setSelected(p);setReviewText(p.review||"")}
   const save=async()=>{setSaving(true);await saveWeekly({...selected,review:reviewText});setSaving(false);setSelected(null)}
   const PROMPTS=["Did I follow my daily bias?","Did I wait for manipulation before entry?","Did I trade in the kill zone?","Did I manage risk properly?","What was my biggest mistake?","What did I do well?","What will I improve next week?"]
+  const buildInsights=(weekTrades)=>{
+    const wins=weekTrades.filter(t=>t.result==="WIN")
+    const totalR=weekTrades.reduce((s,t)=>s+(t.rr||0),0)
+    const winRate=weekTrades.length?(wins.length/weekTrades.length)*100:0
+    const bestTrade=[...weekTrades].sort((a,b)=>(b.rr||0)-(a.rr||0))[0]||null
+    const worstTrade=[...weekTrades].sort((a,b)=>(a.rr||0)-(b.rr||0))[0]||null
+    const byPair={}
+    const bySetup={}
+    const byMistake={}
+    const byEmotion={}
+    weekTrades.forEach(t=>{
+      if(!byPair[t.pair]) byPair[t.pair]={count:0,r:0,wins:0}
+      byPair[t.pair].count++
+      byPair[t.pair].r+=(t.rr||0)
+      if(t.result==="WIN") byPair[t.pair].wins++
+      if(t.setup){
+        if(!bySetup[t.setup]) bySetup[t.setup]={count:0,r:0,wins:0}
+        bySetup[t.setup].count++
+        bySetup[t.setup].r+=(t.rr||0)
+        if(t.result==="WIN") bySetup[t.setup].wins++
+      }
+      if(t.mistakes&&t.mistakes!=="None") byMistake[t.mistakes]=(byMistake[t.mistakes]||0)+1
+      if(t.emotion) byEmotion[t.emotion]=(byEmotion[t.emotion]||0)+1
+    })
+    const bestPair=Object.entries(byPair).sort((a,b)=>b[1].r-a[1].r)[0]
+    const bestSetup=Object.entries(bySetup).sort((a,b)=>b[1].r-a[1].r)[0]
+    const topMistake=Object.entries(byMistake).sort((a,b)=>b[1]-a[1])[0]
+    const topEmotion=Object.entries(byEmotion).sort((a,b)=>b[1]-a[1])[0]
+    const nextFocus=topMistake
+      ? `Reduce ${topMistake[0].toLowerCase()} and stay tighter around your best setup.`
+      : bestSetup
+        ? `Keep pressing ${bestSetup[0].toLowerCase()} only when the full context is aligned.`
+        : "Protect capital and wait for your cleanest confirmations next week."
+    return {wins,totalR,winRate,bestTrade,worstTrade,bestPair,bestSetup,topMistake,topEmotion,nextFocus}
+  }
 
   return (
     <div>
       {sorted.length===0&&<div style={{textAlign:"center",padding:"60px 20px",color:T.muted,fontSize:14}}>No weekly plans yet. Create one first.</div>}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:14}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))",gap:14}}>
         {sorted.map(plan=>{
-          const wt=getWeekTrades(plan),wins=wt.filter(t=>t.result==="WIN").length,totalR=wt.reduce((s,t)=>s+(t.rr||0),0)
+          const wt=getWeekTrades(plan)
+          const insights=buildInsights(wt)
+          const wins=insights.wins.length
+          const totalR=insights.totalR
           const hasReview=plan.review&&plan.review.trim().length>0
           return (
-            <div key={plan._dbid} style={{background:T.surface,border:`1px solid ${hasReview?T.accentBright:T.border}`,borderRadius:14,padding:"18px 20px"}}>
+            <div key={plan._dbid} style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${hasReview?T.accentBright:T.border}`,borderRadius:18,padding:"20px 20px 18px",boxShadow:`0 14px 32px ${T.cardGlow}`}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
                 <div>
-                  <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text}}>{plan.weekStart} → {plan.weekEnd}</div>
+                  <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text}}>{plan.weekStart} to {plan.weekEnd}</div>
                   {plan.overallBias&&<div style={{fontSize:12,color:T.accentBright,marginTop:3}}>{plan.overallBias}</div>}
                 </div>
                 {hasReview&&<Badge color={T.green}>Reviewed</Badge>}
               </div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:12}}>
                 {[{l:"Trades",v:wt.length,c:T.text},{l:"Wins",v:wins,c:T.green},{l:"Losses",v:wt.length-wins,c:T.red},{l:"Total R",v:`${totalR>=0?"+":""}${totalR.toFixed(1)}R`,c:totalR>=0?T.green:T.red}].map(s=>(
-                  <div key={s.l} style={{background:T.surface2,border:`1px solid ${T.border}`,borderRadius:8,padding:"8px",textAlign:"center"}}>
+                  <div key={s.l} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:"8px",textAlign:"center"}}>
                     <div style={{fontSize:9,fontWeight:700,color:T.muted,letterSpacing:"0.08em",marginBottom:3}}>{s.l}</div>
                     <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:16,fontWeight:800,color:s.c}}>{s.v}</div>
                   </div>
                 ))}
               </div>
-              {hasReview&&<div style={{fontSize:12,color:T.textDim,lineHeight:1.6,marginBottom:12,padding:"10px 12px",background:T.surface2,borderRadius:8,borderLeft:`3px solid ${T.accentBright}`}}>{plan.review.slice(0,180)}{plan.review.length>180?"...":""}</div>}
+              {wt.length>0&&(
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+                  <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:"10px 12px"}}>
+                    <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6}}>Best Pair</div>
+                    <div style={{fontSize:13,fontWeight:800,color:T.text}}>{insights.bestPair?.[0]||"-"}</div>
+                    <div style={{fontSize:11,color:T.textDim,marginTop:3}}>{insights.bestPair?`${insights.bestPair[1].r>=0?"+":""}${insights.bestPair[1].r.toFixed(1)}R across ${insights.bestPair[1].count} trades`:"No pair edge yet"}</div>
+                  </div>
+                  <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:"10px 12px"}}>
+                    <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6}}>Best Setup</div>
+                    <div style={{fontSize:13,fontWeight:800,color:T.text}}>{insights.bestSetup?.[0]||"-"}</div>
+                    <div style={{fontSize:11,color:T.textDim,marginTop:3}}>{insights.bestSetup?`${insights.bestSetup[1].wins}/${insights.bestSetup[1].count} wins with ${insights.bestSetup[1].r>=0?"+":""}${insights.bestSetup[1].r.toFixed(1)}R`:"Need more setup data"}</div>
+                  </div>
+                  <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:"10px 12px"}}>
+                    <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6}}>Recurring Mistake</div>
+                    <div style={{fontSize:13,fontWeight:800,color:insights.topMistake?T.red:T.text}}>{insights.topMistake?.[0]||"None logged"}</div>
+                    <div style={{fontSize:11,color:T.textDim,marginTop:3}}>{insights.topMistake?`${insights.topMistake[1]} time${insights.topMistake[1]!==1?"s":""} this week`:"Execution stayed clean"}</div>
+                  </div>
+                  <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:"10px 12px"}}>
+                    <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6}}>Dominant State</div>
+                    <div style={{fontSize:13,fontWeight:800,color:T.text}}>{insights.topEmotion?.[0]||"-"}</div>
+                    <div style={{fontSize:11,color:T.textDim,marginTop:3}}>{wt.length?`${insights.winRate.toFixed(0)}% win rate this week`:"No trades logged"}</div>
+                  </div>
+                </div>
+              )}
+              {wt.length>0&&(
+                <div style={{background:`linear-gradient(135deg,${T.accent}18,${T.blue}10)`,border:`1px solid ${T.accent}28`,borderRadius:14,padding:"12px 14px",marginBottom:12}}>
+                  <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6}}>Next Week Focus</div>
+                  <div style={{fontSize:12,color:T.text,lineHeight:1.7}}>{insights.nextFocus}</div>
+                </div>
+              )}
+              {wt.length>0&&(
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+                  <div style={{background:T.surface2,border:`1px solid ${T.border}`,borderRadius:12,padding:"10px 12px"}}>
+                    <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6}}>Best Trade</div>
+                    <div style={{fontSize:12,fontWeight:800,color:T.text}}>{insights.bestTrade?`${insights.bestTrade.pair} ${insights.bestTrade.direction}`:"-"}</div>
+                    <div style={{fontSize:11,color:insights.bestTrade?.rr>=0?T.green:T.textDim,marginTop:3}}>{insights.bestTrade?fmtRR(insights.bestTrade.rr||0):"No trades logged"}</div>
+                  </div>
+                  <div style={{background:T.surface2,border:`1px solid ${T.border}`,borderRadius:12,padding:"10px 12px"}}>
+                    <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6}}>Worst Trade</div>
+                    <div style={{fontSize:12,fontWeight:800,color:T.text}}>{insights.worstTrade?`${insights.worstTrade.pair} ${insights.worstTrade.direction}`:"-"}</div>
+                    <div style={{fontSize:11,color:insights.worstTrade?.rr>=0?T.green:T.red,marginTop:3}}>{insights.worstTrade?fmtRR(insights.worstTrade.rr||0):"No trades logged"}</div>
+                  </div>
+                </div>
+              )}
+              {hasReview&&<div style={{fontSize:12,color:T.textDim,lineHeight:1.6,marginBottom:12,padding:"10px 12px",background:T.surface,borderRadius:10,borderLeft:`3px solid ${T.accentBright}`}}>{plan.review.slice(0,180)}{plan.review.length>180?"...":""}</div>}
               <button onClick={()=>open(plan)} style={{width:"100%",background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,color:"#fff",border:"none",padding:"10px",borderRadius:10,cursor:"pointer",fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:700,fontSize:13}}>
-                {hasReview?"Edit Review ✎":"Write Review ✍"}
+                {hasReview?"Update Review":"Write Review"}
               </button>
             </div>
           )
@@ -1156,8 +1238,8 @@ function WeeklyReview({T,weeklyPlans,trades,saveWeekly}) {
         <Overlay onClose={()=>setSelected(null)}>
           <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,width:"min(640px,95vw)",maxHeight:"90vh",display:"flex",flexDirection:"column"}}>
             <div style={{padding:"18px 22px",borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-              <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:17,fontWeight:800,color:T.text}}>Week Review — {selected.weekStart}</div>
-              <button onClick={()=>setSelected(null)} style={{background:"none",border:"none",color:T.textDim,cursor:"pointer",fontSize:20}}>✕</button>
+              <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:17,fontWeight:800,color:T.text}}>Week Review - {selected.weekStart}</div>
+              <button onClick={()=>setSelected(null)} style={{background:"none",border:"none",color:T.textDim,cursor:"pointer",fontSize:20}}>x</button>
             </div>
             <div style={{padding:"20px 22px",overflowY:"auto",flex:1,display:"flex",flexDirection:"column",gap:14}}>
               {getWeekTrades(selected).length>0&&(
@@ -1173,6 +1255,22 @@ function WeeklyReview({T,weeklyPlans,trades,saveWeekly}) {
                   ))}
                 </div>
               )}
+              {(()=>{ const insights=buildInsights(getWeekTrades(selected)); return getWeekTrades(selected).length>0&&(
+                <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10}}>
+                  <div style={{background:T.surface2,border:`1px solid ${T.border}`,borderRadius:12,padding:"12px 14px"}}>
+                    <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6}}>Weekly Snapshot</div>
+                    <div style={{fontSize:12,color:T.textDim,lineHeight:1.7}}>
+                      <div>{getWeekTrades(selected).length} trades with {insights.winRate.toFixed(0)}% win rate</div>
+                      <div>{insights.totalR>=0?"+":""}{insights.totalR.toFixed(1)}R total for the week</div>
+                      <div>Best pair: {insights.bestPair?.[0]||"-"}</div>
+                    </div>
+                  </div>
+                  <div style={{background:`linear-gradient(135deg,${T.accent}18,${T.blue}10)`,border:`1px solid ${T.accent}28`,borderRadius:12,padding:"12px 14px"}}>
+                    <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6}}>Coaching Focus</div>
+                    <div style={{fontSize:12,color:T.text,lineHeight:1.7}}>{insights.nextFocus}</div>
+                  </div>
+                </div>
+              )})()}
               <div>
                 <div style={{fontSize:11,fontWeight:700,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>Review Prompts</div>
                 {PROMPTS.map((p,i)=><div key={i} style={{fontSize:12,color:T.textDim,padding:"6px 10px",background:T.surface2,borderRadius:6,marginBottom:4,borderLeft:`2px solid ${T.border}`}}>{i+1}. {p}</div>)}
@@ -1193,16 +1291,14 @@ function WeeklyReview({T,weeklyPlans,trades,saveWeekly}) {
   )
 }
 
-
-// ── Pre-Trade Checklist Gate ──────────────────────────────────────────────────
 const CHECKLIST_RULES = [
-  { id:"bias",     icon:"🧭", label:"I have confirmed the Daily Bias",          detail:"HTF is aligned with your trade direction" },
-  { id:"manip",    icon:"🎯", label:"Manipulation / Liquidity Sweep happened",  detail:"Judas swing, stop hunt or sweep confirmed" },
-  { id:"kz",       icon:"⏰", label:"I am in a Kill Zone",                      detail:"London, NY Open, or valid session window" },
-  { id:"poi",      icon:"📍", label:"I have identified a valid POI",            detail:"Order Block, FVG, Breaker or Mitigation" },
-  { id:"risk",     icon:"🛡", label:"Risk is calculated & SL is set",           detail:"Position size and pip risk confirmed" },
-  { id:"higher",   icon:"📈", label:"Higher timeframe structure is aligned",    detail:"H4/Daily agrees with your entry direction" },
-  { id:"no_revenge",icon:"🧘",label:"I am NOT in revenge mode",                detail:"Calm, focused, and following the plan" },
+  { id:"bias",     icon:"ðŸ§­", label:"I have confirmed the Daily Bias",          detail:"HTF is aligned with your trade direction" },
+  { id:"manip",    icon:"ðŸŽ¯", label:"Manipulation / Liquidity Sweep happened",  detail:"Judas swing, stop hunt or sweep confirmed" },
+  { id:"kz",       icon:"â°", label:"I am in a Kill Zone",                      detail:"London, NY Open, or valid session window" },
+  { id:"poi",      icon:"ðŸ“", label:"I have identified a valid POI",            detail:"Order Block, FVG, Breaker or Mitigation" },
+  { id:"risk",     icon:"ðŸ›¡", label:"Risk is calculated & SL is set",           detail:"Position size and pip risk confirmed" },
+  { id:"higher",   icon:"ðŸ“ˆ", label:"Higher timeframe structure is aligned",    detail:"H4/Daily agrees with your entry direction" },
+  { id:"no_revenge",icon:"ðŸ§˜",label:"I am NOT in revenge mode",                detail:"Calm, focused, and following the plan" },
 ]
 
 function ChecklistGate({T, onPass, onClose}) {
@@ -1227,7 +1323,7 @@ function ChecklistGate({T, onPass, onClose}) {
         <div style={{padding:"22px 24px 18px", background:`linear-gradient(135deg,${T.accent}20,${T.pink}10)`, borderBottom:`1px solid ${T.border}`}}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:4}}>
             <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize:20, fontWeight:800, color:T.text}}>Pre-Trade Checklist</div>
-            <button onClick={onClose} style={{background:"none", border:"none", color:T.textDim, cursor:"pointer", fontSize:20}}>✕</button>
+            <button onClick={onClose} style={{background:"none", border:"none", color:T.textDim, cursor:"pointer", fontSize:20}}>âœ•</button>
           </div>
           <div style={{fontSize:13, color:T.textDim}}>Tick every rule before logging your trade</div>
           {/* Progress bar */}
@@ -1266,7 +1362,7 @@ function ChecklistGate({T, onPass, onClose}) {
                   display:"flex", alignItems:"center", justifyContent:"center",
                   transition:"all .2s",
                 }}>
-                  {isChecked && <span style={{color:"#fff", fontSize:14, fontWeight:700}}>✓</span>}
+                  {isChecked && <span style={{color:"#fff", fontSize:14, fontWeight:700}}>âœ“</span>}
                 </div>
                 {/* Icon + text */}
                 <span style={{fontSize:20, flexShrink:0}}>{rule.icon}</span>
@@ -1283,7 +1379,7 @@ function ChecklistGate({T, onPass, onClose}) {
         <div style={{padding:"16px 24px", borderTop:`1px solid ${T.border}`}}>
           {attempted && !allChecked && (
             <div style={{fontSize:12, color:T.red, marginBottom:10, textAlign:"center", fontWeight:600}}>
-              ⚠ Tick all {CHECKLIST_RULES.length} rules before logging a trade
+              âš  Tick all {CHECKLIST_RULES.length} rules before logging a trade
             </div>
           )}
           <button
@@ -1298,7 +1394,7 @@ function ChecklistGate({T, onPass, onClose}) {
               transition:"all .3s",
             }}
           >
-            {allChecked ? "✅ All rules checked — Log Trade" : `${CHECKLIST_RULES.length - score} rule${CHECKLIST_RULES.length - score !== 1 ? "s" : ""} remaining`}
+            {allChecked ? "âœ… All rules checked â€” Log Trade" : `${CHECKLIST_RULES.length - score} rule${CHECKLIST_RULES.length - score !== 1 ? "s" : ""} remaining`}
           </button>
           <div style={{textAlign:"center", marginTop:8}}>
             <button onClick={onPass} style={{background:"none", border:"none", color:T.muted, cursor:"pointer", fontSize:11, textDecoration:"underline"}}>Skip checklist (not recommended)</button>
@@ -1309,7 +1405,7 @@ function ChecklistGate({T, onPass, onClose}) {
   )
 }
 
-// ── Advanced Analytics Heatmap ───────────────────────────────────────────────
+// â”€â”€ Advanced Analytics Heatmap â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function Heatmap({T, trades}) {
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
@@ -1319,7 +1415,7 @@ function Heatmap({T, trades}) {
   const DAYS_FULL = ["Monday","Tuesday","Wednesday","Thursday","Friday"]
   const DAYS_SHORT = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
 
-  // ── Calendar data ──
+  // â”€â”€ Calendar data â”€â”€
   const dailyMap = useMemo(() => {
     const map = {}
     trades.forEach(t => {
@@ -1335,13 +1431,13 @@ function Heatmap({T, trades}) {
     return map
   },[trades,year,month])
 
-  // ── Month stats ──
+  // â”€â”€ Month stats â”€â”€
   const monthTrades = trades.filter(t=>{ if(!t.date) return false; const d=new Date(t.date); return d.getFullYear()===year&&d.getMonth()===month })
   const monthR = monthTrades.reduce((s,t)=>s+(t.rr||0),0)
   const monthWins = monthTrades.filter(t=>t.result==="WIN").length
   const monthWR = monthTrades.length?(monthWins/monthTrades.length*100).toFixed(0):0
 
-  // ── Day of week performance ──
+  // â”€â”€ Day of week performance â”€â”€
   const dowData = useMemo(()=>{
     return [1,2,3,4,5].map(dow=>{
       const t = trades.filter(x=>{ if(!x.date)return false; return new Date(x.date).getDay()===dow })
@@ -1351,7 +1447,7 @@ function Heatmap({T, trades}) {
     })
   },[trades])
 
-  // ── Session/time heatmap (day x session grid) ──
+  // â”€â”€ Session/time heatmap (day x session grid) â”€â”€
   const sessionDowGrid = useMemo(()=>{
     const sessions=["London","New York","Asian","London/NY Overlap"]
     const grid={}
@@ -1368,7 +1464,7 @@ function Heatmap({T, trades}) {
     return {sessions,grid}
   },[trades])
 
-  // ── Streak data ──
+  // â”€â”€ Streak data â”€â”€
   const streakData = useMemo(()=>{
     const sorted=[...trades].sort((a,b)=>new Date(a.date)-new Date(b.date))
     let curStreak=0,curType=null,maxWin=0,maxLoss=0,curWin=0,curLoss=0
@@ -1388,7 +1484,7 @@ function Heatmap({T, trades}) {
     return {curStreak,curType,maxWin,maxLoss,streaks:streaks.slice(-30)}
   },[trades])
 
-  // ── Drawdown data ──
+  // â”€â”€ Drawdown data â”€â”€
   const drawdownData = useMemo(()=>{
     const sorted=[...trades].sort((a,b)=>new Date(a.date)-new Date(b.date))
     let peak=0,cum=0,maxDD=0,curDD=0
@@ -1403,7 +1499,7 @@ function Heatmap({T, trades}) {
     return {points,maxDD,currentDD:curDD,peak}
   },[trades])
 
-  // ── Year bar chart ──
+  // â”€â”€ Year bar chart â”€â”€
   const yearlyData = useMemo(()=>{
     return MONTHS.map((m,mi)=>{
       const mt=trades.filter(t=>{ if(!t.date)return false; const d=new Date(t.date); return d.getFullYear()===year&&d.getMonth()===mi })
@@ -1412,7 +1508,7 @@ function Heatmap({T, trades}) {
   },[trades,year])
   const maxAbsR=Math.max(1,...yearlyData.map(d=>Math.abs(d.r)))
 
-  // ── Calendar cell logic ──
+  // â”€â”€ Calendar cell logic â”€â”€
   const firstDay=new Date(year,month,1)
   let startDow=firstDay.getDay(); startDow=startDow===0?6:startDow-1
   const daysInMonth=new Date(year,month+1,0).getDate()
@@ -1444,11 +1540,11 @@ function Heatmap({T, trades}) {
   }
 
   const VIEWS=[
-    {id:"calendar",label:"📅 Calendar"},
-    {id:"weekday",label:"📊 Day of Week"},
-    {id:"session",label:"🕐 Session Grid"},
-    {id:"streak",label:"🔥 Streaks"},
-    {id:"drawdown",label:"📉 Drawdown"},
+    {id:"calendar",label:"ðŸ“… Calendar"},
+    {id:"weekday",label:"ðŸ“Š Day of Week"},
+    {id:"session",label:"ðŸ• Session Grid"},
+    {id:"streak",label:"ðŸ”¥ Streaks"},
+    {id:"drawdown",label:"ðŸ“‰ Drawdown"},
   ]
 
   return (
@@ -1458,7 +1554,7 @@ function Heatmap({T, trades}) {
         {[
           {l:"Total R",v:`${trades.reduce((s,t)=>s+(t.rr||0),0)>=0?"+":""}${trades.reduce((s,t)=>s+(t.rr||0),0).toFixed(2)}R`,c:trades.reduce((s,t)=>s+(t.rr||0),0)>=0?T.green:T.red},
           {l:"Win Rate",v:`${trades.length?(trades.filter(t=>t.result==="WIN").length/trades.length*100).toFixed(1):0}%`,c:T.blue},
-          {l:"Max Win Streak",v:`${streakData.maxWin} 🔥`,c:T.green},
+          {l:"Max Win Streak",v:`${streakData.maxWin} ðŸ”¥`,c:T.green},
           {l:"Max Drawdown",v:`${drawdownData.maxDD.toFixed(2)}R`,c:T.red},
         ].map(k=>(
           <div key={k.l} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px"}}>
@@ -1481,16 +1577,16 @@ function Heatmap({T, trades}) {
         ))}
       </div>
 
-      {/* ── CALENDAR VIEW ── */}
+      {/* â”€â”€ CALENDAR VIEW â”€â”€ */}
       {activeView==="calendar"&&(
         <div>
           {/* Year overview */}
           <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:18,padding:"16px 18px",marginBottom:14,boxShadow:`0 10px 30px ${T.cardGlow}`}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,flexWrap:"wrap",gap:8}}>
-              <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text}}>Year Overview — {year}</div>
+              <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text}}>Year Overview â€” {year}</div>
               <div style={{display:"flex",gap:8}}>
-                <button onClick={()=>setYear(y=>y-1)} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontSize:12}}>◀ {year-1}</button>
-                <button onClick={()=>setYear(y=>y+1)} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontSize:12}}>{year+1} ▶</button>
+                <button onClick={()=>setYear(y=>y-1)} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontSize:12}}>â—€ {year-1}</button>
+                <button onClick={()=>setYear(y=>y+1)} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontSize:12}}>{year+1} â–¶</button>
               </div>
             </div>
             <div style={{display:"flex",gap:5,alignItems:"flex-end",height:78}}>
@@ -1524,8 +1620,8 @@ function Heatmap({T, trades}) {
                 </div>
               </div>
               <div style={{display:"flex",gap:8}}>
-                <button onClick={()=>{if(month===0){setMonth(11);setYear(y=>y-1)}else setMonth(m=>m-1)}} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:"6px 14px",borderRadius:8,cursor:"pointer"}}>◀</button>
-                <button onClick={()=>{if(month===11){setMonth(0);setYear(y=>y+1)}else setMonth(m=>m+1)}} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:"6px 14px",borderRadius:8,cursor:"pointer"}}>▶</button>
+                <button onClick={()=>{if(month===0){setMonth(11);setYear(y=>y-1)}else setMonth(m=>m-1)}} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:"6px 14px",borderRadius:8,cursor:"pointer"}}>â—€</button>
+                <button onClick={()=>{if(month===11){setMonth(0);setYear(y=>y+1)}else setMonth(m=>m+1)}} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:"6px 14px",borderRadius:8,cursor:"pointer"}}>â–¶</button>
               </div>
             </div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(7,minmax(0,1fr))",gap:6,marginBottom:6}}>
@@ -1569,7 +1665,7 @@ function Heatmap({T, trades}) {
         </div>
       )}
 
-      {/* ── DAY OF WEEK VIEW ── */}
+      {/* â”€â”€ DAY OF WEEK VIEW â”€â”€ */}
       {activeView==="weekday"&&(
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
           <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"18px 20px"}}>
@@ -1617,10 +1713,10 @@ function Heatmap({T, trades}) {
         </div>
       )}
 
-      {/* ── SESSION GRID VIEW ── */}
+      {/* â”€â”€ SESSION GRID VIEW â”€â”€ */}
       {activeView==="session"&&(
         <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"18px 20px"}}>
-          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text,marginBottom:6}}>Session × Day Heatmap</div>
+          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text,marginBottom:6}}>Session Ã— Day Heatmap</div>
           <div style={{fontSize:12,color:T.muted,marginBottom:16}}>Which session on which day makes you the most money?</div>
           {trades.length===0?<div style={{color:T.muted,textAlign:"center",padding:40,fontSize:14}}>Log trades to see session performance</div>:(
             <>
@@ -1638,7 +1734,7 @@ function Heatmap({T, trades}) {
                     return (
                       <div key={dow} style={{background:bg,border:`1px solid ${cell.count>0?(cell.r>=0?T.green+"50":T.red+"50"):T.border}`,borderRadius:10,padding:"10px 8px",textAlign:"center",minHeight:60,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3}}>
                         {cell.count===0?(
-                          <div style={{fontSize:11,color:T.muted}}>—</div>
+                          <div style={{fontSize:11,color:T.muted}}>â€”</div>
                         ):(
                           <>
                             <div style={{fontSize:12,fontWeight:800,color:cell.r>=0?T.green:T.red}}>{cell.r>=0?"+":""}{cell.r.toFixed(1)}R</div>
@@ -1655,15 +1751,15 @@ function Heatmap({T, trades}) {
         </div>
       )}
 
-      {/* ── STREAK VIEW ── */}
+      {/* â”€â”€ STREAK VIEW â”€â”€ */}
       {activeView==="streak"&&(
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
           {/* Streak KPIs */}
           <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
             {[
-              {l:"Current Streak",v:`${streakData.curStreak} ${streakData.curType==="WIN"?"🔥":"❄️"}`,sub:streakData.curType||"—",c:streakData.curType==="WIN"?T.green:T.red},
-              {l:"Best Win Streak",v:`${streakData.maxWin} 🔥`,sub:"consecutive wins",c:T.green},
-              {l:"Worst Loss Streak",v:`${streakData.maxLoss} ❄️`,sub:"consecutive losses",c:T.red},
+              {l:"Current Streak",v:`${streakData.curStreak} ${streakData.curType==="WIN"?"ðŸ”¥":"â„ï¸"}`,sub:streakData.curType||"â€”",c:streakData.curType==="WIN"?T.green:T.red},
+              {l:"Best Win Streak",v:`${streakData.maxWin} ðŸ”¥`,sub:"consecutive wins",c:T.green},
+              {l:"Worst Loss Streak",v:`${streakData.maxLoss} â„ï¸`,sub:"consecutive losses",c:T.red},
               {l:"Total Trades",v:trades.length,sub:`${trades.filter(t=>t.result==="WIN").length}W / ${trades.filter(t=>t.result==="LOSS").length}L`,c:T.accentBright},
             ].map(k=>(
               <div key={k.l} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:"16px"}}>
@@ -1675,7 +1771,7 @@ function Heatmap({T, trades}) {
           </div>
           {/* Streak visualization - last 30 trades */}
           <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"18px 20px"}}>
-            <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text,marginBottom:16}}>Last 30 Trades — Streak View</div>
+            <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text,marginBottom:16}}>Last 30 Trades â€” Streak View</div>
             {trades.length===0?<div style={{color:T.muted,textAlign:"center",padding:40,fontSize:14}}>No trades yet</div>:(
               <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
                 {streakData.streaks.map((t,i)=>(
@@ -1694,7 +1790,7 @@ function Heatmap({T, trades}) {
         </div>
       )}
 
-      {/* ── DRAWDOWN VIEW ── */}
+      {/* â”€â”€ DRAWDOWN VIEW â”€â”€ */}
       {activeView==="drawdown"&&(
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
@@ -1750,7 +1846,7 @@ function Heatmap({T, trades}) {
 }
 
 
-// ── Trade Modal ───────────────────────────────────────────────────────────────
+// â”€â”€ Trade Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function TradeModal({T,initial,onSave,onClose,syncing}) {
   const blank={pair:"EURUSD",date:new Date().toISOString().split("T")[0],direction:"LONG",session:"London",killzone:"London Open (02-05 EST)",dailyBias:"Bullish",weeklyBias:"Bullish",marketProfile:"Trending",manipulation:"Liquidity Sweep Low",poi:"Order Block",setup:"Manipulation + POI",entry:"",sl:"",tp:"",result:"WIN",rr:"",pips:"",emotion:"Calm & Focused",mistakes:"None",notes:"",preScreenshot:"",postScreenshot:"",tags:""}
   const [f,setF]=useState(initial?{...initial,tags:(initial.tags||[]).join(",")}:blank)
@@ -1767,7 +1863,7 @@ function TradeModal({T,initial,onSave,onClose,syncing}) {
       <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,width:"min(640px,96vw)",maxHeight:"92vh",display:"flex",flexDirection:"column"}}>
         <div style={{padding:"18px 22px",borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:17,fontWeight:800,color:T.text}}>{initial?"Edit Trade":"Log New Trade"}</div>
-          <button onClick={onClose} style={{background:"none",border:"none",color:T.textDim,cursor:"pointer",fontSize:20}}>✕</button>
+          <button onClick={onClose} style={{background:"none",border:"none",color:T.textDim,cursor:"pointer",fontSize:20}}>âœ•</button>
         </div>
         <div style={{padding:"20px 22px",overflowY:"auto",flex:1,display:"flex",flexDirection:"column",gap:16}}>
           <Section T={T} title="Instrument & Timing">
@@ -1813,8 +1909,8 @@ function TradeModal({T,initial,onSave,onClose,syncing}) {
           <Section T={T} title="Notes & Screenshots">
             <FL label="Trade Notes" T={T}><Textarea T={T} rows={3} placeholder="Setup rationale, lessons, observations..." value={f.notes} onChange={e=>upd("notes",e.target.value)}/></FL>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginTop:12}}>
-              <FL label="Pre-Trade Screenshot — Ctrl+V to paste" T={T}><PasteImageInput T={T} label="Pre" value={f.preScreenshot} onChange={v=>upd("preScreenshot",v)}/></FL>
-              <FL label="Post-Trade Screenshot — Ctrl+V to paste" T={T}><PasteImageInput T={T} label="Post" value={f.postScreenshot} onChange={v=>upd("postScreenshot",v)}/></FL>
+              <FL label="Pre-Trade Screenshot â€” Ctrl+V to paste" T={T}><PasteImageInput T={T} label="Pre" value={f.preScreenshot} onChange={v=>upd("preScreenshot",v)}/></FL>
+              <FL label="Post-Trade Screenshot â€” Ctrl+V to paste" T={T}><PasteImageInput T={T} label="Post" value={f.postScreenshot} onChange={v=>upd("postScreenshot",v)}/></FL>
             </div>
           </Section>
         </div>
@@ -1827,7 +1923,7 @@ function TradeModal({T,initial,onSave,onClose,syncing}) {
   )
 }
 
-// ── Daily Modal ───────────────────────────────────────────────────────────────
+// â”€â”€ Daily Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function DailyModal({T,initial,onSave,onClose,syncing}) {
   const blank={date:new Date().toISOString().split("T")[0],pairs:["EURUSD","GBPUSD"],biases:{},weeklyTheme:"",keyLevels:"",manipulation:"",watchlist:"",notes:"",chartImage:""}
   const [f,setF]=useState(()=>initial?{...initial,chartImages:getDailyPlanImages(initial)}:{...blank,chartImages:[]})
@@ -1844,7 +1940,7 @@ function DailyModal({T,initial,onSave,onClose,syncing}) {
       <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,width:"min(600px,96vw)",maxHeight:"92vh",display:"flex",flexDirection:"column"}}>
         <div style={{padding:"18px 22px",borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:17,fontWeight:800,color:T.text}}>{initial?"Edit Daily Plan":"New Daily Plan"}</div>
-          <button onClick={onClose} style={{background:"none",border:"none",color:T.textDim,cursor:"pointer",fontSize:20}}>✕</button>
+          <button onClick={onClose} style={{background:"none",border:"none",color:T.textDim,cursor:"pointer",fontSize:20}}>âœ•</button>
         </div>
         <div style={{padding:"20px 22px",overflowY:"auto",flex:1,display:"flex",flexDirection:"column",gap:14}}>
           <FL label="Date" T={T}><Inp T={T} type="date" value={f.date} onChange={e=>upd("date",e.target.value)}/></FL>
@@ -1875,7 +1971,7 @@ function DailyModal({T,initial,onSave,onClose,syncing}) {
   )
 }
 
-// ── Weekly Modal ──────────────────────────────────────────────────────────────
+// â”€â”€ Weekly Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function WeeklyModal({T,initial,onSave,onClose,syncing}) {
   const mon=()=>{const d=new Date();d.setDate(d.getDate()-d.getDay()+1);return d.toISOString().split("T")[0]}
   const fri=()=>{const d=new Date();d.setDate(d.getDate()-d.getDay()+5);return d.toISOString().split("T")[0]}
@@ -1897,7 +1993,7 @@ function WeeklyModal({T,initial,onSave,onClose,syncing}) {
       <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,width:"min(660px,96vw)",maxHeight:"92vh",display:"flex",flexDirection:"column"}}>
         <div style={{padding:"18px 22px",borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:17,fontWeight:800,color:T.text}}>{initial?"Edit Weekly Plan":"New Weekly Plan"}</div>
-          <button onClick={onClose} style={{background:"none",border:"none",color:T.textDim,cursor:"pointer",fontSize:20}}>✕</button>
+          <button onClick={onClose} style={{background:"none",border:"none",color:T.textDim,cursor:"pointer",fontSize:20}}>âœ•</button>
         </div>
         <div style={{padding:"20px 22px",overflowY:"auto",flex:1,display:"flex",flexDirection:"column",gap:14}}>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
@@ -1929,7 +2025,7 @@ function WeeklyModal({T,initial,onSave,onClose,syncing}) {
 }
 
 
-// ── More Menu (mobile) ────────────────────────────────────────────────────────
+// â”€â”€ More Menu (mobile) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function MoreMenu({T, setTab, ALL_TABS}) {
   const extra = ALL_TABS.filter(t=>!["dashboard","journal","daily","heatmap"].includes(t.id))
   return (
@@ -1955,7 +2051,7 @@ function MoreMenu({T, setTab, ALL_TABS}) {
   )
 }
 
-// ── Playbook Builder ──────────────────────────────────────────────────────────
+// â”€â”€ Playbook Builder â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function Playbook({T, trades}) {
   const [playbooks, setPlaybooks] = useState(() => {
     try { return JSON.parse(localStorage.getItem("fxedge_playbooks")||"[]") } catch { return [] }
@@ -1998,7 +2094,7 @@ function Playbook({T, trades}) {
 
       {playbooks.length===0&&(
         <div style={{textAlign:"center",padding:"60px 20px",color:T.muted}}>
-          <div style={{fontSize:40,marginBottom:12}}>📖</div>
+          <div style={{fontSize:40,marginBottom:12}}>ðŸ“–</div>
           <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:16,fontWeight:700,color:T.textDim,marginBottom:8}}>No playbooks yet</div>
           <div style={{fontSize:13,marginBottom:20}}>Create playbooks for your setups like &quot;London Sweep + OB&quot; or &quot;NY Kill Zone FVG&quot;</div>
           <Btn T={T} onClick={()=>setModal("new")}>+ Create First Playbook</Btn>
@@ -2018,7 +2114,7 @@ function Playbook({T, trades}) {
                   <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:16,fontWeight:800,color:T.text,marginBottom:4}}>{pb.name}</div>
                   {pb.setup&&<span style={{fontSize:11,background:`${T.accent}20`,color:T.accentBright,border:`1px solid ${T.accent}40`,padding:"2px 8px",borderRadius:6}}>{pb.setup}</span>}
                 </div>
-                <div style={{fontSize:24}}>{pb.emoji||"📖"}</div>
+                <div style={{fontSize:24}}>{pb.emoji||"ðŸ“–"}</div>
               </div>
               <div style={{fontSize:12,color:T.textDim,lineHeight:1.5,marginBottom:14}}>{pb.description}</div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
@@ -2042,7 +2138,7 @@ function Playbook({T, trades}) {
             <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,width:"min(680px,96vw)",maxHeight:"92vh",display:"flex",flexDirection:"column"}}>
               <div style={{padding:"18px 22px",borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                 <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:18,fontWeight:800,color:T.text}}>{viewPb.emoji} {viewPb.name}</div>
-                <button onClick={()=>setViewPb(null)} style={{background:"none",border:"none",color:T.textDim,cursor:"pointer",fontSize:20}}>✕</button>
+                <button onClick={()=>setViewPb(null)} style={{background:"none",border:"none",color:T.textDim,cursor:"pointer",fontSize:20}}>âœ•</button>
               </div>
               <div style={{padding:"20px 22px",overflowY:"auto",flex:1,display:"flex",flexDirection:"column",gap:16}}>
                 <div style={{fontSize:13,color:T.textDim,lineHeight:1.6}}>{viewPb.description}</div>
@@ -2060,7 +2156,7 @@ function Playbook({T, trades}) {
                 )}
                 {/* Stats */}
                 <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
-                  {[{l:"Trades",v:s.count,c:T.text},{l:"Win Rate",v:`${s.wr}%`,c:s.wr>=55?T.green:s.wr>=40?T.amber:T.red},{l:"Total R",v:`${s.totalR>=0?"+":""}${s.totalR.toFixed(2)}R`,c:s.totalR>=0?T.green:T.red},{l:"Avg R/Win",v:s.wins>0?`+${(s.totalR/s.wins).toFixed(2)}R`:"—",c:T.green}].map(k=>(
+                  {[{l:"Trades",v:s.count,c:T.text},{l:"Win Rate",v:`${s.wr}%`,c:s.wr>=55?T.green:s.wr>=40?T.amber:T.red},{l:"Total R",v:`${s.totalR>=0?"+":""}${s.totalR.toFixed(2)}R`,c:s.totalR>=0?T.green:T.red},{l:"Avg R/Win",v:s.wins>0?`+${(s.totalR/s.wins).toFixed(2)}R`:"â€”",c:T.green}].map(k=>(
                     <div key={k.l} style={{background:T.surface2,borderRadius:10,padding:"12px",textAlign:"center"}}>
                       <div style={{fontSize:9,fontWeight:700,color:T.muted,letterSpacing:"0.1em",marginBottom:5}}>{k.l}</div>
                       <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:18,fontWeight:800,color:k.c}}>{k.v}</div>
@@ -2084,7 +2180,7 @@ function Playbook({T, trades}) {
                 )}
               </div>
               <div style={{padding:"14px 22px",borderTop:`1px solid ${T.border}`,display:"flex",gap:10}}>
-                <Btn T={T} onClick={()=>{setModal(viewPb);setViewPb(null)}}>✎ Edit</Btn>
+                <Btn T={T} onClick={()=>{setModal(viewPb);setViewPb(null)}}>âœŽ Edit</Btn>
                 <Btn T={T} danger onClick={()=>del(viewPb.id)}>Delete</Btn>
                 <Btn T={T} ghost onClick={()=>setViewPb(null)}>Close</Btn>
               </div>
@@ -2100,8 +2196,8 @@ function Playbook({T, trades}) {
 }
 
 function PlaybookModal({T, initial, onSave, onClose}) {
-  const EMOJIS=["📖","🎯","⚡","🔥","💎","🧊","🎪","🚀","🛡","⚔"]
-  const blank={name:"",description:"",emoji:"📖",setup:"",tags:"",rules:[""]}
+  const EMOJIS=["ðŸ“–","ðŸŽ¯","âš¡","ðŸ”¥","ðŸ’Ž","ðŸ§Š","ðŸŽª","ðŸš€","ðŸ›¡","âš”"]
+  const blank={name:"",description:"",emoji:"ðŸ“–",setup:"",tags:"",rules:[""]}
   const [f,setF]=useState(initial||blank)
   const upd=(k,v)=>setF(x=>({...x,[k]:v}))
   const addRule=()=>setF(x=>({...x,rules:[...x.rules,""]}))
@@ -2116,7 +2212,7 @@ function PlaybookModal({T, initial, onSave, onClose}) {
       <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,width:"min(560px,96vw)",maxHeight:"92vh",display:"flex",flexDirection:"column"}}>
         <div style={{padding:"18px 22px",borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:17,fontWeight:800,color:T.text}}>{initial?"Edit Playbook":"New Playbook"}</div>
-          <button onClick={onClose} style={{background:"none",border:"none",color:T.textDim,cursor:"pointer",fontSize:20}}>✕</button>
+          <button onClick={onClose} style={{background:"none",border:"none",color:T.textDim,cursor:"pointer",fontSize:20}}>âœ•</button>
         </div>
         <div style={{padding:"20px 22px",overflowY:"auto",flex:1,display:"flex",flexDirection:"column",gap:14}}>
           <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
@@ -2132,7 +2228,7 @@ function PlaybookModal({T, initial, onSave, onClose}) {
               <div key={i} style={{display:"flex",gap:8,marginBottom:6}}>
                 <span style={{fontWeight:800,color:T.accentBright,lineHeight:"38px",minWidth:20}}>{i+1}.</span>
                 <Inp T={T} placeholder={`Rule ${i+1}...`} value={r} onChange={e=>updRule(i,e.target.value)}/>
-                {f.rules.length>1&&<button onClick={()=>delRule(i)} style={{background:"none",border:`1px solid ${T.border}`,color:T.red,padding:"0 10px",borderRadius:8,cursor:"pointer",fontSize:14}}>✕</button>}
+                {f.rules.length>1&&<button onClick={()=>delRule(i)} style={{background:"none",border:`1px solid ${T.border}`,color:T.red,padding:"0 10px",borderRadius:8,cursor:"pointer",fontSize:14}}>âœ•</button>}
               </div>
             ))}
             <button onClick={addRule} style={{background:"none",border:`1px dashed ${T.border}`,color:T.textDim,padding:"8px 16px",borderRadius:8,cursor:"pointer",fontSize:12,width:"100%",marginTop:4}}>+ Add Rule</button>
@@ -2147,7 +2243,7 @@ function PlaybookModal({T, initial, onSave, onClose}) {
   )
 }
 
-// ── AI Trade Analysis ─────────────────────────────────────────────────────────
+// â”€â”€ AI Trade Analysis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function AIAnalysis({T, trades, dailyPlans}) {
   const [mode, setMode] = useState("journal") // journal | notes
   const [notes, setNotes] = useState("")
@@ -2234,20 +2330,20 @@ Be concise, direct and actionable.`
   return (
     <div style={{maxWidth:720}}>
       <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"20px",marginBottom:14}}>
-        <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:17,fontWeight:800,color:T.text,marginBottom:6}}>🤖 AI Trading Coach</div>
-        <div style={{fontSize:13,color:T.textDim,marginBottom:16}}>Powered by Gemini — your personal ICT/SMC trading analyst</div>
+        <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:17,fontWeight:800,color:T.text,marginBottom:6}}>ðŸ¤– AI Trading Coach</div>
+        <div style={{fontSize:13,color:T.textDim,marginBottom:16}}>Powered by Gemini â€” your personal ICT/SMC trading analyst</div>
         <div style={{display:"flex",gap:8,marginBottom:16}}>
-          {[{id:"journal",label:"📊 Analyze My Journal"},{id:"notes",label:"📝 Analyze Trade Notes"}].map(m=>(
+          {[{id:"journal",label:"ðŸ“Š Analyze My Journal"},{id:"notes",label:"ðŸ“ Analyze Trade Notes"}].map(m=>(
             <button key={m.id} onClick={()=>{setMode(m.id);setResult(null)}} style={{padding:"9px 18px",borderRadius:20,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif",background:mode===m.id?`linear-gradient(135deg,${T.accentBright},${T.pink})`:`${T.surface2}`,color:mode===m.id?"#fff":T.textDim,border:`1px solid ${mode===m.id?"transparent":T.border}`}}>{m.label}</button>
           ))}
         </div>
         {mode==="journal"&&(
           <div>
             <div style={{fontSize:12,color:T.textDim,marginBottom:12,padding:"10px 14px",background:T.surface2,borderRadius:8}}>
-              Will analyze your last {trades.length} trades — win rate, mistakes, emotional patterns, best pairs, and give you a personalized action plan.
+              Will analyze your last {trades.length} trades â€” win rate, mistakes, emotional patterns, best pairs, and give you a personalized action plan.
             </div>
-            {trades.length===0?<div style={{color:T.amber,fontSize:13}}>⚠ Log some trades first before running analysis.</div>:(
-              <Btn T={T} onClick={analyze}>{loading?"🤔 Analyzing...":"🚀 Analyze My Journal"}</Btn>
+            {trades.length===0?<div style={{color:T.amber,fontSize:13}}>âš  Log some trades first before running analysis.</div>:(
+              <Btn T={T} onClick={analyze}>{loading?"ðŸ¤” Analyzing...":"ðŸš€ Analyze My Journal"}</Btn>
             )}
           </div>
         )}
@@ -2257,7 +2353,7 @@ Be concise, direct and actionable.`
               <Textarea T={T} rows={5} placeholder="e.g. Took a long on EURUSD during London open. Waited for the liquidity sweep below Asian lows, then entered on the OB retest. SL was 15 pips below the OB, TP at the next draw on liquidity. Felt confident but moved SL early..." value={notes} onChange={e=>setNotes(e.target.value)}/>
             </FL>
             <div style={{marginTop:10}}>
-              <Btn T={T} onClick={analyze} disabled={!notes.trim()&&!loading}>{loading?"🤔 Analyzing...":"🔍 Analyze Notes"}</Btn>
+              <Btn T={T} onClick={analyze} disabled={!notes.trim()&&!loading}>{loading?"ðŸ¤” Analyzing...":"ðŸ” Analyze Notes"}</Btn>
             </div>
           </div>
         )}
@@ -2288,7 +2384,7 @@ Be concise, direct and actionable.`
   )
 }
 
-// ── Export Tab ────────────────────────────────────────────────────────────────
+// â”€â”€ Export Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function ExportTab({T, trades, dailyPlans, weeklyPlans}) {
   const [exporting, setExporting] = useState(null)
 
@@ -2348,7 +2444,7 @@ function ExportTab({T, trades, dailyPlans, weeklyPlans}) {
       {metric:"Win Rate",value:`${trades.length?(wins.length/trades.length*100).toFixed(1):0}%`},
       {metric:"Total R",value:totalR.toFixed(2)},
       {metric:"Avg RR on Wins",value:wins.length?(wins.reduce((s,t)=>s+t.rr,0)/wins.length).toFixed(2):"0"},
-      {metric:"Best Pair",value:Object.entries(byPair).sort((a,b)=>b[1].r-a[1].r)[0]?.[0]||"—"},
+      {metric:"Best Pair",value:Object.entries(byPair).sort((a,b)=>b[1].r-a[1].r)[0]?.[0]||"â€”"},
       ...Object.entries(byPair).map(([p,d])=>({metric:`${p} Total R`,value:d.r.toFixed(2)})),
     ]
     downloadCSV(data, `fxedge_summary_${new Date().toISOString().split("T")[0]}.csv`)
@@ -2356,15 +2452,15 @@ function ExportTab({T, trades, dailyPlans, weeklyPlans}) {
   }
 
   const EXPORTS = [
-    {id:"trades",icon:"📒",title:"Export All Trades",desc:`${trades.length} trades with full details — pair, direction, result, RR, bias, setup, emotion, notes`,action:exportTrades,count:trades.length},
-    {id:"daily",icon:"📅",title:"Export Daily Plans",desc:`${dailyPlans.length} daily plans with bias, key levels, and manipulation notes`,action:exportDaily,count:dailyPlans.length},
-    {id:"summary",icon:"📊",title:"Export Performance Summary",desc:"Key stats — win rate, total R, pair breakdown, best/worst metrics",action:exportSummary,count:1},
+    {id:"trades",icon:"ðŸ“’",title:"Export All Trades",desc:`${trades.length} trades with full details â€” pair, direction, result, RR, bias, setup, emotion, notes`,action:exportTrades,count:trades.length},
+    {id:"daily",icon:"ðŸ“…",title:"Export Daily Plans",desc:`${dailyPlans.length} daily plans with bias, key levels, and manipulation notes`,action:exportDaily,count:dailyPlans.length},
+    {id:"summary",icon:"ðŸ“Š",title:"Export Performance Summary",desc:"Key stats â€” win rate, total R, pair breakdown, best/worst metrics",action:exportSummary,count:1},
   ]
 
   return (
     <div style={{maxWidth:620}}>
       <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:18,fontWeight:800,color:T.text,marginBottom:6}}>Export Your Data</div>
-      <div style={{fontSize:13,color:T.textDim,marginBottom:20}}>Download your journal as CSV files — import to Excel, Google Sheets, or share with your mentor.</div>
+      <div style={{fontSize:13,color:T.textDim,marginBottom:20}}>Download your journal as CSV files â€” import to Excel, Google Sheets, or share with your mentor.</div>
       <div style={{display:"flex",flexDirection:"column",gap:12}}>
         {EXPORTS.map(ex=>(
           <div key={ex.id} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"18px 20px",display:"flex",alignItems:"center",gap:16}}>
@@ -2379,12 +2475,12 @@ function ExportTab({T, trades, dailyPlans, weeklyPlans}) {
               borderRadius:10,cursor:ex.count===0?"not-allowed":"pointer",
               fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:700,fontSize:13,
               whiteSpace:"nowrap",flexShrink:0,
-            }}>{exporting===ex.id?"✓ Done!":ex.count===0?"No Data":"⬇ Download CSV"}</button>
+            }}>{exporting===ex.id?"âœ“ Done!":ex.count===0?"No Data":"â¬‡ Download CSV"}</button>
           </div>
         ))}
       </div>
       <div style={{marginTop:20,padding:"14px 16px",background:T.surface2,borderRadius:10,fontSize:12,color:T.muted,lineHeight:1.6}}>
-        💡 <b style={{color:T.textDim}}>Note:</b> Screenshots are not included in CSV exports due to file size. All other data including notes, tags, bias, and psychology fields are included.
+        ðŸ’¡ <b style={{color:T.textDim}}>Note:</b> Screenshots are not included in CSV exports due to file size. All other data including notes, tags, bias, and psychology fields are included.
       </div>
     </div>
   )
@@ -2392,7 +2488,7 @@ function ExportTab({T, trades, dailyPlans, weeklyPlans}) {
 
 function Section({T,title,children}){return <div><div style={{fontSize:11,fontWeight:700,color:T.accentBright,letterSpacing:"0.12em",textTransform:"uppercase",paddingBottom:8,borderBottom:`1px solid ${T.border}`,marginBottom:12}}>{title}</div>{children}</div>}
 
-// ── CSS ───────────────────────────────────────────────────────────────────────
+// â”€â”€ CSS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function buildCSS(T) {
   return `
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
