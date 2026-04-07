@@ -223,6 +223,9 @@ export default function App() {
   const [filterResult,setFilterResult] = useState("ALL")
   const [deleteTarget,setDeleteTarget] = useState(null)
   const [imgViewer,setImgViewer] = useState(null)
+  const [mountedTabs,setMountedTabs] = useState(["dashboard"])
+  const scrollPositionsRef = useRef({})
+  const restoreFrameRef = useRef(null)
 
   useEffect(()=>{
     supabase.auth.getSession().then(({data:{session}})=>{ setUser(session?.user??null); setAuthLoading(false) })
@@ -267,6 +270,28 @@ export default function App() {
   },[hydrateMedia,supabase,user])
 
   useEffect(()=>{ if(user) loadAll() },[user,loadAll])
+
+  useEffect(()=>{
+    setMountedTabs(prev=>prev.includes(tab)?prev:[...prev,tab])
+  },[tab])
+
+  useEffect(()=>{
+    if(typeof window==="undefined") return
+    if(restoreFrameRef.current) cancelAnimationFrame(restoreFrameRef.current)
+    restoreFrameRef.current = requestAnimationFrame(()=>{
+      window.scrollTo(0, scrollPositionsRef.current[tab] ?? 0)
+    })
+    return ()=>{
+      if(restoreFrameRef.current) cancelAnimationFrame(restoreFrameRef.current)
+    }
+  },[tab])
+
+  const changeTab = useCallback((nextTab)=>{
+    if(nextTab===tab) return
+    if(typeof window!=="undefined") scrollPositionsRef.current[tab] = window.scrollY
+    setMountedTabs(prev=>prev.includes(nextTab)?prev:[...prev,nextTab])
+    setTab(nextTab)
+  },[tab])
 
   const clean = (obj) => { const o={...obj}; delete o._dbid; delete o.id; delete o.created_at; return o }
 
@@ -401,7 +426,7 @@ export default function App() {
           {SIDEBAR_PRIMARY.map(t=>(
             <button key={t.id} className={`nav-btn ${tab===t.id?"nav-active":""}`}
               style={{color:tab===t.id?T.text:T.textDim,background:tab===t.id?`linear-gradient(135deg,${T.accent}22,${T.pink}10)`:"none",borderLeft:tab===t.id?`3px solid ${T.accentBright}`:"3px solid transparent",boxShadow:tab===t.id?`inset 0 0 0 1px ${T.accent}28`:"none"}}
-              onClick={()=>setTab(t.id)}>
+              onClick={()=>changeTab(t.id)}>
               {t.label}
             </button>
           ))}
@@ -411,7 +436,7 @@ export default function App() {
           {SIDEBAR_SECONDARY.map(t=>(
             <button key={t.id} className={`nav-btn ${tab===t.id?"nav-active":""}`}
               style={{color:tab===t.id?T.text:T.textDim,background:tab===t.id?`linear-gradient(135deg,${T.accent}22,${T.pink}10)`:"none",borderLeft:tab===t.id?`3px solid ${T.accentBright}`:"3px solid transparent",boxShadow:tab===t.id?`inset 0 0 0 1px ${T.accent}28`:"none"}}
-              onClick={()=>setTab(t.id)}>
+              onClick={()=>changeTab(t.id)}>
               {t.label}
             </button>
           ))}
@@ -445,20 +470,20 @@ export default function App() {
         {error&&<div style={{background:"#450a0a",borderBottom:"1px solid #991b1b",color:"#fca5a5",padding:"10px 28px",fontSize:13,display:"flex",alignItems:"center"}}>Alert: {error}<button onClick={()=>setError(null)} style={{marginLeft:12,background:"none",border:"none",color:"inherit",cursor:"pointer",fontWeight:700}}>x</button></div>}
 
         <div style={{padding:"24px 28px",flex:1}}>
-          {tab==="dashboard"&&<Dashboard T={T} stats={stats} trades={trades} dailyPlans={dailyPlans} weeklyPlans={weeklyPlans} onNewTrade={()=>setTradeModal("new")} onNewDaily={()=>setDailyModal("new")}/>}
-          {tab==="journal"&&<Journal T={T} filtered={filtered} filterPair={filterPair} setFilterPair={setFilterPair} filterResult={filterResult} setFilterResult={setFilterResult} onEdit={t=>setTradeModal(t)} onDelete={t=>setDeleteTarget({type:"trade",dbid:t._dbid,name:`${t.pair} ${t.direction}`})} onViewImg={setImgViewer} onNew={()=>setTradeModal("new")}/>}
-          {tab==="daily"&&<DailyTab T={T} plans={dailyPlans} onEdit={p=>setDailyModal(p)} onDelete={p=>setDeleteTarget({type:"daily",dbid:p._dbid,name:`Daily ${p.date}`})} onNew={()=>setDailyModal("new")}/>}
-          {tab==="weekly"&&<WeeklyTab T={T} plans={weeklyPlans} onEdit={p=>setWeeklyModal(p)} onDelete={p=>setDeleteTarget({type:"weekly",dbid:p._dbid,name:`Week ${p.weekStart}`})} onNew={()=>setWeeklyModal("new")}/>}
-          {tab==="analytics"&&<Analytics T={T} stats={stats} trades={trades}/>}
-          {tab==="psychology"&&<Psychology T={T} stats={stats} trades={trades}/>}
-          {tab==="calculator"&&<Calculator T={T}/>}
-          {tab==="gallery"&&<ScreenshotGallery T={T} trades={trades} onViewImg={setImgViewer}/>}
-          {tab==="review"&&<WeeklyReview T={T} weeklyPlans={weeklyPlans} trades={trades} saveWeekly={saveWeekly}/>}
-          {tab==="heatmap"&&<Heatmap T={T} trades={trades}/>}
-          {tab==="playbook"&&<Playbook T={T} trades={trades}/>}
-          {tab==="ai"&&<AIAnalysis T={T} trades={trades} dailyPlans={dailyPlans}/>}
-          {tab==="export"&&<ExportTab T={T} trades={trades} dailyPlans={dailyPlans} weeklyPlans={weeklyPlans}/>}
-          {tab==="more"&&<MoreMenu T={T} setTab={setTab} ALL_TABS={ALL_TABS}/>}
+          {mountedTabs.includes("dashboard")&&<TabPanel active={tab==="dashboard"}><Dashboard T={T} stats={stats} trades={trades} dailyPlans={dailyPlans} weeklyPlans={weeklyPlans} onNewTrade={()=>setTradeModal("new")} onNewDaily={()=>setDailyModal("new")}/></TabPanel>}
+          {mountedTabs.includes("journal")&&<TabPanel active={tab==="journal"}><Journal T={T} filtered={filtered} filterPair={filterPair} setFilterPair={setFilterPair} filterResult={filterResult} setFilterResult={setFilterResult} onEdit={t=>setTradeModal(t)} onDelete={t=>setDeleteTarget({type:"trade",dbid:t._dbid,name:`${t.pair} ${t.direction}`})} onViewImg={setImgViewer} onNew={()=>setTradeModal("new")}/></TabPanel>}
+          {mountedTabs.includes("daily")&&<TabPanel active={tab==="daily"}><DailyTab T={T} plans={dailyPlans} onEdit={p=>setDailyModal(p)} onDelete={p=>setDeleteTarget({type:"daily",dbid:p._dbid,name:`Daily ${p.date}`})} onNew={()=>setDailyModal("new")}/></TabPanel>}
+          {mountedTabs.includes("weekly")&&<TabPanel active={tab==="weekly"}><WeeklyTab T={T} plans={weeklyPlans} onEdit={p=>setWeeklyModal(p)} onDelete={p=>setDeleteTarget({type:"weekly",dbid:p._dbid,name:`Week ${p.weekStart}`})} onNew={()=>setWeeklyModal("new")}/></TabPanel>}
+          {mountedTabs.includes("analytics")&&<TabPanel active={tab==="analytics"}><Analytics T={T} stats={stats} trades={trades}/></TabPanel>}
+          {mountedTabs.includes("psychology")&&<TabPanel active={tab==="psychology"}><Psychology T={T} stats={stats} trades={trades}/></TabPanel>}
+          {mountedTabs.includes("calculator")&&<TabPanel active={tab==="calculator"}><Calculator T={T}/></TabPanel>}
+          {mountedTabs.includes("gallery")&&<TabPanel active={tab==="gallery"}><ScreenshotGallery T={T} trades={trades} onViewImg={setImgViewer}/></TabPanel>}
+          {mountedTabs.includes("review")&&<TabPanel active={tab==="review"}><WeeklyReview T={T} weeklyPlans={weeklyPlans} trades={trades} saveWeekly={saveWeekly}/></TabPanel>}
+          {mountedTabs.includes("heatmap")&&<TabPanel active={tab==="heatmap"}><Heatmap T={T} trades={trades}/></TabPanel>}
+          {mountedTabs.includes("playbook")&&<TabPanel active={tab==="playbook"}><Playbook T={T} trades={trades}/></TabPanel>}
+          {mountedTabs.includes("ai")&&<TabPanel active={tab==="ai"}><AIAnalysis T={T} trades={trades} dailyPlans={dailyPlans}/></TabPanel>}
+          {mountedTabs.includes("export")&&<TabPanel active={tab==="export"}><ExportTab T={T} trades={trades} dailyPlans={dailyPlans} weeklyPlans={weeklyPlans}/></TabPanel>}
+          {mountedTabs.includes("more")&&<TabPanel active={tab==="more"}><MoreMenu T={T} setTab={changeTab} ALL_TABS={ALL_TABS}/></TabPanel>}
         </div>
       </main>
 
@@ -480,7 +505,7 @@ export default function App() {
         </Overlay>
       )}
       {imgViewer&&<Overlay onClose={()=>setImgViewer(null)}><img src={imgViewer} alt="chart" style={{maxWidth:"95vw",maxHeight:"90vh",borderRadius:8,boxShadow:"0 20px 80px rgba(0,0,0,.8)"}}/></Overlay>}
-      <BottomNav T={T} tab={tab} setTab={setTab} TABS={TABS} MOBILE_PRIMARY={MOBILE_PRIMARY}/>
+      <BottomNav T={T} tab={tab} setTab={changeTab} TABS={TABS} MOBILE_PRIMARY={MOBILE_PRIMARY}/>
     </div>
   )
 }
@@ -498,6 +523,16 @@ function Spinner({T,label}) {
   )
 }
 function Overlay({onClose,children}){return <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.7)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16,backdropFilter:"blur(4px)"}}><div onClick={e=>e.stopPropagation()}>{children}</div></div>}
+function TabPanel({active,children}) {
+  return (
+    <div
+      aria-hidden={!active}
+      style={{display:active?"block":"none",minHeight:active?"auto":0}}
+    >
+      {children}
+    </div>
+  )
+}
 function BottomNav({T,tab,setTab,TABS,MOBILE_PRIMARY}){
   const tabs = MOBILE_PRIMARY||TABS.slice(0,5)
   return (
