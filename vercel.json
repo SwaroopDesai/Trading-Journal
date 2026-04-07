@@ -1,8 +1,0 @@
-{
-  "crons": [
-    {
-      "path": "/api/weekly-debrief",
-      "schedule": "30 15 * * 0"
-    }
-  ]
-}
