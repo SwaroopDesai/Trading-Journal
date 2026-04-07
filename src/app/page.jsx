@@ -19,6 +19,7 @@ const TRADE_BOOT_FIELDS = "id,created_at,pair,date,direction,session,killzone,da
 const DAILY_BOOT_FIELDS = "id,created_at,date,pairs,biases,weeklyTheme,keyLevels,manipulation,watchlist,notes";
 const WEEKLY_BOOT_FIELDS = "id,created_at,weekStart,weekEnd,overallBias,pairs,marketStructure,keyEvents,targets,notes,review,premiumDiscount";
 const STORAGE_BUCKET = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || "journal-images";
+const TAB_STORAGE_KEY = "fxedge_active_tab";
 
 const isDataUrl = value => typeof value === "string" && value.startsWith("data:image/");
 const getStoragePublicMarker = (bucket = STORAGE_BUCKET) => `/storage/v1/object/public/${bucket}/`;
@@ -173,7 +174,7 @@ function LoginScreen({ supabase }) {
 
   return (
     <div style={{minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:24,padding:24,transition:"background .3s"}}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500&display=swap'); *{box-sizing:border-box;margin:0;padding:0;} @keyframes pulse{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}`}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500&display=swap'); *{box-sizing:border-box;margin:0;padding:0;} @keyframes pulse{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1)}} @keyframes tabFadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
       <button onClick={()=>setDark(!dark)} style={{position:"absolute",top:20,right:20,background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:"6px 14px",borderRadius:20,cursor:"pointer",fontSize:13,fontFamily:"Inter,sans-serif"}}>
         {dark?"Light":"Dark"}
       </button>
@@ -233,6 +234,12 @@ export default function App() {
     return ()=>subscription.unsubscribe()
   },[])
 
+  useEffect(()=>{
+    if(typeof window==="undefined") return
+    const savedTab = window.localStorage.getItem(TAB_STORAGE_KEY)
+    if(savedTab) setTab(savedTab)
+  },[])
+
   const hydrateMedia = useCallback(async()=>{
     if(!user) return
     try {
@@ -273,6 +280,11 @@ export default function App() {
 
   useEffect(()=>{
     setMountedTabs(prev=>prev.includes(tab)?prev:[...prev,tab])
+  },[tab])
+
+  useEffect(()=>{
+    if(typeof window==="undefined") return
+    window.localStorage.setItem(TAB_STORAGE_KEY, tab)
   },[tab])
 
   useEffect(()=>{
@@ -527,7 +539,11 @@ function TabPanel({active,children}) {
   return (
     <div
       aria-hidden={!active}
-      style={{display:active?"block":"none",minHeight:active?"auto":0}}
+      style={{
+        display:active?"block":"none",
+        minHeight:active?"auto":0,
+        animation:active?"tabFadeIn .2s ease":"none",
+      }}
     >
       {children}
     </div>
