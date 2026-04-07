@@ -269,7 +269,6 @@ export default function App() {
 
   if(authLoading) return <Spinner T={T}/>
   if(!user) return <LoginScreen supabase={supabase}/>
-  if(loading) return <Spinner T={T} label="Loading your journal..."/>
 
   return (
     <div style={{display:"flex",minHeight:"100vh",background:T.bg,color:T.text,fontFamily:"Inter,sans-serif",transition:"background .3s, color .3s"}}>
@@ -302,7 +301,7 @@ export default function App() {
         </div>
         <div style={{flex:1}}/>
         <div style={{padding:"8px 20px",fontSize:11,color:T.muted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.email}</div>
-        <div style={{padding:"4px 20px 4px",fontSize:11,color:syncing?T.amber:T.green,cursor:"pointer"}} onClick={loadAll}>{syncing?"Saving...":"Synced"}</div>
+        <div style={{padding:"4px 20px 4px",fontSize:11,color:loading?T.accentBright:(syncing?T.amber:T.green),cursor:"pointer"}} onClick={loadAll}>{loading?"Loading...":(syncing?"Saving...":"Synced")}</div>
         <button onClick={()=>setDark(!dark)} style={{margin:"6px 12px",padding:"8px 14px",background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,borderRadius:8,cursor:"pointer",fontSize:12,fontFamily:"Inter,sans-serif",textAlign:"left"}}>
           {dark?"Light Mode":"Dark Mode"}
         </button>
@@ -326,6 +325,10 @@ export default function App() {
             {tab==="weekly"&&<Btn T={T} onClick={()=>setWeeklyModal("new")}>+ Weekly Plan</Btn>}
           </div>
         </div>
+        {loading&&<div style={{background:`linear-gradient(90deg,${T.accent}12,${T.pink}08)`,borderBottom:`1px solid ${T.border}`,color:T.textDim,padding:"9px 28px",fontSize:13,display:"flex",alignItems:"center",gap:10}}>
+          <span style={{width:8,height:8,borderRadius:999,background:T.accentBright,boxShadow:`0 0 0 6px ${T.accent}18`}}/>
+          Syncing your journal in the background...
+        </div>}
         {error&&<div style={{background:"#450a0a",borderBottom:"1px solid #991b1b",color:"#fca5a5",padding:"10px 28px",fontSize:13,display:"flex",alignItems:"center"}}>Alert: {error}<button onClick={()=>setError(null)} style={{marginLeft:12,background:"none",border:"none",color:"inherit",cursor:"pointer",fontWeight:700}}>x</button></div>}
 
         <div style={{padding:"24px 28px",flex:1}}>
