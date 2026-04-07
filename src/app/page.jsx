@@ -1993,9 +1993,11 @@ function Heatmap({T, trades}) {
 function TradeModal({T,userId,initial,onSave,onClose,syncing}) {
   const blank={pair:"EURUSD",date:new Date().toISOString().split("T")[0],direction:"LONG",session:"London",killzone:"London Open (02-05 EST)",dailyBias:"Bullish",weeklyBias:"Bullish",marketProfile:"Trending",manipulation:"Liquidity Sweep Low",poi:"Order Block",setup:"Manipulation + POI",entry:"",sl:"",tp:"",result:"WIN",rr:"",pips:"",emotion:"Calm & Focused",mistakes:"None",notes:"",preScreenshot:"",postScreenshot:"",tags:""}
   const [f,setF]=useState(()=>initial?{...initial,tags:(initial.tags||[]).join(",")}:{...blank,...(readDraft(userId, "trade")||{})})
+  const skipDraftWriteRef = useRef(false)
   const upd=(k,v)=>setF(x=>({...x,[k]:v}))
   useEffect(()=>{
     if(initial) return
+    if(skipDraftWriteRef.current) return
     writeDraft(userId, "trade", f)
   },[f,initial,userId])
   const calcRR=()=>{const e=parseFloat(f.entry),s=parseFloat(f.sl),t=parseFloat(f.tp);if(!e||!s||!t)return;const risk=Math.abs(e-s),reward=Math.abs(t-e);if(risk>0)upd("rr",(reward/risk).toFixed(2))}
@@ -2005,6 +2007,7 @@ function TradeModal({T,userId,initial,onSave,onClose,syncing}) {
     onSave({...f,rr,pips:parseFloat(f.pips)||0,entry:parseFloat(f.entry)||0,sl:parseFloat(f.sl)||0,tp:parseFloat(f.tp)||0,tags:f.tags?f.tags.split(",").map(t=>t.trim()).filter(Boolean):[]})
   }
   const cancelDraft = ()=>{
+    skipDraftWriteRef.current = true
     if(!initial) clearDraft(userId, "trade")
     onClose()
   }
@@ -2082,9 +2085,11 @@ function DailyModal({T,userId,initial,onSave,onClose,syncing}) {
     const draft = readDraft(userId, "daily") || {}
     return {...blank,chartImages:[],...draft}
   })
+  const skipDraftWriteRef = useRef(false)
   const upd=(k,v)=>setF(x=>({...x,[k]:v}))
   useEffect(()=>{
     if(initial) return
+    if(skipDraftWriteRef.current) return
     writeDraft(userId, "daily", f)
   },[f,initial,userId])
   const togglePair=p=>setF(x=>({...x,pairs:x.pairs.includes(p)?x.pairs.filter(pp=>pp!==p):[...x.pairs,p]}))
@@ -2094,6 +2099,7 @@ function DailyModal({T,userId,initial,onSave,onClose,syncing}) {
     onSave({...rest,chartImage:serializeImageList(chartImages)})
   }
   const cancelDraft = ()=>{
+    skipDraftWriteRef.current = true
     if(!initial) clearDraft(userId, "daily")
     onClose()
   }
@@ -2144,9 +2150,11 @@ function WeeklyModal({T,userId,initial,onSave,onClose,syncing}) {
     const draft = readDraft(userId, "weekly") || {}
     return {...blank,premiumDiscount:{},chartImages:[],...draft}
   })
+  const skipDraftWriteRef = useRef(false)
   const upd=(k,v)=>setF(x=>({...x,[k]:v}))
   useEffect(()=>{
     if(initial) return
+    if(skipDraftWriteRef.current) return
     writeDraft(userId, "weekly", f)
   },[f,initial,userId])
   const setPair=(p,v)=>setF(x=>({...x,pairs:{...x.pairs,[p]:v}}))
@@ -2159,6 +2167,7 @@ function WeeklyModal({T,userId,initial,onSave,onClose,syncing}) {
     onSave({...rest,premiumDiscount})
   }
   const cancelDraft = ()=>{
+    skipDraftWriteRef.current = true
     if(!initial) clearDraft(userId, "weekly")
     onClose()
   }
