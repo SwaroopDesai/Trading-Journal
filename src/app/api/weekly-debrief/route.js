@@ -116,6 +116,63 @@ async function generateDebrief(prompt, apiKey) {
   )
 }
 
+function buildEmailHtml({ weekLabel, report, appUrl }) {
+  const escaped = String(report || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\n/g, "<br/>")
+
+  return `
+    <div style="background:#0c0c12;padding:32px 20px;font-family:Arial,sans-serif;color:#f5f5f8;">
+      <div style="max-width:680px;margin:0 auto;background:#161622;border:1px solid #2b2b3c;border-radius:18px;overflow:hidden;">
+        <div style="padding:24px 28px;background:linear-gradient(135deg,#8b5cf6 0%,#ec4899 100%);">
+          <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.9;">FXEDGE Weekly Debrief</div>
+          <div style="font-size:28px;font-weight:800;margin-top:8px;">Your Sunday coaching report is ready</div>
+          <div style="font-size:14px;opacity:.92;margin-top:8px;">Week reviewed: ${weekLabel}</div>
+        </div>
+        <div style="padding:24px 28px;">
+          <div style="font-size:14px;line-height:1.8;color:#c9c9d6;">${escaped}</div>
+          ${
+            appUrl
+              ? `<div style="margin-top:24px;"><a href="${appUrl}" style="display:inline-block;background:linear-gradient(135deg,#8b5cf6 0%,#ec4899 100%);color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:12px;font-weight:700;">Open your journal</a></div>`
+              : ""
+          }
+        </div>
+      </div>
+    </div>
+  `
+}
+
+async function sendBrevoEmail({ apiKey, fromEmail, fromName, toEmail, subject, htmlContent, textContent }) {
+  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "api-key": apiKey,
+      accept: "application/json",
+    },
+    body: JSON.stringify({
+      sender: {
+        email: fromEmail,
+        name: fromName,
+      },
+      to: [{ email: toEmail }],
+      subject,
+      htmlContent,
+      textContent,
+    }),
+    cache: "no-store",
+  })
+
+  const data = await response.json().catch(() => ({}))
+  if (!response.ok) {
+    throw new Error(data?.message || data?.code || "Brevo email send failed.")
+  }
+
+  return data
+}
+
 export async function GET(request) {
   try {
     const cronSecret = process.env.CRON_SECRET
@@ -128,6 +185,10 @@ export async function GET(request) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     const geminiApiKey = process.env.GEMINI_API_KEY
+    const brevoApiKey = process.env.BREVO_API_KEY
+    const brevoFromEmail = process.env.BREVO_FROM_EMAIL
+    const brevoFromName = process.env.BREVO_FROM_NAME || "FXEDGE"
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || ""
 
     if (!supabaseUrl || !serviceRoleKey || !geminiApiKey) {
       return Response.json(
@@ -155,6 +216,7 @@ export async function GET(request) {
     const candidates = (plans || []).filter((plan) => !String(plan.review || "").trim())
     const generated = []
     const skipped = []
+    const emailed = []
 
     for (const plan of candidates) {
       const { data: trades, error: tradesError } = await supabase
@@ -183,6 +245,32 @@ export async function GET(request) {
 
         if (updateError) throw updateError
 
+        let recipientEmail = null
+        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(plan.user_id)
+        if (userError) {
+          skipped.push({ weeklyPlanId: plan.id, reason: `Saved review, but could not load user email: ${userError.message}` })
+        } else {
+          recipientEmail = userData?.user?.email || null
+        }
+
+        if (recipientEmail && brevoApiKey && brevoFromEmail) {
+          const weekLabel = `${plan.weekStart} to ${plan.weekEnd}`
+          await sendBrevoEmail({
+            apiKey: brevoApiKey,
+            fromEmail: brevoFromEmail,
+            fromName: brevoFromName,
+            toEmail: recipientEmail,
+            subject: `Your FXEDGE Weekly Debrief | ${weekLabel}`,
+            htmlContent: buildEmailHtml({ weekLabel, report: stamped, appUrl }),
+            textContent: stamped,
+          })
+          emailed.push({ weeklyPlanId: plan.id, email: recipientEmail })
+        } else if (recipientEmail && (!brevoApiKey || !brevoFromEmail)) {
+          skipped.push({ weeklyPlanId: plan.id, reason: "Saved review, but Brevo env vars are missing." })
+        } else if (!recipientEmail) {
+          skipped.push({ weeklyPlanId: plan.id, reason: "Saved review, but no user email was found." })
+        }
+
         generated.push({ weeklyPlanId: plan.id, weekStart: plan.weekStart, userId: plan.user_id })
       } catch (error) {
         skipped.push({ weeklyPlanId: plan.id, reason: error.message })
@@ -194,6 +282,7 @@ export async function GET(request) {
       today,
       checked: candidates.length,
       generated: generated.length,
+      emailed: emailed.length,
       skipped,
     })
   } catch (error) {
