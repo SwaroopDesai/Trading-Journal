@@ -2004,6 +2004,10 @@ function TradeModal({T,userId,initial,onSave,onClose,syncing}) {
     if(f.result==="LOSS")rr=-Math.abs(rr);if(f.result==="BREAKEVEN")rr=0
     onSave({...f,rr,pips:parseFloat(f.pips)||0,entry:parseFloat(f.entry)||0,sl:parseFloat(f.sl)||0,tp:parseFloat(f.tp)||0,tags:f.tags?f.tags.split(",").map(t=>t.trim()).filter(Boolean):[]})
   }
+  const cancelDraft = ()=>{
+    if(!initial) clearDraft(userId, "trade")
+    onClose()
+  }
 
   return (
     <Overlay onClose={onClose}>
@@ -2063,7 +2067,7 @@ function TradeModal({T,userId,initial,onSave,onClose,syncing}) {
         </div>
         <div style={{padding:"14px 22px",borderTop:`1px solid ${T.border}`,display:"flex",gap:10}}>
           <Btn T={T} onClick={submit}>{syncing?"Saving to cloud...":initial?"Update Trade":"Log Trade"}</Btn>
-          <Btn T={T} ghost onClick={onClose}>Cancel</Btn>
+          <Btn T={T} ghost onClick={cancelDraft}>Cancel</Btn>
         </div>
       </div>
     </Overlay>
@@ -2088,6 +2092,10 @@ function DailyModal({T,userId,initial,onSave,onClose,syncing}) {
   const submit=()=>{
     const {chartImages,...rest}=f
     onSave({...rest,chartImage:serializeImageList(chartImages)})
+  }
+  const cancelDraft = ()=>{
+    if(!initial) clearDraft(userId, "daily")
+    onClose()
   }
 
   return (
@@ -2119,7 +2127,7 @@ function DailyModal({T,userId,initial,onSave,onClose,syncing}) {
         </div>
         <div style={{padding:"14px 22px",borderTop:`1px solid ${T.border}`,display:"flex",gap:10}}>
           <Btn T={T} onClick={submit}>{syncing?"Saving...":initial?"Update":"Save Plan"}</Btn>
-          <Btn T={T} ghost onClick={onClose}>Cancel</Btn>
+          <Btn T={T} ghost onClick={cancelDraft}>Cancel</Btn>
         </div>
       </div>
     </Overlay>
@@ -2149,6 +2157,10 @@ function WeeklyModal({T,userId,initial,onSave,onClose,syncing}) {
     if(images.length>0) premiumDiscount.__screenshots = images
     else delete premiumDiscount.__screenshots
     onSave({...rest,premiumDiscount})
+  }
+  const cancelDraft = ()=>{
+    if(!initial) clearDraft(userId, "weekly")
+    onClose()
   }
 
   return (
@@ -2180,7 +2192,7 @@ function WeeklyModal({T,userId,initial,onSave,onClose,syncing}) {
         </div>
         <div style={{padding:"14px 22px",borderTop:`1px solid ${T.border}`,display:"flex",gap:10}}>
           <Btn T={T} onClick={submit}>{syncing?"Saving...":initial?"Update":"Save Plan"}</Btn>
-          <Btn T={T} ghost onClick={onClose}>Cancel</Btn>
+          <Btn T={T} ghost onClick={cancelDraft}>Cancel</Btn>
         </div>
       </div>
     </Overlay>
