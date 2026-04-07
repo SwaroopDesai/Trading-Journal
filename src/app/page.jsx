@@ -1114,6 +1114,7 @@ function WeeklyReview({T,weeklyPlans,trades,saveWeekly}) {
   const [saving,setSaving]=useState(false)
   const sorted=[...weeklyPlans].sort((a,b)=>new Date(b.weekStart)-new Date(a.weekStart))
   const getWeekTrades=p=>trades.filter(t=>t.date>=p.weekStart&&t.date<=p.weekEnd)
+  const isAiDebrief=(review)=>String(review||"").startsWith("AI Weekly Debrief")
   const open=p=>{setSelected(p);setReviewText(p.review||"")}
   const save=async()=>{setSaving(true);await saveWeekly({...selected,review:reviewText});setSaving(false);setSelected(null)}
   const PROMPTS=["Did I follow my daily bias?","Did I wait for manipulation before entry?","Did I trade in the kill zone?","Did I manage risk properly?","What was my biggest mistake?","What did I do well?","What will I improve next week?"]
@@ -1163,6 +1164,7 @@ function WeeklyReview({T,weeklyPlans,trades,saveWeekly}) {
           const wins=insights.wins.length
           const totalR=insights.totalR
           const hasReview=plan.review&&plan.review.trim().length>0
+          const aiDebrief=isAiDebrief(plan.review)
           return (
             <div key={plan._dbid} style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${hasReview?T.accentBright:T.border}`,borderRadius:18,padding:"20px 20px 18px",boxShadow:`0 14px 32px ${T.cardGlow}`}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
@@ -1170,7 +1172,7 @@ function WeeklyReview({T,weeklyPlans,trades,saveWeekly}) {
                   <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text}}>{plan.weekStart} to {plan.weekEnd}</div>
                   {plan.overallBias&&<div style={{fontSize:12,color:T.accentBright,marginTop:3}}>{plan.overallBias}</div>}
                 </div>
-                {hasReview&&<Badge color={T.green}>Reviewed</Badge>}
+                {hasReview&&<Badge color={aiDebrief?T.accentBright:T.green}>{aiDebrief?"AI Debrief":"Reviewed"}</Badge>}
               </div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:12}}>
                 {[{l:"Trades",v:wt.length,c:T.text},{l:"Wins",v:wins,c:T.green},{l:"Losses",v:wt.length-wins,c:T.red},{l:"Total R",v:`${totalR>=0?"+":""}${totalR.toFixed(1)}R`,c:totalR>=0?T.green:T.red}].map(s=>(
@@ -1224,9 +1226,9 @@ function WeeklyReview({T,weeklyPlans,trades,saveWeekly}) {
                   </div>
                 </div>
               )}
-              {hasReview&&<div style={{fontSize:12,color:T.textDim,lineHeight:1.6,marginBottom:12,padding:"10px 12px",background:T.surface,borderRadius:10,borderLeft:`3px solid ${T.accentBright}`}}>{plan.review.slice(0,180)}{plan.review.length>180?"...":""}</div>}
+              {hasReview&&<div style={{fontSize:12,color:T.textDim,lineHeight:1.6,marginBottom:12,padding:"10px 12px",background:T.surface,borderRadius:10,borderLeft:`3px solid ${aiDebrief?T.blue:T.accentBright}`}}>{plan.review.slice(0,180)}{plan.review.length>180?"...":""}</div>}
               <button onClick={()=>open(plan)} style={{width:"100%",background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,color:"#fff",border:"none",padding:"10px",borderRadius:10,cursor:"pointer",fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:700,fontSize:13}}>
-                {hasReview?"Update Review":"Write Review"}
+                {aiDebrief?"Open Debrief":hasReview?"Update Review":"Write Review"}
               </button>
             </div>
           )
@@ -1270,6 +1272,12 @@ function WeeklyReview({T,weeklyPlans,trades,saveWeekly}) {
                   </div>
                 </div>
               )})()}
+              {isAiDebrief(selected.review)&&(
+                <div style={{background:`linear-gradient(135deg,${T.blue}18,${T.accent}12)`,border:`1px solid ${T.blue}30`,borderRadius:12,padding:"12px 14px"}}>
+                  <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6}}>Auto Sunday Debrief</div>
+                  <div style={{fontSize:12,color:T.textDim,lineHeight:1.7}}>This weekly review was generated automatically by AI on Sunday. You can keep it as-is or edit it before saving.</div>
+                </div>
+              )}
               <div>
                 <div style={{fontSize:11,fontWeight:700,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>Review Prompts</div>
                 {PROMPTS.map((p,i)=><div key={i} style={{fontSize:12,color:T.textDim,padding:"6px 10px",background:T.surface2,borderRadius:6,marginBottom:4,borderLeft:`2px solid ${T.border}`}}>{i+1}. {p}</div>)}
