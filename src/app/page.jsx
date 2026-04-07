@@ -466,18 +466,22 @@ export default function App() {
       <main style={{flex:1,display:"flex",flexDirection:"column",marginLeft:200}}>
         {/* Topbar */}
         <div style={{padding:"14px 28px",borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",background:T.surface,position:"sticky",top:0,zIndex:40}}>
-          <div>
-            <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:20,fontWeight:800,color:T.text}}>{ALL_TABS.find(t=>t.id===tab)?.label || TABS.find(t=>t.id===tab)?.label}</div>
-            <div style={{fontSize:11,color:T.muted,marginTop:1}}>{new Date().toLocaleDateString("en-GB",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}</div>
-          </div>
-          <div style={{display:"flex",gap:8,alignItems:"center"}}>
-            <button onClick={()=>setDark(!dark)} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:"7px 14px",borderRadius:20,cursor:"pointer",fontSize:13}}>
-              {dark?"Light":"Dark"}
-            </button>
-            {tab==="journal"&&<Btn T={T} onClick={()=>setTradeModal("new")}>+ Log Trade</Btn>}
-            {tab==="daily"&&<Btn T={T} onClick={()=>setDailyModal("new")}>+ Daily Plan</Btn>}
-            {tab==="weekly"&&<Btn T={T} onClick={()=>setWeeklyModal("new")}>+ Weekly Plan</Btn>}
-          </div>
+          <HeaderMeta
+            T={T}
+            eyebrow="Trading Journal"
+            title={ALL_TABS.find(t=>t.id===tab)?.label || TABS.find(t=>t.id===tab)?.label}
+            subtitle={new Date().toLocaleDateString("en-GB",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}
+            actions={
+              <>
+                <button onClick={()=>setDark(!dark)} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:"7px 14px",borderRadius:20,cursor:"pointer",fontSize:13}}>
+                  {dark?"Light":"Dark"}
+                </button>
+                {tab==="journal"&&<Btn T={T} onClick={()=>setTradeModal("new")}>+ Log Trade</Btn>}
+                {tab==="daily"&&<Btn T={T} onClick={()=>setDailyModal("new")}>+ Daily Plan</Btn>}
+                {tab==="weekly"&&<Btn T={T} onClick={()=>setWeeklyModal("new")}>+ Weekly Plan</Btn>}
+              </>
+            }
+          />
         </div>
         {error&&<div style={{background:"#450a0a",borderBottom:"1px solid #991b1b",color:"#fca5a5",padding:"10px 28px",fontSize:13,display:"flex",alignItems:"center"}}>Alert: {error}<button onClick={()=>setError(null)} style={{marginLeft:12,background:"none",border:"none",color:"inherit",cursor:"pointer",fontWeight:700}}>x</button></div>}
 
@@ -577,6 +581,45 @@ function Btn({T,onClick,children,ghost,danger,disabled}){
 }
 function Card({T,children,style={},glow}){return <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"18px 20px",boxShadow:glow?`0 4px 30px ${T.cardGlow}`:"none",...style}}>{children}</div>}
 function CardTitle({T,children}){return <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:11,fontWeight:700,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:14,display:"flex",alignItems:"center",gap:8}}>{children}</div>}
+function HeaderMeta({T,eyebrow,title,subtitle,actions}) {
+  return (
+    <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:16}}>
+      <div>
+        {eyebrow&&<div style={{fontSize:10,color:T.muted,letterSpacing:"0.18em",textTransform:"uppercase",fontWeight:700,marginBottom:10}}>{eyebrow}</div>}
+        <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:28,fontWeight:800,color:T.text,letterSpacing:"-0.04em",lineHeight:1}}>{title}</div>
+        {subtitle&&<div style={{fontSize:13,color:T.textDim,marginTop:10,lineHeight:1.7,maxWidth:620}}>{subtitle}</div>}
+      </div>
+      {actions&&<div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",justifyContent:"flex-end"}}>{actions}</div>}
+    </div>
+  )
+}
+function EmptyState({T,title,copy,action,compact}) {
+  return (
+    <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px dashed ${T.border}`,borderRadius:compact?18:22,padding:compact?"30px 22px":"46px 28px",textAlign:"center",boxShadow:`inset 0 18px 40px ${T.bg}40`}}>
+      <div style={{width:compact?42:50,height:compact?42:50,borderRadius:16,margin:"0 auto 14px",display:"flex",alignItems:"center",justifyContent:"center",background:`linear-gradient(135deg,${T.accent}18,${T.pink}14)`,border:`1px solid ${T.accent}26`,fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:800,color:T.accentBright,fontSize:compact?13:15}}>FX</div>
+      <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:compact?20:24,fontWeight:800,color:T.text,marginBottom:10,letterSpacing:"-0.03em"}}>{title}</div>
+      <div style={{maxWidth:compact?420:520,margin:"0 auto",fontSize:13,color:T.textDim,lineHeight:1.7}}>{copy}</div>
+      {action&&<div style={{marginTop:20}}>{action}</div>}
+    </div>
+  )
+}
+function ModalShell({T,title,subtitle,onClose,children,footer,width=640}) {
+  return (
+    <Overlay onClose={onClose}>
+      <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${T.border}`,borderRadius:22,width:`min(${width}px,96vw)`,maxHeight:"92vh",display:"flex",flexDirection:"column",boxShadow:`0 36px 80px ${T.bg}a0`,overflow:"hidden"}}>
+        <div style={{padding:"20px 24px 18px",borderBottom:`1px solid ${T.border}`,background:`linear-gradient(180deg,${T.surface} 0%,${T.surface}dd 100%)`,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:16}}>
+          <div>
+            <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,fontWeight:800,color:T.text,letterSpacing:"-0.04em",lineHeight:1.05}}>{title}</div>
+            {subtitle&&<div style={{fontSize:12,color:T.textDim,marginTop:8,lineHeight:1.6,maxWidth:420}}>{subtitle}</div>}
+          </div>
+          <button onClick={onClose} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,cursor:"pointer",fontSize:18,width:34,height:34,borderRadius:12,flexShrink:0}}>x</button>
+        </div>
+        <div style={{padding:"20px 22px",overflowY:"auto",flex:1,display:"flex",flexDirection:"column",gap:16}}>{children}</div>
+        {footer&&<div style={{padding:"15px 22px",borderTop:`1px solid ${T.border}`,display:"flex",gap:10,background:`linear-gradient(180deg,${T.surface}ee 0%,${T.surface2} 100%)`}}>{footer}</div>}
+      </div>
+    </Overlay>
+  )
+}
 function Chip({T,active,onClick,children}){return <button onClick={onClick} style={{background:active?`${T.accent}20`:"none",border:`1px solid ${active?T.accentBright:T.border}`,color:active?T.accentBright:T.textDim,padding:"4px 12px",borderRadius:20,fontSize:11,fontWeight:active?700:400,cursor:"pointer",fontFamily:"Inter,sans-serif",transition:"all .15s"}}>{children}</button>}
 function Badge({color,children}){return <span style={{display:"inline-block",padding:"2px 8px",borderRadius:6,fontSize:11,fontWeight:700,background:`${color}20`,color,border:`1px solid ${color}40`}}>{children}</span>}
 function Toggle({T,value,opts,onChange}){return <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{opts.map(o=><button key={o.v||o} onClick={()=>onChange(o.v||o)} style={{background:(o.v||o)===value?`${T.accentBright}25`:"none",border:`1px solid ${(o.v||o)===value?T.accentBright:T.border}`,color:(o.v||o)===value?T.accentBright:T.textDim,padding:"6px 12px",borderRadius:8,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}}>{o.l||o}</button>)}</div>}
@@ -781,7 +824,7 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily}
         <Card T={T} style={{borderRadius:18,padding:"20px 22px"}}>
           <CardTitle T={T}>Today&apos;s Trades</CardTitle>
           {todayTrades.length===0
-            ?<div style={{textAlign:"center",padding:"28px 8px",color:T.muted,fontSize:13,background:T.surface2,border:`1px dashed ${T.border}`,borderRadius:14}}>No trades today<br/><button onClick={onNewTrade} style={{marginTop:12,background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,color:"#fff",border:"none",padding:"9px 18px",borderRadius:10,cursor:"pointer",fontWeight:700,fontSize:13}}>+ Log Trade</button></div>
+            ?<EmptyState T={T} compact title="No trades logged today" copy="Capture the first execution, keep the notes sharp, and the day starts to tell a story." action={<Btn T={T} onClick={onNewTrade}>+ Log Trade</Btn>}/>
             :todayTrades.map(t=>(
               <div key={t._dbid} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderBottom:`1px solid ${T.border}`}}>
                 <span style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:800,color:T.accentBright,minWidth:65}}>{t.pair}</span>
@@ -803,7 +846,7 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily}
                 </div>
               ))}<div style={{fontSize:12,color:T.textDim,marginTop:10,lineHeight:1.5}}>{latestDaily.notes}</div>
             </div>
-            :<div style={{textAlign:"center",padding:"28px 8px",color:T.muted,fontSize:13,background:T.surface2,border:`1px dashed ${T.border}`,borderRadius:14}}>No daily plan<br/><button onClick={onNewDaily} style={{marginTop:12,background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,color:"#fff",border:"none",padding:"9px 18px",borderRadius:10,cursor:"pointer",fontWeight:700,fontSize:13}}>+ Add Plan</button></div>
+            :<EmptyState T={T} compact title="No daily plan yet" copy="Set the bias, levels, and expected manipulation before the session opens." action={<Btn T={T} onClick={onNewDaily}>+ Add Plan</Btn>}/>
           }
         </Card>
 
@@ -816,7 +859,7 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily}
                 <div style={{fontSize:11,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:4}}>Key Events</div>
                 <div style={{fontSize:12,color:T.amber,lineHeight:1.5}}>{latestWeekly.keyEvents}</div>
               </div>
-            :<div style={{color:T.muted,fontSize:13,textAlign:"center",padding:"20px 0"}}>No weekly plan yet</div>
+            :<EmptyState T={T} compact title="No weekly plan yet" copy="Anchor the week with a clean bias, event map, and clear targets." />
           }
         </Card>
 
@@ -958,7 +1001,7 @@ function Journal({T,filtered,filterPair,setFilterPair,filterResult,setFilterResu
           </div>
         </div>
       </div>
-      {filtered.length===0&&<div style={{textAlign:"center",padding:"60px 20px",color:T.muted,fontSize:14,background:T.surface,border:`1px dashed ${T.border}`,borderRadius:18}}>Your journal is empty.<br/><button onClick={onNew} style={{marginTop:16,background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,color:"#fff",border:"none",padding:"10px 24px",borderRadius:10,cursor:"pointer",fontWeight:700,fontSize:14}}>+ Log Your First Trade</button></div>}
+      {filtered.length===0&&<EmptyState T={T} title="Your journal is still clean" copy="Start with one high-quality trade log and let the stats, screenshots, and reviews build from there." action={<Btn T={T} onClick={onNew}>+ Log Your First Trade</Btn>}/>}
       <div style={{display:"flex",flexDirection:"column",gap:12}}>
         {filtered.map(t=>(
           <div key={t._dbid} style={{background:`linear-gradient(180deg,${T.surface},${T.surface2})`,border:`1px solid ${T.border}`,borderRadius:18,padding:"18px 20px",transition:"border-color .15s, transform .15s, box-shadow .15s",boxShadow:`0 10px 26px ${T.cardGlow}`,position:"relative",overflow:"hidden"}} onMouseEnter={e=>{e.currentTarget.style.borderColor=T.accent; e.currentTarget.style.transform="translateY(-1px)"; e.currentTarget.style.boxShadow=`0 14px 32px ${T.cardGlow}`}} onMouseLeave={e=>{e.currentTarget.style.borderColor=T.border; e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow=`0 10px 26px ${T.cardGlow}`}}>
@@ -1016,10 +1059,8 @@ function DailyTab({T,plans,onEdit,onDelete,onNew}) {
   return (
     <div>
       {sorted.length===0&&(
-        <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px dashed ${T.border}`,borderRadius:22,padding:"44px 28px",textAlign:"center",marginBottom:16,boxShadow:`inset 0 18px 40px ${T.bg}40`}}>
-          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:24,fontWeight:800,color:T.text,marginBottom:10}}>Build your session plan before the market opens</div>
-          <div style={{maxWidth:460,margin:"0 auto",fontSize:14,color:T.textDim,lineHeight:1.7}}>Keep the plan short, clear, and ready before you start executing.</div>
-          <button onClick={onNew} style={{marginTop:20,background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,color:"#fff",border:"none",padding:"12px 24px",borderRadius:12,cursor:"pointer",fontWeight:800,fontSize:14,boxShadow:`0 14px 28px ${T.accent}28`}}>Create Daily Plan</button>
+        <div style={{marginBottom:16}}>
+          <EmptyState T={T} title="Build the day before the market does" copy="Keep the plan short, clear, and visible before you start executing." action={<Btn T={T} onClick={onNew}>Create Daily Plan</Btn>}/>
         </div>
       )}
       <div style={{display:"flex",flexDirection:"column",gap:14}}>
@@ -1063,10 +1104,8 @@ function WeeklyTab({T,plans,onEdit,onDelete,onNew}) {
   return (
     <div>
       {sorted.length===0&&(
-        <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px dashed ${T.border}`,borderRadius:22,padding:"44px 28px",textAlign:"center",marginBottom:16,boxShadow:`inset 0 18px 40px ${T.bg}40`}}>
-          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:24,fontWeight:800,color:T.text,marginBottom:10}}>Frame the week before the sessions get noisy</div>
-          <div style={{maxWidth:470,margin:"0 auto",fontSize:14,color:T.textDim,lineHeight:1.7}}>Define the bias, key events, and targets once so the rest of the week stays focused.</div>
-          <button onClick={onNew} style={{marginTop:20,background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,color:"#fff",border:"none",padding:"12px 24px",borderRadius:12,cursor:"pointer",fontWeight:800,fontSize:14,boxShadow:`0 14px 28px ${T.accent}28`}}>Create Weekly Plan</button>
+        <div style={{marginBottom:16}}>
+          <EmptyState T={T} title="Frame the week before the sessions get noisy" copy="Define the bias, key events, and targets once so the rest of the week stays focused." action={<Btn T={T} onClick={onNew}>Create Weekly Plan</Btn>}/>
         </div>
       )}
       <div style={{display:"flex",flexDirection:"column",gap:14}}>
@@ -2064,13 +2103,7 @@ function TradeModal({T,userId,initial,onSave,onClose,syncing}) {
   }
 
   return (
-    <Overlay onClose={onClose}>
-      <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,width:"min(640px,96vw)",maxHeight:"92vh",display:"flex",flexDirection:"column"}}>
-        <div style={{padding:"18px 22px",borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:17,fontWeight:800,color:T.text}}>{initial?"Edit Trade":"Log New Trade"}</div>
-          <button onClick={onClose} style={{background:"none",border:"none",color:T.textDim,cursor:"pointer",fontSize:20}}>x</button>
-        </div>
-        <div style={{padding:"20px 22px",overflowY:"auto",flex:1,display:"flex",flexDirection:"column",gap:16}}>
+    <ModalShell T={T} title={initial?"Edit Trade":"Log New Trade"} subtitle="Capture the setup, execution, psychology, and screenshots in one clean review-ready entry." onClose={onClose} width={640} footer={<><Btn T={T} onClick={submit}>{syncing?"Saving to cloud...":initial?"Update Trade":"Log Trade"}</Btn><Btn T={T} ghost onClick={cancelDraft}>Cancel</Btn></>}>
           <Section T={T} title="Instrument & Timing">
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
               <FL label="Date" T={T}><Inp T={T} type="date" value={f.date} onChange={e=>upd("date",e.target.value)}/></FL>
@@ -2118,13 +2151,7 @@ function TradeModal({T,userId,initial,onSave,onClose,syncing}) {
               <FL label="Post-Trade Screenshot / Ctrl+V to paste" T={T}><PasteImageInput T={T} label="Post" value={f.postScreenshot} onChange={v=>upd("postScreenshot",v)}/></FL>
             </div>
           </Section>
-        </div>
-        <div style={{padding:"14px 22px",borderTop:`1px solid ${T.border}`,display:"flex",gap:10}}>
-          <Btn T={T} onClick={submit}>{syncing?"Saving to cloud...":initial?"Update Trade":"Log Trade"}</Btn>
-          <Btn T={T} ghost onClick={cancelDraft}>Cancel</Btn>
-        </div>
-      </div>
-    </Overlay>
+    </ModalShell>
   )
 }
 
@@ -2156,13 +2183,7 @@ function DailyModal({T,userId,initial,onSave,onClose,syncing}) {
   }
 
   return (
-    <Overlay onClose={onClose}>
-      <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,width:"min(600px,96vw)",maxHeight:"92vh",display:"flex",flexDirection:"column"}}>
-        <div style={{padding:"18px 22px",borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:17,fontWeight:800,color:T.text}}>{initial?"Edit Daily Plan":"New Daily Plan"}</div>
-          <button onClick={onClose} style={{background:"none",border:"none",color:T.textDim,cursor:"pointer",fontSize:20}}>x</button>
-        </div>
-        <div style={{padding:"20px 22px",overflowY:"auto",flex:1,display:"flex",flexDirection:"column",gap:14}}>
+    <ModalShell T={T} title={initial?"Edit Daily Plan":"New Daily Plan"} subtitle="Keep the daily prep tight: focus pairs, directional bias, levels, manipulation, and screenshots." onClose={onClose} width={600} footer={<><Btn T={T} onClick={submit}>{syncing?"Saving...":initial?"Update":"Save Plan"}</Btn><Btn T={T} ghost onClick={cancelDraft}>Cancel</Btn></>}>
           <FL label="Date" T={T}><Inp T={T} type="date" value={f.date} onChange={e=>upd("date",e.target.value)}/></FL>
           <Section T={T} title="Pairs in Focus">
             <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{PAIRS.map(p=><Chip key={p} T={T} active={f.pairs?.includes(p)} onClick={()=>togglePair(p)}>{p}</Chip>)}</div>
@@ -2181,13 +2202,7 @@ function DailyModal({T,userId,initial,onSave,onClose,syncing}) {
           <FL label="Trade Plan" T={T}><Textarea T={T} rows={2} value={f.watchlist} onChange={e=>upd("watchlist",e.target.value)}/></FL>
           <FL label="Notes" T={T}><Textarea T={T} rows={2} value={f.notes} onChange={e=>upd("notes",e.target.value)}/></FL>
           <FL label="Daily Screenshots" T={T}><MultiImageInput T={T} label="Daily screenshot" values={f.chartImages} onChange={v=>upd("chartImages",v)}/></FL>
-        </div>
-        <div style={{padding:"14px 22px",borderTop:`1px solid ${T.border}`,display:"flex",gap:10}}>
-          <Btn T={T} onClick={submit}>{syncing?"Saving...":initial?"Update":"Save Plan"}</Btn>
-          <Btn T={T} ghost onClick={cancelDraft}>Cancel</Btn>
-        </div>
-      </div>
-    </Overlay>
+    </ModalShell>
   )
 }
 
@@ -2224,13 +2239,7 @@ function WeeklyModal({T,userId,initial,onSave,onClose,syncing}) {
   }
 
   return (
-    <Overlay onClose={onClose}>
-      <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,width:"min(660px,96vw)",maxHeight:"92vh",display:"flex",flexDirection:"column"}}>
-        <div style={{padding:"18px 22px",borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:17,fontWeight:800,color:T.text}}>{initial?"Edit Weekly Plan":"New Weekly Plan"}</div>
-          <button onClick={onClose} style={{background:"none",border:"none",color:T.textDim,cursor:"pointer",fontSize:20}}>x</button>
-        </div>
-        <div style={{padding:"20px 22px",overflowY:"auto",flex:1,display:"flex",flexDirection:"column",gap:14}}>
+    <ModalShell T={T} title={initial?"Edit Weekly Plan":"New Weekly Plan"} subtitle="Set the macro bias, event map, market structure, pair views, and weekly targets in one place." onClose={onClose} width={660} footer={<><Btn T={T} onClick={submit}>{syncing?"Saving...":initial?"Update":"Save Plan"}</Btn><Btn T={T} ghost onClick={cancelDraft}>Cancel</Btn></>}>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
             <FL label="Week Start" T={T}><Inp T={T} type="date" value={f.weekStart} onChange={e=>upd("weekStart",e.target.value)}/></FL>
             <FL label="Week End" T={T}><Inp T={T} type="date" value={f.weekEnd} onChange={e=>upd("weekEnd",e.target.value)}/></FL>
@@ -2249,13 +2258,7 @@ function WeeklyModal({T,userId,initial,onSave,onClose,syncing}) {
           <FL label="Weekly Targets" T={T}><Textarea T={T} rows={2} placeholder="EURUSD 1.0950, GBPUSD 1.2800..." value={f.targets} onChange={e=>upd("targets",e.target.value)}/></FL>
           <FL label="Notes" T={T}><Textarea T={T} rows={2} value={f.notes} onChange={e=>upd("notes",e.target.value)}/></FL>
           <FL label="Weekly Screenshots" T={T}><MultiImageInput T={T} label="Weekly screenshot" values={f.chartImages} onChange={v=>upd("chartImages",v)}/></FL>
-        </div>
-        <div style={{padding:"14px 22px",borderTop:`1px solid ${T.border}`,display:"flex",gap:10}}>
-          <Btn T={T} onClick={submit}>{syncing?"Saving...":initial?"Update":"Save Plan"}</Btn>
-          <Btn T={T} ghost onClick={cancelDraft}>Cancel</Btn>
-        </div>
-      </div>
-    </Overlay>
+    </ModalShell>
   )
 }
 
@@ -2328,12 +2331,7 @@ function Playbook({T, trades}) {
       </div>
 
       {playbooks.length===0&&(
-        <div style={{textAlign:"center",padding:"60px 20px",color:T.muted}}>
-          <div style={{fontSize:40,marginBottom:12}}>PB</div>
-          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:16,fontWeight:700,color:T.textDim,marginBottom:8}}>No playbooks yet</div>
-          <div style={{fontSize:13,marginBottom:20}}>Create playbooks for your setups like &quot;London Sweep + OB&quot; or &quot;NY Kill Zone FVG&quot;</div>
-          <Btn T={T} onClick={()=>setModal("new")}>+ Create First Playbook</Btn>
-        </div>
+        <EmptyState T={T} title="No playbooks yet" copy="Turn your best setups into repeatable rules so you can review them, track them, and execute them with less noise." action={<Btn T={T} onClick={()=>setModal("new")}>+ Create First Playbook</Btn>}/>
       )}
 
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14}}>
@@ -2443,13 +2441,7 @@ function PlaybookModal({T, initial, onSave, onClose}) {
     onSave({...f,tags:f.tags?f.tags.split(",").map(t=>t.trim()).filter(Boolean):[],rules:f.rules.filter(r=>r.trim()),id:initial?.id})
   }
   return (
-    <Overlay onClose={onClose}>
-      <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,width:"min(560px,96vw)",maxHeight:"92vh",display:"flex",flexDirection:"column"}}>
-        <div style={{padding:"18px 22px",borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:17,fontWeight:800,color:T.text}}>{initial?"Edit Playbook":"New Playbook"}</div>
-          <button onClick={onClose} style={{background:"none",border:"none",color:T.textDim,cursor:"pointer",fontSize:20}}>x</button>
-        </div>
-        <div style={{padding:"20px 22px",overflowY:"auto",flex:1,display:"flex",flexDirection:"column",gap:14}}>
+    <ModalShell T={T} title={initial?"Edit Playbook":"New Playbook"} subtitle="Document your best setup with a clear name, matching tags, and rules you can actually follow." onClose={onClose} width={560} footer={<><Btn T={T} onClick={submit}>{initial?"Update":"Save Playbook"}</Btn><Btn T={T} ghost onClick={onClose}>Cancel</Btn></>}>
           <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
             {EMOJIS.map(e=><button key={e} onClick={()=>upd("emoji",e)} style={{width:36,height:36,fontSize:20,background:f.emoji===e?`${T.accent}30`:"none",border:`1px solid ${f.emoji===e?T.accentBright:T.border}`,borderRadius:8,cursor:"pointer"}}>{e}</button>)}
           </div>
@@ -2468,13 +2460,7 @@ function PlaybookModal({T, initial, onSave, onClose}) {
             ))}
             <button onClick={addRule} style={{background:"none",border:`1px dashed ${T.border}`,color:T.textDim,padding:"8px 16px",borderRadius:8,cursor:"pointer",fontSize:12,width:"100%",marginTop:4}}>+ Add Rule</button>
           </div>
-        </div>
-        <div style={{padding:"14px 22px",borderTop:`1px solid ${T.border}`,display:"flex",gap:10}}>
-          <Btn T={T} onClick={submit}>{initial?"Update":"Save Playbook"}</Btn>
-          <Btn T={T} ghost onClick={onClose}>Cancel</Btn>
-        </div>
-      </div>
-    </Overlay>
+    </ModalShell>
   )
 }
 
