@@ -124,6 +124,10 @@ export default function App() {
   const [deleteTarget,setDeleteTarget] = useState(null)
   const [imgViewer,setImgViewer] = useState(null)
 
+  const TRADE_BOOT_FIELDS = "id,created_at,pair,date,direction,session,killzone,dailyBias,weeklyBias,marketProfile,manipulation,poi,setup,entry,sl,tp,result,rr,pips,emotion,mistakes,notes,tags"
+  const DAILY_BOOT_FIELDS = "id,created_at,date,pairs,biases,weeklyTheme,keyLevels,manipulation,watchlist,notes"
+  const WEEKLY_BOOT_FIELDS = "id,created_at,weekStart,weekEnd,overallBias,pairs,marketStructure,keyEvents,targets,notes,review"
+
   useEffect(()=>{
     supabase.auth.getSession().then(({data:{session}})=>{ setUser(session?.user??null); setAuthLoading(false) })
     const {data:{subscription}} = supabase.auth.onAuthStateChange((_,session)=>setUser(session?.user??null))
@@ -144,14 +148,38 @@ export default function App() {
     }
   }, [])
 
+  const hydrateMedia = useCallback(async(currentUserId)=>{
+    if(!currentUserId) return
+    try {
+      const [tradeMedia, dailyMedia, weeklyMedia] = await Promise.allSettled([
+        withTimeout("Trade screenshots", supabase.from("trades").select("id,preScreenshot,postScreenshot").eq("user_id", currentUserId), 30000),
+        withTimeout("Daily screenshots", supabase.from("daily_plans").select("id,chartImage").eq("user_id", currentUserId), 30000),
+        withTimeout("Weekly screenshots", supabase.from("weekly_plans").select("id,premiumDiscount").eq("user_id", currentUserId), 30000),
+      ])
+
+      if(tradeMedia.status==="fulfilled" && !tradeMedia.value?.error){
+        const byId = new Map((tradeMedia.value.data||[]).map(row=>[row.id,row]))
+        setTrades(ts=>ts.map(t=>byId.has(t._dbid)?{...t,...byId.get(t._dbid)}:t))
+      }
+      if(dailyMedia.status==="fulfilled" && !dailyMedia.value?.error){
+        const byId = new Map((dailyMedia.value.data||[]).map(row=>[row.id,row]))
+        setDailyPlans(ps=>ps.map(p=>byId.has(p._dbid)?{...p,...byId.get(p._dbid)}:p))
+      }
+      if(weeklyMedia.status==="fulfilled" && !weeklyMedia.value?.error){
+        const byId = new Map((weeklyMedia.value.data||[]).map(row=>[row.id,row]))
+        setWeeklyPlans(ps=>ps.map(p=>byId.has(p._dbid)?{...p,...byId.get(p._dbid)}:p))
+      }
+    } catch {}
+  },[supabase,withTimeout])
+
   const loadAll = useCallback(async()=>{
     if(!user) return
     setLoading(true); setError(null)
     try {
       const [t,d,w] = await Promise.allSettled([
-        withTimeout("Trades", supabase.from("trades").select("*").eq("user_id",user.id).order("created_at",{ascending:false})),
-        withTimeout("Daily plans", supabase.from("daily_plans").select("*").eq("user_id",user.id).order("created_at",{ascending:false})),
-        withTimeout("Weekly plans", supabase.from("weekly_plans").select("*").eq("user_id",user.id).order("created_at",{ascending:false})),
+        withTimeout("Trades", supabase.from("trades").select(TRADE_BOOT_FIELDS).eq("user_id",user.id).order("created_at",{ascending:false})),
+        withTimeout("Daily plans", supabase.from("daily_plans").select(DAILY_BOOT_FIELDS).eq("user_id",user.id).order("created_at",{ascending:false})),
+        withTimeout("Weekly plans", supabase.from("weekly_plans").select(WEEKLY_BOOT_FIELDS).eq("user_id",user.id).order("created_at",{ascending:false})),
       ])
 
       const errors = []
@@ -169,11 +197,12 @@ export default function App() {
       setTrades((tradesResult?.data||[]).map(r=>({...r,_dbid:r.id})))
       setDailyPlans((dailyResult?.data||[]).map(r=>({...r,_dbid:r.id})))
       setWeeklyPlans((weeklyResult?.data||[]).map(r=>({...r,_dbid:r.id})))
+      hydrateMedia(user.id)
 
       if(errors.length) setError(`Some data could not load: ${errors.join(" | ")}`)
     } catch(e){ setError("Failed to load: "+e.message) }
     finally{ setLoading(false) }
-  },[supabase,user,withTimeout])
+  },[DAILY_BOOT_FIELDS,TRADE_BOOT_FIELDS,WEEKLY_BOOT_FIELDS,hydrateMedia,supabase,user,withTimeout])
 
   useEffect(()=>{ if(user) loadAll() },[user,loadAll])
 
