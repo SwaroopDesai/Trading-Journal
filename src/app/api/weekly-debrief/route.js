@@ -140,7 +140,11 @@ Rules:
 - Mention concrete pairs, setups, emotions, or mistakes when possible.
 - Keep it readable in email.
 - Do not use markdown tables.
-- End with a short motivating sign-off.
+- Do not write a subject line.
+- Do not write "Hey", "Hi", or any greeting.
+- Do not use placeholders like [Trader's Name].
+- Do not include an email intro or email sign-off.
+- Output only the 7 report sections and their content.
   `.trim()
 }
 
@@ -188,6 +192,24 @@ function sectionizeDebrief(text) {
       const heading = lines.shift() || ""
       return { heading, body: lines.join("<br/>") }
     })
+}
+
+function cleanDebriefText(text) {
+  return text
+    .split("\n")
+    .map((line) => line.trimEnd())
+    .filter((line) => {
+      const normalized = line.trim()
+      if (!normalized) return true
+      if (/^subject\s*:/i.test(normalized)) return false
+      if (/^(hey|hi|hello)\b/i.test(normalized)) return false
+      if (/\[trader'?s name\]/i.test(normalized)) return false
+      if (/^dear\b/i.test(normalized)) return false
+      return true
+    })
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim()
 }
 
 function formatEmailHtml(plan, text, trades) {
@@ -312,7 +334,7 @@ async function processDebriefs() {
 
       const weekTrades = getWeekTrades(trades || [], plan)
       const prompt = buildWeeklyPrompt(plan, weekTrades)
-      const debrief = await generateDebrief(prompt)
+      const debrief = cleanDebriefText(await generateDebrief(prompt))
       const review = `AI Weekly Debrief\n\n${debrief}`
 
       const { error: updateError } = await supabase
