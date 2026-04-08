@@ -15,6 +15,11 @@ const MANI_TYPES = ["Liquidity Sweep High","Liquidity Sweep Low","Stop Hunt","Fa
 const HIGH_IMPACT = ["NFP","Non-Farm","CPI","GDP","FOMC","Interest Rate","Fed","Inflation","Unemployment","Retail Sales","PPI","ECB","BOE"];
 const fmtDate = d => new Date(d).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"2-digit"});
 const fmtRR = rr => rr >= 0 ? `+${Number(rr).toFixed(2)}R` : `${Number(rr).toFixed(2)}R`;
+const SESSION_WINDOWS = [
+  { key:"asian", label:"Asian", timeZone:"Asia/Tokyo", start:7*60, end:16*60 },
+  { key:"london", label:"London", timeZone:"Europe/London", start:8*60, end:17*60 },
+  { key:"newyork", label:"New York", timeZone:"America/New_York", start:8*60, end:17*60 },
+];
 const TRADE_BOOT_FIELDS = "id,created_at,pair,date,direction,session,killzone,dailyBias,weeklyBias,marketProfile,manipulation,poi,setup,entry,sl,tp,result,rr,pips,emotion,mistakes,notes,tags";
 const DAILY_BOOT_FIELDS = "id,created_at,date,pairs,biases,weeklyTheme,keyLevels,manipulation,watchlist,notes";
 const WEEKLY_BOOT_FIELDS = "id,created_at,weekStart,weekEnd,pairs,keyEvents,notes,review,premiumDiscount";
@@ -40,6 +45,58 @@ const getImageExtension = (dataUrl) => {
 const dataUrlToBlob = async (dataUrl) => {
   const res = await fetch(dataUrl)
   return res.blob()
+}
+
+const getZoneMinutes = (date, timeZone) => {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(date)
+  const hour = Number(parts.find(part => part.type==="hour")?.value || 0)
+  const minute = Number(parts.find(part => part.type==="minute")?.value || 0)
+  return hour * 60 + minute
+}
+
+const formatMinutesAway = (minutes) => {
+  if(minutes <= 0) return "now"
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  if(hours && mins) return `${hours}h ${mins}m`
+  if(hours) return `${hours}h`
+  return `${mins}m`
+}
+
+const getCurrentSessionInfo = (date = new Date()) => {
+  const states = SESSION_WINDOWS.map(session => {
+    const localMinutes = getZoneMinutes(date, session.timeZone)
+    const active = localMinutes >= session.start && localMinutes < session.end
+    const minutesUntilStart = localMinutes <= session.start
+      ? session.start - localMinutes
+      : (24 * 60 - localMinutes) + session.start
+    return { ...session, active, minutesUntilStart }
+  })
+
+  const london = states.find(session => session.key==="london")
+  const newYork = states.find(session => session.key==="newyork")
+  const asian = states.find(session => session.key==="asian")
+
+  if(london?.active && newYork?.active) {
+    return { label:"London / NY", tone:"overlap", detail:"Most liquid window", nextLabel:"Asian", nextIn:formatMinutesAway(asian.minutesUntilStart) }
+  }
+  if(london?.active) {
+    return { label:"London", tone:"london", detail:"Europe open", nextLabel:"New York", nextIn:formatMinutesAway(newYork.minutesUntilStart) }
+  }
+  if(newYork?.active) {
+    return { label:"New York", tone:"newyork", detail:"US session live", nextLabel:"Asian", nextIn:formatMinutesAway(asian.minutesUntilStart) }
+  }
+  if(asian?.active) {
+    return { label:"Asian", tone:"asian", detail:"Asia session live", nextLabel:"London", nextIn:formatMinutesAway(london.minutesUntilStart) }
+  }
+
+  const nextSession = [...states].sort((a,b)=>a.minutesUntilStart-b.minutesUntilStart)[0]
+  return { label:"Between Sessions", tone:"closed", detail:"Reset and prep window", nextLabel:nextSession.label, nextIn:formatMinutesAway(nextSession.minutesUntilStart) }
 }
 
 const buildStoragePath = (userId, folder, ext) => `${userId}/${folder}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
@@ -218,6 +275,7 @@ export default function App() {
   const [syncing,setSyncing] = useState(false)
   const [error,setError] = useState(null)
   const [tab,setTab] = useState("dashboard")
+  const [sessionTick,setSessionTick] = useState(()=>Date.now())
   const [tradeModal,setTradeModal] = useState(null)
   const [dailyModal,setDailyModal] = useState(null)
   const [weeklyModal,setWeeklyModal] = useState(null)
@@ -239,6 +297,11 @@ export default function App() {
     if(typeof window==="undefined") return
     const savedTab = window.localStorage.getItem(TAB_STORAGE_KEY)
     if(savedTab) setTab(savedTab)
+  },[])
+
+  useEffect(()=>{
+    const id = window.setInterval(()=>setSessionTick(Date.now()), 60000)
+    return ()=>window.clearInterval(id)
   },[])
 
   const hydrateMedia = useCallback(async()=>{
@@ -395,6 +458,7 @@ export default function App() {
   },[trades])
 
   const filtered = useMemo(()=>trades.filter(t=>(filterPair==="ALL"||t.pair===filterPair)&&(filterResult==="ALL"||t.result===filterResult)).sort((a,b)=>new Date(b.date)-new Date(a.date)),[trades,filterPair,filterResult])
+  const currentSession = useMemo(()=>getCurrentSessionInfo(new Date(sessionTick)),[sessionTick])
 
   // Mobile shows only 5 primary tabs; rest accessible via More
   const TABS=[
@@ -474,6 +538,7 @@ export default function App() {
             subtitle={new Date().toLocaleDateString("en-GB",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}
             actions={
               <>
+                <SessionPill T={T} session={currentSession}/>
                 <button onClick={()=>setDark(!dark)} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:"7px 14px",borderRadius:20,cursor:"pointer",fontSize:13}}>
                   {dark?"Light":"Dark"}
                 </button>
@@ -591,6 +656,26 @@ function HeaderMeta({T,eyebrow,title,subtitle,actions}) {
         {subtitle&&<div style={{fontSize:13,color:T.textDim,marginTop:10,lineHeight:1.7,maxWidth:620}}>{subtitle}</div>}
       </div>
       {actions&&<div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",justifyContent:"flex-end"}}>{actions}</div>}
+    </div>
+  )
+}
+function SessionPill({T,session}) {
+  const tones = {
+    overlap: { dot:"#f59e0b", bg:`linear-gradient(135deg,${T.amber}18,${T.pink}12)` },
+    london: { dot:T.accentBright, bg:`linear-gradient(135deg,${T.accent}18,${T.pink}10)` },
+    newyork: { dot:T.green, bg:`linear-gradient(135deg,${T.green}14,${T.accent}10)` },
+    asian: { dot:"#38bdf8", bg:`linear-gradient(135deg,#38bdf81c,${T.accent}10)` },
+    closed: { dot:T.textDim, bg:`linear-gradient(135deg,${T.surface2},${T.surface})` },
+  }
+  const tone = tones[session?.tone] || tones.closed
+  return (
+    <div style={{minWidth:184,padding:"8px 12px",borderRadius:18,background:tone.bg,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",gap:10,boxShadow:`0 10px 30px ${T.cardGlow}`}}>
+      <span style={{width:8,height:8,borderRadius:"50%",background:tone.dot,boxShadow:`0 0 0 4px ${tone.dot}22`,flexShrink:0}} />
+      <div style={{lineHeight:1.1}}>
+        <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:5}}>Current Session</div>
+        <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text,letterSpacing:"-0.03em"}}>{session?.label}</div>
+        <div style={{fontSize:11,color:T.textDim,marginTop:4}}>{session?.detail} . Next {session?.nextLabel} in {session?.nextIn}</div>
+      </div>
     </div>
   )
 }
