@@ -556,24 +556,28 @@ export default function App() {
       {/* Main */}
       <main style={{flex:1,display:"flex",flexDirection:"column",marginLeft:200}}>
         {/* Topbar */}
-        <div style={{padding:"14px 28px",borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",background:T.surface,position:"sticky",top:0,zIndex:40}}>
-          <HeaderMeta
-            T={T}
-            eyebrow="Trading Journal"
-            title={ALL_TABS.find(t=>t.id===tab)?.label || TABS.find(t=>t.id===tab)?.label}
-            subtitle={new Date().toLocaleDateString("en-GB",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}
-            actions={
-              <>
-                <button onClick={()=>setDark(!dark)} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:"7px 14px",borderRadius:20,cursor:"pointer",fontSize:13}}>
-                  {dark?"Light":"Dark"}
-                </button>
-                {tab==="journal"&&<Btn T={T} onClick={()=>setTradeModal("new")}>+ Log Trade</Btn>}
-                {tab==="daily"&&<Btn T={T} onClick={()=>setDailyModal("new")}>+ Daily Plan</Btn>}
-                {tab==="weekly"&&<Btn T={T} onClick={()=>setWeeklyModal("new")}>+ Weekly Plan</Btn>}
-                <SessionPill T={T} session={currentSession} compact={compactSession} open={sessionOpen} onToggle={()=>setSessionOpen(v=>!v)}/>
-              </>
-            }
-          />
+        <div style={{padding:"14px 28px",borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:18,background:T.surface,position:"sticky",top:0,zIndex:40}}>
+          <div style={{flex:1,minWidth:0}}>
+            <HeaderMeta
+              T={T}
+              eyebrow="Trading Journal"
+              title={ALL_TABS.find(t=>t.id===tab)?.label || TABS.find(t=>t.id===tab)?.label}
+              subtitle={new Date().toLocaleDateString("en-GB",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}
+              actions={
+                <>
+                  <button onClick={()=>setDark(!dark)} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:"7px 14px",borderRadius:20,cursor:"pointer",fontSize:13}}>
+                    {dark?"Light":"Dark"}
+                  </button>
+                  {tab==="journal"&&<Btn T={T} onClick={()=>setTradeModal("new")}>+ Log Trade</Btn>}
+                  {tab==="daily"&&<Btn T={T} onClick={()=>setDailyModal("new")}>+ Daily Plan</Btn>}
+                  {tab==="weekly"&&<Btn T={T} onClick={()=>setWeeklyModal("new")}>+ Weekly Plan</Btn>}
+                </>
+              }
+            />
+          </div>
+          <div style={{flexShrink:0,alignSelf:"flex-start"}}>
+            <SessionPill T={T} session={currentSession} compact={compactSession} open={sessionOpen} onToggle={()=>setSessionOpen(v=>!v)}/>
+          </div>
         </div>
         {error&&<div style={{background:"#450a0a",borderBottom:"1px solid #991b1b",color:"#fca5a5",padding:"10px 28px",fontSize:13,display:"flex",alignItems:"center"}}>Alert: {error}<button onClick={()=>setError(null)} style={{marginLeft:12,background:"none",border:"none",color:"inherit",cursor:"pointer",fontWeight:700}}>x</button></div>}
 
