@@ -701,7 +701,7 @@ function SessionPill({T,session,compact,mobile,open,onToggle}) {
   const tone = tones[session?.tone] || tones.closed
   const sessionCode = session?.label==="London / NY" ? "OVR" : session?.label==="New York" ? "NY" : session?.label==="Between Sessions" ? "OFF" : (session?.label || "SES").slice(0,3).toUpperCase()
   const panelStyle = mobile
-    ? {position:"static",marginTop:10,width:"100%"}
+    ? {position:"absolute",right:0,top:"calc(100% + 10px)",width:"min(320px, calc(100vw - 32px))"}
     : {position:"absolute",right:0,top:"calc(100% + 10px)",width:compact?260:320}
   return (
     <div style={{position:"relative"}}>
