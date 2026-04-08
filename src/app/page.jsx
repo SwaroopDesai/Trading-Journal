@@ -557,7 +557,7 @@ export default function App() {
       {/* Main */}
       <main style={{flex:1,display:"flex",flexDirection:"column",marginLeft:200}}>
         {/* Topbar */}
-        <div style={{padding:isMobileViewport?"12px 16px":"14px 28px",borderBottom:`1px solid ${T.border}`,display:"flex",flexDirection:isMobileViewport?"column":"row",alignItems:isMobileViewport?"stretch":"flex-start",justifyContent:"space-between",gap:isMobileViewport?12:18,background:T.surface,position:"sticky",top:0,zIndex:40}}>
+        <div style={{padding:isMobileViewport?"12px 16px":"14px 28px",borderBottom:`1px solid ${T.border}`,display:"flex",flexDirection:isMobileViewport?"row":"row",alignItems:isMobileViewport?"flex-start":"flex-start",justifyContent:"space-between",gap:isMobileViewport?12:18,background:T.surface,position:"sticky",top:0,zIndex:40}}>
           <div style={{flex:1,minWidth:0}}>
             <HeaderMeta
               T={T}
@@ -566,9 +566,6 @@ export default function App() {
               subtitle={new Date().toLocaleDateString("en-GB",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}
               actions={
                 <>
-                  <button onClick={()=>setDark(!dark)} aria-label="Toggle theme" style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:isMobileViewport?"8px 12px":"7px 14px",borderRadius:20,cursor:"pointer",fontSize:isMobileViewport?12:13,minWidth:isMobileViewport?76:"auto"}}>
-                    {dark?"Light":"Dark"}
-                  </button>
                   {tab==="journal"&&<Btn T={T} onClick={()=>setTradeModal("new")}>+ Log Trade</Btn>}
                   {tab==="daily"&&<Btn T={T} onClick={()=>setDailyModal("new")}>+ Daily Plan</Btn>}
                   {tab==="weekly"&&<Btn T={T} onClick={()=>setWeeklyModal("new")}>+ Weekly Plan</Btn>}
@@ -576,7 +573,10 @@ export default function App() {
               }
             />
           </div>
-          <div style={{flexShrink:0,alignSelf:isMobileViewport?"stretch":"flex-start",display:"flex",justifyContent:isMobileViewport?"space-between":"flex-end"}}>
+          <div style={{flexShrink:0,alignSelf:"flex-start",display:"flex",flexDirection:"column",alignItems:"flex-end",gap:10,minWidth:isMobileViewport?132:0}}>
+            <button onClick={()=>setDark(!dark)} aria-label="Toggle theme" style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:isMobileViewport?"8px 12px":"7px 14px",borderRadius:20,cursor:"pointer",fontSize:isMobileViewport?12:13,minWidth:isMobileViewport?76:"auto"}}>
+              {dark?"Light":"Dark"}
+            </button>
             <SessionPill T={T} session={currentSession} compact={compactSession||isMobileViewport} mobile={isMobileViewport} open={sessionOpen} onToggle={()=>setSessionOpen(v=>!v)}/>
           </div>
         </div>
