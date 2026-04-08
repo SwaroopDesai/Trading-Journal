@@ -59,6 +59,13 @@ const getZoneMinutes = (date, timeZone) => {
   return hour * 60 + minute
 }
 
+const getZoneTimeLabel = (date, timeZone) => new Intl.DateTimeFormat("en-GB", {
+  timeZone,
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+}).format(date)
+
 const formatMinutesAway = (minutes) => {
   if(minutes <= 0) return "now"
   const hours = Math.floor(minutes / 60)
@@ -82,21 +89,30 @@ const getCurrentSessionInfo = (date = new Date()) => {
   const newYork = states.find(session => session.key==="newyork")
   const asian = states.find(session => session.key==="asian")
 
+  const markets = states.map(session => ({
+    key: session.key,
+    label: session.label,
+    time: getZoneTimeLabel(date, session.timeZone),
+    hours: `${String(Math.floor(session.start/60)).padStart(2,"0")}:00 - ${String(Math.floor(session.end/60)).padStart(2,"0")}:00`,
+    active: session.active,
+    opensIn: formatMinutesAway(session.minutesUntilStart),
+  }))
+
   if(london?.active && newYork?.active) {
-    return { label:"London / NY", tone:"overlap", detail:"Most liquid window", nextLabel:"Asian", nextIn:formatMinutesAway(asian.minutesUntilStart) }
+    return { label:"London / NY", tone:"overlap", detail:"Most liquid window", nextLabel:"Asian", nextIn:formatMinutesAway(asian.minutesUntilStart), markets }
   }
   if(london?.active) {
-    return { label:"London", tone:"london", detail:"Europe open", nextLabel:"New York", nextIn:formatMinutesAway(newYork.minutesUntilStart) }
+    return { label:"London", tone:"london", detail:"Europe open", nextLabel:"New York", nextIn:formatMinutesAway(newYork.minutesUntilStart), markets }
   }
   if(newYork?.active) {
-    return { label:"New York", tone:"newyork", detail:"US session live", nextLabel:"Asian", nextIn:formatMinutesAway(asian.minutesUntilStart) }
+    return { label:"New York", tone:"newyork", detail:"US session live", nextLabel:"Asian", nextIn:formatMinutesAway(asian.minutesUntilStart), markets }
   }
   if(asian?.active) {
-    return { label:"Asian", tone:"asian", detail:"Asia session live", nextLabel:"London", nextIn:formatMinutesAway(london.minutesUntilStart) }
+    return { label:"Asian", tone:"asian", detail:"Asia session live", nextLabel:"London", nextIn:formatMinutesAway(london.minutesUntilStart), markets }
   }
 
   const nextSession = [...states].sort((a,b)=>a.minutesUntilStart-b.minutesUntilStart)[0]
-  return { label:"Between Sessions", tone:"closed", detail:"Reset and prep window", nextLabel:nextSession.label, nextIn:formatMinutesAway(nextSession.minutesUntilStart) }
+  return { label:"Between Sessions", tone:"closed", detail:"Reset and prep window", nextLabel:nextSession.label, nextIn:formatMinutesAway(nextSession.minutesUntilStart), markets }
 }
 
 const buildStoragePath = (userId, folder, ext) => `${userId}/${folder}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
@@ -276,6 +292,8 @@ export default function App() {
   const [error,setError] = useState(null)
   const [tab,setTab] = useState("dashboard")
   const [sessionTick,setSessionTick] = useState(()=>Date.now())
+  const [sessionOpen,setSessionOpen] = useState(false)
+  const [viewportWidth,setViewportWidth] = useState(()=>typeof window==="undefined"?1440:window.innerWidth)
   const [tradeModal,setTradeModal] = useState(null)
   const [dailyModal,setDailyModal] = useState(null)
   const [weeklyModal,setWeeklyModal] = useState(null)
@@ -302,6 +320,13 @@ export default function App() {
   useEffect(()=>{
     const id = window.setInterval(()=>setSessionTick(Date.now()), 60000)
     return ()=>window.clearInterval(id)
+  },[])
+
+  useEffect(()=>{
+    if(typeof window==="undefined") return
+    const onResize = ()=>setViewportWidth(window.innerWidth)
+    window.addEventListener("resize", onResize)
+    return ()=>window.removeEventListener("resize", onResize)
   },[])
 
   const hydrateMedia = useCallback(async()=>{
@@ -459,6 +484,7 @@ export default function App() {
 
   const filtered = useMemo(()=>trades.filter(t=>(filterPair==="ALL"||t.pair===filterPair)&&(filterResult==="ALL"||t.result===filterResult)).sort((a,b)=>new Date(b.date)-new Date(a.date)),[trades,filterPair,filterResult])
   const currentSession = useMemo(()=>getCurrentSessionInfo(new Date(sessionTick)),[sessionTick])
+  const compactSession = viewportWidth < 1180
 
   // Mobile shows only 5 primary tabs; rest accessible via More
   const TABS=[
@@ -538,13 +564,13 @@ export default function App() {
             subtitle={new Date().toLocaleDateString("en-GB",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}
             actions={
               <>
-                <SessionPill T={T} session={currentSession}/>
                 <button onClick={()=>setDark(!dark)} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:"7px 14px",borderRadius:20,cursor:"pointer",fontSize:13}}>
                   {dark?"Light":"Dark"}
                 </button>
                 {tab==="journal"&&<Btn T={T} onClick={()=>setTradeModal("new")}>+ Log Trade</Btn>}
                 {tab==="daily"&&<Btn T={T} onClick={()=>setDailyModal("new")}>+ Daily Plan</Btn>}
                 {tab==="weekly"&&<Btn T={T} onClick={()=>setWeeklyModal("new")}>+ Weekly Plan</Btn>}
+                <SessionPill T={T} session={currentSession} compact={compactSession} open={sessionOpen} onToggle={()=>setSessionOpen(v=>!v)}/>
               </>
             }
           />
@@ -659,23 +685,60 @@ function HeaderMeta({T,eyebrow,title,subtitle,actions}) {
     </div>
   )
 }
-function SessionPill({T,session}) {
+function SessionPill({T,session,compact,open,onToggle}) {
   const tones = {
-    overlap: { dot:"#f59e0b", bg:`linear-gradient(135deg,${T.amber}18,${T.pink}12)` },
-    london: { dot:T.accentBright, bg:`linear-gradient(135deg,${T.accent}18,${T.pink}10)` },
-    newyork: { dot:T.green, bg:`linear-gradient(135deg,${T.green}14,${T.accent}10)` },
-    asian: { dot:"#38bdf8", bg:`linear-gradient(135deg,#38bdf81c,${T.accent}10)` },
-    closed: { dot:T.textDim, bg:`linear-gradient(135deg,${T.surface2},${T.surface})` },
+    overlap: { dot:"#f59e0b", glow:"#f59e0b33", bg:`linear-gradient(135deg,${T.amber}22,${T.pink}14)` },
+    london: { dot:T.accentBright, glow:`${T.accentBright}33`, bg:`linear-gradient(135deg,${T.accent}22,${T.pink}12)` },
+    newyork: { dot:T.green, glow:`${T.green}33`, bg:`linear-gradient(135deg,${T.green}18,${T.accent}10)` },
+    asian: { dot:"#38bdf8", glow:"#38bdf833", bg:`linear-gradient(135deg,#38bdf824,${T.accent}10)` },
+    closed: { dot:T.textDim, glow:`${T.textDim}22`, bg:`linear-gradient(135deg,${T.surface2},${T.surface})` },
   }
   const tone = tones[session?.tone] || tones.closed
+  const sessionCode = session?.label==="London / NY" ? "OVR" : session?.label==="New York" ? "NY" : session?.label==="Between Sessions" ? "OFF" : (session?.label || "SES").slice(0,3).toUpperCase()
   return (
-    <div style={{minWidth:184,padding:"8px 12px",borderRadius:18,background:tone.bg,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",gap:10,boxShadow:`0 10px 30px ${T.cardGlow}`}}>
-      <span style={{width:8,height:8,borderRadius:"50%",background:tone.dot,boxShadow:`0 0 0 4px ${tone.dot}22`,flexShrink:0}} />
-      <div style={{lineHeight:1.1}}>
-        <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:5}}>Current Session</div>
-        <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text,letterSpacing:"-0.03em"}}>{session?.label}</div>
-        <div style={{fontSize:11,color:T.textDim,marginTop:4}}>{session?.detail} . Next {session?.nextLabel} in {session?.nextIn}</div>
-      </div>
+    <div style={{position:"relative"}}>
+      <button onClick={onToggle} title={`${session?.label} live. Next ${session?.nextLabel} in ${session?.nextIn}`} style={{minWidth:compact?118:220,padding:compact?"8px 10px":"10px 12px",borderRadius:18,background:tone.bg,border:`1px solid ${open?tone.dot:T.border}`,display:"flex",alignItems:"center",gap:10,boxShadow:open?`0 18px 36px ${tone.glow}`:`0 10px 30px ${T.cardGlow}`,cursor:"pointer",textAlign:"left"}}>
+        <div style={{width:compact?28:34,height:compact?28:34,borderRadius:12,background:`linear-gradient(135deg,${tone.dot}30,${tone.dot}12)`,border:`1px solid ${tone.dot}55`,display:"grid",placeItems:"center",flexShrink:0}}>
+          <span style={{fontSize:compact?10:11,fontWeight:800,color:tone.dot,letterSpacing:"0.08em"}}>{sessionCode}</span>
+        </div>
+        <div style={{lineHeight:1.1,minWidth:0}}>
+          {!compact&&<div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:5}}>Current Session</div>}
+          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:compact?13:15,fontWeight:800,color:T.text,letterSpacing:"-0.03em",whiteSpace:"nowrap"}}>{session?.label}</div>
+          {!compact&&<div style={{fontSize:11,color:T.textDim,marginTop:4,whiteSpace:"nowrap"}}>{session?.detail} . Next {session?.nextLabel} in {session?.nextIn}</div>}
+        </div>
+        <div style={{marginLeft:"auto",fontSize:11,color:T.textDim}}>{open?"Hide":"Open"}</div>
+      </button>
+      {open&&(
+        <div style={{position:"absolute",right:0,top:"calc(100% + 10px)",width:compact?260:320,background:`linear-gradient(180deg,${T.surface},${T.surface2})`,border:`1px solid ${T.border}`,borderRadius:18,padding:"14px 14px 12px",boxShadow:`0 24px 60px ${T.bg}aa`,zIndex:60}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,gap:12}}>
+            <div>
+              <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:5}}>Session Pulse</div>
+              <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:17,fontWeight:800,color:T.text}}>{session?.label}</div>
+            </div>
+            <div style={{fontSize:12,color:T.textDim,textAlign:"right"}}>
+              <div>{session?.detail}</div>
+              <div style={{marginTop:4}}>Next {session?.nextLabel} in {session?.nextIn}</div>
+            </div>
+          </div>
+          <div style={{display:"grid",gap:8}}>
+            {session?.markets?.map(market=>(
+              <div key={market.key} style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,padding:"10px 12px",borderRadius:14,background:market.active?`${tone.dot}12`:T.surface,border:`1px solid ${market.active?`${tone.dot}55`:T.border}`}}>
+                <div style={{display:"flex",alignItems:"center",gap:10,minWidth:0}}>
+                  <span style={{width:8,height:8,borderRadius:"50%",background:market.active?tone.dot:T.textDim,boxShadow:`0 0 0 4px ${market.active?tone.glow:`${T.textDim}14`}`}} />
+                  <div>
+                    <div style={{fontSize:12,fontWeight:700,color:T.text}}>{market.label}</div>
+                    <div style={{fontSize:11,color:T.textDim}}>{market.hours} local</div>
+                  </div>
+                </div>
+                <div style={{textAlign:"right"}}>
+                  <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:13,fontWeight:800,color:T.text}}>{market.time}</div>
+                  <div style={{fontSize:11,color:market.active?tone.dot:T.textDim}}>{market.active?"Live now":`Opens in ${market.opensIn}`}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
