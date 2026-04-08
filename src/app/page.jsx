@@ -1110,7 +1110,7 @@ function DailyTab({T,plans,onEdit,onDelete,onNew}) {
               ))}
             </div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:12}}>
-              {[{l:"Day Focus",v:p.weeklyTheme},{l:"Key Levels",v:p.keyLevels},{l:"Expected Manipulation",v:p.manipulation,c:T.amber},{l:"Notes",v:p.notes}].filter(x=>x.v).map(x=>(
+              {[{l:"Day Focus",v:p.weeklyTheme},{l:"Expected Manipulation",v:p.manipulation,c:T.amber}].filter(x=>x.v).map(x=>(
                 <div key={x.l} style={{background:`linear-gradient(180deg,${T.surface2} 0%,${T.surface} 100%)`,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px 15px"}}>
                   <div style={{fontSize:10,fontWeight:800,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>{x.l}</div>
                   <div style={{fontSize:13,color:x.c||T.textDim,lineHeight:1.7}}>{x.v}</div>
@@ -2213,7 +2213,7 @@ function DailyModal({T,userId,initial,onSave,onClose,syncing}) {
   const setPairNote=(pair,note)=>setF(x=>({...x,pairNotes:{...(x.pairNotes||{}),[pair]:note}}))
   const submit=()=>{
     const {chartImages,pairNotes,...rest}=f
-    onSave({...rest,watchlist:serializeDailyPairNotes(pairNotes),chartImage:serializeImageList(chartImages)})
+    onSave({...rest,keyLevels:"",notes:"",watchlist:serializeDailyPairNotes(pairNotes),chartImage:serializeImageList(chartImages)})
   }
   const cancelDraft = ()=>{
     skipDraftWriteRef.current = true
@@ -2222,12 +2222,12 @@ function DailyModal({T,userId,initial,onSave,onClose,syncing}) {
   }
 
   return (
-    <ModalShell T={T} title={initial?"Edit Daily Plan":"New Daily Plan"} subtitle="Keep the day simple: pair bias, pair notes, levels, manipulation, and screenshots." onClose={onClose} width={700} footer={<><Btn T={T} onClick={submit}>{syncing?"Saving...":initial?"Update":"Save Plan"}</Btn><Btn T={T} ghost onClick={cancelDraft}>Cancel</Btn></>}>
+    <ModalShell T={T} title={initial?"Edit Daily Plan":"New Daily Plan"} subtitle="Keep the day simple: pair bias, pair notes, manipulation, and screenshots." onClose={onClose} width={700} footer={<><Btn T={T} onClick={submit}>{syncing?"Saving...":initial?"Update":"Save Plan"}</Btn><Btn T={T} ghost onClick={cancelDraft}>Cancel</Btn></>}>
           <FL label="Date" T={T}><Inp T={T} type="date" value={f.date} onChange={e=>upd("date",e.target.value)}/></FL>
           <Section T={T} title="Pairs in Focus">
             <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{PAIRS.map(p=><Chip key={p} T={T} active={f.pairs?.includes(p)} onClick={()=>togglePair(p)}>{p}</Chip>)}</div>
           </Section>
-          <FL label="Day Focus" T={T}><Textarea T={T} rows={2} placeholder="Main theme for the day, session focus, or one-liner bias..." value={f.weeklyTheme} onChange={e=>upd("weeklyTheme",e.target.value)}/></FL>
+          <FL label="Day Focus" T={T}><Textarea T={T} rows={4} placeholder="Main theme for the day, session focus, what you are waiting for, and what you will avoid..." value={f.weeklyTheme} onChange={e=>upd("weeklyTheme",e.target.value)}/></FL>
           <Section T={T} title="Pair Views">
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:12}}>
             {f.pairs?.map(p=>(
@@ -2241,9 +2241,7 @@ function DailyModal({T,userId,initial,onSave,onClose,syncing}) {
             ))}
             </div>
           </Section>
-          <FL label="Key Levels" T={T}><Textarea T={T} rows={2} value={f.keyLevels} onChange={e=>upd("keyLevels",e.target.value)}/></FL>
           <FL label="Expected Manipulation" T={T}><Textarea T={T} rows={2} placeholder="Expected sweep, trap, or expansion" value={f.manipulation} onChange={e=>upd("manipulation",e.target.value)}/></FL>
-          <FL label="Notes" T={T}><Textarea T={T} rows={3} placeholder="Anything that applies to the full day..." value={f.notes} onChange={e=>upd("notes",e.target.value)}/></FL>
           <FL label="Daily Screenshots" T={T}><MultiImageInput T={T} label="Daily screenshot" values={f.chartImages} onChange={v=>upd("chartImages",v)}/></FL>
     </ModalShell>
   )
