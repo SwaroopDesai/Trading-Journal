@@ -17,7 +17,7 @@ const fmtDate = d => new Date(d).toLocaleDateString("en-GB",{day:"2-digit",month
 const fmtRR = rr => rr >= 0 ? `+${Number(rr).toFixed(2)}R` : `${Number(rr).toFixed(2)}R`;
 const TRADE_BOOT_FIELDS = "id,created_at,pair,date,direction,session,killzone,dailyBias,weeklyBias,marketProfile,manipulation,poi,setup,entry,sl,tp,result,rr,pips,emotion,mistakes,notes,tags";
 const DAILY_BOOT_FIELDS = "id,created_at,date,pairs,biases,weeklyTheme,keyLevels,manipulation,watchlist,notes";
-const WEEKLY_BOOT_FIELDS = "id,created_at,weekStart,weekEnd,overallBias,pairs,marketStructure,keyEvents,targets,notes,review,premiumDiscount";
+const WEEKLY_BOOT_FIELDS = "id,created_at,weekStart,weekEnd,overallBias,pairs,keyEvents,notes,review,premiumDiscount";
 const STORAGE_BUCKET = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || "journal-images";
 const TAB_STORAGE_KEY = "fxedge_active_tab";
 
@@ -655,6 +655,7 @@ const serializeImageList = (value) => {
 
 const getDailyPlanImages = (plan) => normalizeImageList(plan?.chartImage)
 const getWeeklyPlanImages = (plan) => normalizeImageList(plan?.premiumDiscount?.__screenshots)
+const getWeeklyPairNotes = (plan) => plan?.premiumDiscount?.__pairNotes || {}
 
 // Paste-enabled image input
 function PasteImageInput({T, value, onChange, label}) {
@@ -854,12 +855,21 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily}
           <CardTitle T={T}>Weekly Theme {latestWeekly&&<span style={{color:T.accent,fontWeight:400}}>{latestWeekly.weekStart}</span>}</CardTitle>
           {latestWeekly
             ?<div>
-                <div style={{display:"inline-block",background:`${T.accent}20`,border:`1px solid ${T.accent}50`,color:T.accentBright,padding:"4px 14px",borderRadius:20,fontSize:12,fontWeight:700,marginBottom:10}}>{latestWeekly.overallBias}</div>
-                <div style={{fontSize:12,color:T.textDim,lineHeight:1.6,marginBottom:8}}>{latestWeekly.marketStructure}</div>
-                <div style={{fontSize:11,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:4}}>Key Events</div>
-                <div style={{fontSize:12,color:T.amber,lineHeight:1.5}}>{latestWeekly.keyEvents}</div>
+                {latestWeekly.overallBias&&<div style={{display:"inline-block",background:`${T.accent}20`,border:`1px solid ${T.accent}50`,color:T.accentBright,padding:"4px 14px",borderRadius:20,fontSize:12,fontWeight:700,marginBottom:10}}>{latestWeekly.overallBias}</div>}
+                {Object.entries(getWeeklyPairNotes(latestWeekly)).filter(([,note])=>String(note||"").trim()).length>0&&(
+                  <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>
+                    {Object.entries(getWeeklyPairNotes(latestWeekly)).filter(([,note])=>String(note||"").trim()).slice(0,3).map(([pair])=>(
+                      <span key={pair} style={{fontSize:11,fontWeight:700,color:T.textDim,background:T.surface2,border:`1px solid ${T.border}`,padding:"4px 10px",borderRadius:999}}>{pair}</span>
+                    ))}
+                  </div>
+                )}
+                {latestWeekly.keyEvents&&<>
+                  <div style={{fontSize:11,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:4}}>Key Events</div>
+                  <div style={{fontSize:12,color:T.amber,lineHeight:1.5,marginBottom:8}}>{latestWeekly.keyEvents}</div>
+                </>}
+                {latestWeekly.notes&&<div style={{fontSize:12,color:T.textDim,lineHeight:1.6}}>{latestWeekly.notes}</div>}
               </div>
-            :<EmptyState T={T} compact title="No weekly plan yet" copy="Anchor the week with a clean bias, event map, and clear targets." />
+            :<EmptyState T={T} compact title="No weekly plan yet" copy="Set the weekly bias, key events, and pair notes before the sessions start." />
           }
         </Card>
 
@@ -1105,11 +1115,16 @@ function WeeklyTab({T,plans,onEdit,onDelete,onNew}) {
     <div>
       {sorted.length===0&&(
         <div style={{marginBottom:16}}>
-          <EmptyState T={T} title="Frame the week before the sessions get noisy" copy="Define the bias, key events, and targets once so the rest of the week stays focused." action={<Btn T={T} onClick={onNew}>Create Weekly Plan</Btn>}/>
+          <EmptyState T={T} title="Frame the week before the sessions get noisy" copy="Set the bias, key events, and your pair notes once so the rest of the week stays focused." action={<Btn T={T} onClick={onNew}>Create Weekly Plan</Btn>}/>
         </div>
       )}
       <div style={{display:"flex",flexDirection:"column",gap:14}}>
-        {sorted.map(p=>(
+        {sorted.map(p=>{
+          const pairNotes = getWeeklyPairNotes(p)
+          const pairViews = PAIRS
+            .map(pair=>({ pair, bias: p.pairs?.[pair] || "Neutral", note: pairNotes?.[pair] || "" }))
+            .filter(item=>item.bias !== "Neutral" || String(item.note).trim())
+          return (
           <Card key={p._dbid} T={T} style={{padding:22,borderRadius:22,background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,boxShadow:`0 24px 40px ${T.bg}32`}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:18,gap:16}}>
               <div>
@@ -1121,16 +1136,17 @@ function WeeklyTab({T,plans,onEdit,onDelete,onNew}) {
                 <button onClick={()=>onDelete(p)} style={{background:"none",border:`1px solid ${T.border}`,color:T.red,padding:"8px 12px",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:700}}>Delete</button>
               </div>
             </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:16}}>
-              {PAIRS.map(pair=>(
-                <div key={pair} style={{background:`linear-gradient(180deg,${T.surface2} 0%,${T.surface} 100%)`,border:`1px solid ${T.border}`,padding:"12px 13px",borderRadius:14,boxShadow:`0 12px 22px ${T.bg}18`}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:12,marginBottom:16}}>
+              {(pairViews.length ? pairViews : PAIRS.map(pair=>({ pair, bias: p.pairs?.[pair] || "Neutral", note: "" }))).map(({pair,bias,note})=>(
+                <div key={pair} style={{background:`linear-gradient(180deg,${T.surface2} 0%,${T.surface} 100%)`,border:`1px solid ${T.border}`,padding:"14px 15px",borderRadius:16,boxShadow:`0 12px 22px ${T.bg}18`}}>
                   <div style={{fontSize:10,fontWeight:800,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>{pair}</div>
-                  <div style={{fontSize:13,fontWeight:800,color:p.pairs?.[pair]==="Bullish"?T.green:p.pairs?.[pair]==="Bearish"?T.red:T.textDim}}>{p.pairs?.[pair]||"Neutral"}</div>
+                  <div style={{fontSize:13,fontWeight:800,color:bias==="Bullish"?T.green:bias==="Bearish"?T.red:T.textDim,marginBottom:note?8:0}}>{bias}</div>
+                  {note&&<div style={{fontSize:12,color:T.textDim,lineHeight:1.6}}>{note}</div>}
                 </div>
               ))}
             </div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:12}}>
-              {[{l:"Market Structure",v:p.marketStructure},{l:"Key Events",v:p.keyEvents,c:T.amber},{l:"Targets",v:p.targets},{l:"Notes",v:p.notes}].filter(x=>x.v).map(x=>(
+              {[{l:"Key Events",v:p.keyEvents,c:T.amber},{l:"Notes",v:p.notes}].filter(x=>x.v).map(x=>(
                 <div key={x.l} style={{background:`linear-gradient(180deg,${T.surface2} 0%,${T.surface} 100%)`,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px 15px"}}>
                   <div style={{fontSize:10,fontWeight:800,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>{x.l}</div>
                   <div style={{fontSize:13,color:x.c||T.textDim,lineHeight:1.7}}>{x.v}</div>
@@ -1145,7 +1161,7 @@ function WeeklyTab({T,plans,onEdit,onDelete,onNew}) {
               </div>
             )}
           </Card>
-        ))}
+        )})}
       </div>
     </div>
   )
@@ -2210,9 +2226,9 @@ function DailyModal({T,userId,initial,onSave,onClose,syncing}) {
 function WeeklyModal({T,userId,initial,onSave,onClose,syncing}) {
   const mon=()=>{const d=new Date();d.setDate(d.getDate()-d.getDay()+1);return d.toISOString().split("T")[0]}
   const fri=()=>{const d=new Date();d.setDate(d.getDate()-d.getDay()+5);return d.toISOString().split("T")[0]}
-  const blank={weekStart:mon(),weekEnd:fri(),overallBias:"",pairs:{},marketStructure:"",keyEvents:"",targets:"",notes:"",review:""}
+  const blank={weekStart:mon(),weekEnd:fri(),overallBias:"",pairs:{},keyEvents:"",notes:"",review:"",pairNotes:{}}
   const [f,setF]=useState(()=>{
-    if(initial) return {...initial,chartImages:getWeeklyPlanImages(initial)}
+    if(initial) return {...initial,pairNotes:getWeeklyPairNotes(initial),chartImages:getWeeklyPlanImages(initial)}
     const draft = readDraft(userId, "weekly") || {}
     return {...blank,premiumDiscount:{},chartImages:[],...draft}
   })
@@ -2224,13 +2240,17 @@ function WeeklyModal({T,userId,initial,onSave,onClose,syncing}) {
     writeDraft(userId, "weekly", f)
   },[f,initial,userId])
   const setPair=(p,v)=>setF(x=>({...x,pairs:{...x.pairs,[p]:v}}))
+  const setPairNote=(p,v)=>setF(x=>({...x,pairNotes:{...(x.pairNotes||{}),[p]:v}}))
   const submit=()=>{
-    const {chartImages,...rest}=f
+    const {chartImages,pairNotes,...rest}=f
     const premiumDiscount = {...(rest.premiumDiscount||{})}
     const images = normalizeImageList(chartImages)
     if(images.length>0) premiumDiscount.__screenshots = images
     else delete premiumDiscount.__screenshots
-    onSave({...rest,premiumDiscount})
+    const cleanedPairNotes = Object.fromEntries(Object.entries(pairNotes||{}).filter(([,value])=>String(value||"").trim()))
+    if(Object.keys(cleanedPairNotes).length>0) premiumDiscount.__pairNotes = cleanedPairNotes
+    else delete premiumDiscount.__pairNotes
+    onSave({...rest,marketStructure:"",targets:"",premiumDiscount})
   }
   const cancelDraft = ()=>{
     skipDraftWriteRef.current = true
@@ -2239,24 +2259,27 @@ function WeeklyModal({T,userId,initial,onSave,onClose,syncing}) {
   }
 
   return (
-    <ModalShell T={T} title={initial?"Edit Weekly Plan":"New Weekly Plan"} subtitle="Set the macro bias, event map, market structure, pair views, and weekly targets in one place." onClose={onClose} width={660} footer={<><Btn T={T} onClick={submit}>{syncing?"Saving...":initial?"Update":"Save Plan"}</Btn><Btn T={T} ghost onClick={cancelDraft}>Cancel</Btn></>}>
+    <ModalShell T={T} title={initial?"Edit Weekly Plan":"New Weekly Plan"} subtitle="Keep the week simple: one macro view, key events, and quick pair-by-pair notes." onClose={onClose} width={700} footer={<><Btn T={T} onClick={submit}>{syncing?"Saving...":initial?"Update":"Save Plan"}</Btn><Btn T={T} ghost onClick={cancelDraft}>Cancel</Btn></>}>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
             <FL label="Week Start" T={T}><Inp T={T} type="date" value={f.weekStart} onChange={e=>upd("weekStart",e.target.value)}/></FL>
             <FL label="Week End" T={T}><Inp T={T} type="date" value={f.weekEnd} onChange={e=>upd("weekEnd",e.target.value)}/></FL>
           </div>
           <FL label="Weekly Bias" T={T}><Inp T={T} placeholder="USD weakness, risk-on, DXY retracement" value={f.overallBias} onChange={e=>upd("overallBias",e.target.value)}/></FL>
-          <Section T={T} title="Pair Bias">
+          <FL label="Key Economic Events" T={T}><Textarea T={T} rows={2} placeholder="NFP Fri, FOMC Wed, CPI Tue..." value={f.keyEvents} onChange={e=>upd("keyEvents",e.target.value)}/></FL>
+          <Section T={T} title="Pair Views">
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:12}}>
             {PAIRS.map(p=>(
-              <div key={p} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:`1px solid ${T.border}`,flexWrap:"wrap"}}>
-                <span style={{fontSize:13,fontWeight:700,color:T.text,minWidth:70}}>{p}</span>
-                <Toggle T={T} value={f.pairs?.[p]||""} opts={["Bullish","Bearish","Neutral"]} onChange={v=>setPair(p,v)}/>
+              <div key={p} style={{padding:"14px",border:`1px solid ${T.border}`,borderRadius:16,background:`linear-gradient(180deg,${T.surface2} 0%,${T.surface} 100%)`,display:"flex",flexDirection:"column",gap:10}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,flexWrap:"wrap"}}>
+                  <span style={{fontSize:13,fontWeight:800,color:T.text}}>{p}</span>
+                  <Toggle T={T} value={f.pairs?.[p]||""} opts={["Bullish","Bearish","Neutral"]} onChange={v=>setPair(p,v)}/>
+                </div>
+                <Textarea T={T} rows={2} placeholder={`Plan for ${p} this week`} value={f.pairNotes?.[p]||""} onChange={e=>setPairNote(p,e.target.value)}/>
               </div>
             ))}
+            </div>
           </Section>
-          <FL label="Market Structure" T={T}><Textarea T={T} rows={2} placeholder="DXY position, correlations..." value={f.marketStructure} onChange={e=>upd("marketStructure",e.target.value)}/></FL>
-          <FL label="Key Economic Events" T={T}><Textarea T={T} rows={2} placeholder="NFP Fri, FOMC Wed, CPI Tue..." value={f.keyEvents} onChange={e=>upd("keyEvents",e.target.value)}/></FL>
-          <FL label="Weekly Targets" T={T}><Textarea T={T} rows={2} placeholder="EURUSD 1.0950, GBPUSD 1.2800..." value={f.targets} onChange={e=>upd("targets",e.target.value)}/></FL>
-          <FL label="Notes" T={T}><Textarea T={T} rows={2} value={f.notes} onChange={e=>upd("notes",e.target.value)}/></FL>
+          <FL label="Notes" T={T}><Textarea T={T} rows={3} placeholder="Anything that applies to the full week..." value={f.notes} onChange={e=>upd("notes",e.target.value)}/></FL>
           <FL label="Weekly Screenshots" T={T}><MultiImageInput T={T} label="Weekly screenshot" values={f.chartImages} onChange={v=>upd("chartImages",v)}/></FL>
     </ModalShell>
   )
