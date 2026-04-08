@@ -700,6 +700,9 @@ function SessionPill({T,session,compact,mobile,open,onToggle}) {
   }
   const tone = tones[session?.tone] || tones.closed
   const sessionCode = session?.label==="London / NY" ? "OVR" : session?.label==="New York" ? "NY" : session?.label==="Between Sessions" ? "OFF" : (session?.label || "SES").slice(0,3).toUpperCase()
+  const panelStyle = mobile
+    ? {position:"static",marginTop:10,width:"100%"}
+    : {position:"absolute",right:0,top:"calc(100% + 10px)",width:compact?260:320}
   return (
     <div style={{position:"relative"}}>
       <button onClick={onToggle} title={`${session?.label} live. Next ${session?.nextLabel} in ${session?.nextIn}`} style={{minWidth:mobile?0:(compact?118:220),width:mobile?"100%":"auto",padding:mobile?"9px 10px":compact?"8px 10px":"10px 12px",borderRadius:18,background:tone.bg,border:`1px solid ${open?tone.dot:T.border}`,display:"flex",alignItems:"center",gap:mobile?8:10,boxShadow:open?`0 18px 36px ${tone.glow}`:`0 10px 30px ${T.cardGlow}`,cursor:"pointer",textAlign:"left"}}>
@@ -714,7 +717,7 @@ function SessionPill({T,session,compact,mobile,open,onToggle}) {
         {!mobile&&<div style={{marginLeft:"auto",fontSize:11,color:T.textDim}}>{open?"Hide":"Open"}</div>}
       </button>
       {open&&(
-        <div style={{position:"absolute",right:0,top:"calc(100% + 10px)",width:mobile?"min(320px, calc(100vw - 32px))":compact?260:320,background:`linear-gradient(180deg,${T.surface},${T.surface2})`,border:`1px solid ${T.border}`,borderRadius:18,padding:"14px 14px 12px",boxShadow:`0 24px 60px ${T.bg}aa`,zIndex:60}}>
+        <div style={{...panelStyle,background:`linear-gradient(180deg,${T.surface},${T.surface2})`,border:`1px solid ${T.border}`,borderRadius:18,padding:"14px 14px 12px",boxShadow:`0 24px 60px ${T.bg}aa`,zIndex:60}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,gap:12}}>
             <div>
               <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:5}}>Session Pulse</div>
