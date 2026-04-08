@@ -2267,20 +2267,37 @@ function WeeklyModal({T,userId,initial,onSave,onClose,syncing}) {
 function MoreMenu({T, setTab, ALL_TABS}) {
   const extra = ALL_TABS.filter(t=>!["dashboard","journal","daily","heatmap"].includes(t.id))
   return (
-    <div>
-      <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:18,fontWeight:800,color:T.text,marginBottom:20}}>All Sections</div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10}}>
+    <div style={{display:"flex",flexDirection:"column",gap:18}}>
+      <HeaderMeta
+        T={T}
+        eyebrow="Workspace"
+        title="All Sections"
+        subtitle="Jump into the deeper tools, reviews, and utilities without losing your place."
+      />
+      <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
         {extra.map(t=>(
           <button key={t.id} onClick={()=>setTab(t.id)} style={{
-            background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,
-            padding:"18px 16px",display:"flex",alignItems:"center",gap:12,
-            cursor:"pointer",textAlign:"left",transition:"border-color .15s",
+            background:`linear-gradient(180deg,${T.surface},${T.surface2})`,border:`1px solid ${T.border}`,borderRadius:18,
+            padding:"18px 16px",display:"flex",alignItems:"flex-start",gap:12,
+            cursor:"pointer",textAlign:"left",transition:"border-color .15s, transform .15s, box-shadow .15s",
+            boxShadow:`0 16px 40px ${T.cardGlow}`,
           }}
-          onMouseEnter={e=>e.currentTarget.style.borderColor=T.accentBright}
-          onMouseLeave={e=>e.currentTarget.style.borderColor=T.border}>
-            <span style={{fontSize:28}}>{t.icon}</span>
-            <div>
+          onMouseEnter={e=>{e.currentTarget.style.borderColor=T.accentBright;e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow=`0 20px 50px ${T.cardGlow}`}}
+          onMouseLeave={e=>{e.currentTarget.style.borderColor=T.border;e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow=`0 16px 40px ${T.cardGlow}`}}>
+            <span style={{fontSize:26,lineHeight:1,marginTop:2}}>{t.icon}</span>
+            <div style={{display:"flex",flexDirection:"column",gap:4}}>
               <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:14,fontWeight:700,color:T.text}}>{t.label}</div>
+              <div style={{fontSize:12,color:T.textDim,lineHeight:1.5}}>
+                {t.id==="analytics"&&"Break down performance trends, sessions, and setups."}
+                {t.id==="weekly"&&"Plan the week with clearer structure, bias, and focus."}
+                {t.id==="mind"&&"Track psychology, mistakes, and emotional consistency."}
+                {t.id==="playbook"&&"Turn your best setups into repeatable execution rules."}
+                {t.id==="calculator"&&"Use quick risk sizing tools before you enter."}
+                {t.id==="gallery"&&"Review your screenshot library in one clean place."}
+                {t.id==="review"&&"Wrap the week with lessons, stats, and next focus."}
+                {t.id==="ai"&&"Get journal feedback and coaching from your AI analyst."}
+                {t.id==="export"&&"Download clean CSV snapshots of your trading data."}
+              </div>
             </div>
           </button>
         ))}
@@ -2368,40 +2385,41 @@ function Playbook({T, trades}) {
         const s=getStats(viewPb)
         return (
           <Overlay onClose={()=>setViewPb(null)}>
-            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,width:"min(680px,96vw)",maxHeight:"92vh",display:"flex",flexDirection:"column"}}>
-              <div style={{padding:"18px 22px",borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:18,fontWeight:800,color:T.text}}>{viewPb.emoji} {viewPb.name}</div>
-                <button onClick={()=>setViewPb(null)} style={{background:"none",border:"none",color:T.textDim,cursor:"pointer",fontSize:20}}>x</button>
-              </div>
-              <div style={{padding:"20px 22px",overflowY:"auto",flex:1,display:"flex",flexDirection:"column",gap:16}}>
+            <ModalShell
+              T={T}
+              title={`${viewPb.emoji} ${viewPb.name}`}
+              subtitle="A focused setup sheet with rules, matched trades, and live performance context."
+              onClose={()=>setViewPb(null)}
+              width={680}
+              footer={<><Btn T={T} onClick={()=>{setModal(viewPb);setViewPb(null)}}>Edit</Btn><Btn T={T} danger onClick={()=>del(viewPb.id)}>Delete</Btn><Btn T={T} ghost onClick={()=>setViewPb(null)}>Close</Btn></>}
+            >
                 <div style={{fontSize:13,color:T.textDim,lineHeight:1.6}}>{viewPb.description}</div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(148px,1fr))",gap:10}}>
+                  {[{l:"Trades Logged",v:s.count,c:T.text},{l:"Win Rate",v:`${s.wr}%`,c:s.wr>=55?T.green:s.wr>=40?T.amber:T.red},{l:"Total R",v:`${s.totalR>=0?"+":""}${s.totalR.toFixed(2)}R`,c:s.totalR>=0?T.green:T.red},{l:"Avg R / Win",v:s.wins>0?`+${(s.totalR/s.wins).toFixed(2)}R`:"-",c:T.green}].map(k=>(
+                    <div key={k.l} style={{background:`linear-gradient(180deg,${T.surface2},${T.surface})`,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 16px"}}>
+                      <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>{k.l}</div>
+                      <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:20,fontWeight:800,color:k.c}}>{k.v}</div>
+                    </div>
+                  ))}
+                </div>
                 {/* Rules */}
                 {viewPb.rules?.length>0&&(
                   <div>
                     <div style={{fontSize:11,fontWeight:700,color:T.accentBright,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:10}}>Rules</div>
                     {viewPb.rules.map((r,i)=>(
-                      <div key={i} style={{display:"flex",alignItems:"flex-start",gap:10,padding:"8px 12px",background:T.surface2,borderRadius:8,marginBottom:6}}>
+                      <div key={i} style={{display:"flex",alignItems:"flex-start",gap:10,padding:"10px 12px",background:T.surface2,border:`1px solid ${T.border}`,borderRadius:12,marginBottom:8}}>
                         <span style={{fontWeight:800,color:T.accentBright,minWidth:20}}>{i+1}.</span>
                         <span style={{fontSize:13,color:T.text}}>{r}</span>
                       </div>
                     ))}
                   </div>
                 )}
-                {/* Stats */}
-                <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
-                  {[{l:"Trades",v:s.count,c:T.text},{l:"Win Rate",v:`${s.wr}%`,c:s.wr>=55?T.green:s.wr>=40?T.amber:T.red},{l:"Total R",v:`${s.totalR>=0?"+":""}${s.totalR.toFixed(2)}R`,c:s.totalR>=0?T.green:T.red},{l:"Avg R/Win",v:s.wins>0?`+${(s.totalR/s.wins).toFixed(2)}R`:"-",c:T.green}].map(k=>(
-                    <div key={k.l} style={{background:T.surface2,borderRadius:10,padding:"12px",textAlign:"center"}}>
-                      <div style={{fontSize:9,fontWeight:700,color:T.muted,letterSpacing:"0.1em",marginBottom:5}}>{k.l}</div>
-                      <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:18,fontWeight:800,color:k.c}}>{k.v}</div>
-                    </div>
-                  ))}
-                </div>
                 {/* Matched trades */}
                 {s.trades.length>0&&(
                   <div>
                     <div style={{fontSize:11,fontWeight:700,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:10}}>Matched Trades</div>
                     {s.trades.slice(0,10).map(t=>(
-                      <div key={t._dbid} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",background:T.surface2,borderRadius:8,marginBottom:5,fontSize:12}}>
+                      <div key={t._dbid} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:T.surface2,border:`1px solid ${T.border}`,borderRadius:12,marginBottom:6,fontSize:12}}>
                         <span style={{fontWeight:800,color:T.accentBright,minWidth:65}}>{t.pair}</span>
                         <Badge color={t.direction==="LONG"?T.green:T.red}>{t.direction}</Badge>
                         <span style={{fontSize:11,color:T.muted}}>{t.date}</span>
@@ -2411,13 +2429,7 @@ function Playbook({T, trades}) {
                     ))}
                   </div>
                 )}
-              </div>
-              <div style={{padding:"14px 22px",borderTop:`1px solid ${T.border}`,display:"flex",gap:10}}>
-                <Btn T={T} onClick={()=>{setModal(viewPb);setViewPb(null)}}>Edit</Btn>
-                <Btn T={T} danger onClick={()=>del(viewPb.id)}>Delete</Btn>
-                <Btn T={T} ghost onClick={()=>setViewPb(null)}>Close</Btn>
-              </div>
-            </div>
+            </ModalShell>
           </Overlay>
         )
       })()}
@@ -2550,9 +2562,13 @@ Be concise, direct and actionable.`
 
   return (
     <div style={{maxWidth:720}}>
-      <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"20px",marginBottom:14}}>
-        <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:17,fontWeight:800,color:T.text,marginBottom:6}}>AI Trading Coach</div>
-        <div style={{fontSize:13,color:T.textDim,marginBottom:16}}>Powered by Gemini - your personal ICT/SMC trading analyst</div>
+      <div style={{background:`linear-gradient(180deg,${T.surface},${T.surface2})`,border:`1px solid ${T.border}`,borderRadius:20,padding:"22px",marginBottom:16,boxShadow:`0 18px 48px ${T.cardGlow}`}}>
+        <HeaderMeta
+          T={T}
+          eyebrow="AI Coach"
+          title="AI Trading Coach"
+          subtitle="Powered by Gemini for sharp journal reviews, pattern spotting, and next-step coaching."
+        />
         <div style={{display:"flex",gap:8,marginBottom:16}}>
           {[{id:"journal",label:"Analyze My Journal"},{id:"notes",label:"Analyze Trade Notes"}].map(m=>(
             <button key={m.id} onClick={()=>{setMode(m.id);setResult(null)}} style={{padding:"9px 18px",borderRadius:20,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif",background:mode===m.id?`linear-gradient(135deg,${T.accentBright},${T.pink})`:`${T.surface2}`,color:mode===m.id?"#fff":T.textDim,border:`1px solid ${mode===m.id?"transparent":T.border}`}}>{m.label}</button>
@@ -2583,7 +2599,7 @@ Be concise, direct and actionable.`
       {error&&<div style={{background:"#450a0a",border:"1px solid #991b1b",color:"#fca5a5",padding:"12px 16px",borderRadius:10,fontSize:13,marginBottom:14}}>{error}</div>}
 
       {loading&&(
-        <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"32px",textAlign:"center"}}>
+        <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:18,padding:"32px",textAlign:"center",boxShadow:`0 16px 40px ${T.cardGlow}`}}>
           <div style={{display:"flex",gap:8,justifyContent:"center",marginBottom:12}}>{[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:"50%",background:T.accentBright,animation:`pulse 1.2s ${i*0.2}s infinite ease-in-out`}}/>)}</div>
           <div style={{fontSize:13,color:T.textDim}}>Gemini is analyzing your trading data...</div>
         </div>
@@ -2593,8 +2609,9 @@ Be concise, direct and actionable.`
         <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:18,padding:"20px",boxShadow:`0 10px 40px ${T.cardGlow}`}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
             <div>
-              <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text}}>Analysis Results</div>
-              <div style={{fontSize:11,color:T.muted,marginTop:3,letterSpacing:"0.08em",textTransform:"uppercase"}}>Structured AI Report</div>
+              <div style={{fontSize:10,fontWeight:700,color:T.accentBright,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:6}}>Structured Report</div>
+              <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:18,fontWeight:800,color:T.text}}>Analysis Results</div>
+              <div style={{fontSize:12,color:T.textDim,marginTop:4}}>Clear takeaways, risk patterns, and a next-step focus pulled from your own journal.</div>
             </div>
             <button onClick={()=>setResult(null)} style={{background:"none",border:`1px solid ${T.border}`,color:T.textDim,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontSize:12}}>Clear</button>
           </div>
@@ -2672,22 +2689,27 @@ function ExportTab({T, trades, dailyPlans, weeklyPlans}) {
   }
 
   const EXPORTS = [
-    {id:"trades",icon:"TR",title:"Export All Trades",desc:`${trades.length} trades with full details - pair, direction, result, RR, bias, setup, emotion, notes`,action:exportTrades,count:trades.length},
-    {id:"daily",icon:"DY",title:"Export Daily Plans",desc:`${dailyPlans.length} daily plans with bias, key levels, and manipulation notes`,action:exportDaily,count:dailyPlans.length},
-    {id:"summary",icon:"SM",title:"Export Performance Summary",desc:"Key stats - win rate, total R, pair breakdown, best/worst metrics",action:exportSummary,count:1},
+    {id:"trades",icon:"TR",title:"Export All Trades",desc:`${trades.length} trades with pair, execution, result, RR, bias, setup, emotion, and notes.`,action:exportTrades,count:trades.length,eyebrow:"Full ledger"},
+    {id:"daily",icon:"DY",title:"Export Daily Plans",desc:`${dailyPlans.length} daily plans with pairs, bias, key levels, manipulation, and notes.`,action:exportDaily,count:dailyPlans.length,eyebrow:"Planning log"},
+    {id:"summary",icon:"SM",title:"Export Performance Summary",desc:"Key performance stats including win rate, total R, and pair-level breakdowns.",action:exportSummary,count:1,eyebrow:"Snapshot"},
   ]
 
   return (
-    <div style={{maxWidth:620}}>
-      <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:18,fontWeight:800,color:T.text,marginBottom:6}}>Export Your Data</div>
-      <div style={{fontSize:13,color:T.textDim,marginBottom:20}}>Download your journal as CSV files - import to Excel, Google Sheets, or share with your mentor.</div>
+    <div style={{maxWidth:720,display:"flex",flexDirection:"column",gap:18}}>
+      <HeaderMeta
+        T={T}
+        eyebrow="Exports"
+        title="Export Your Data"
+        subtitle="Download clean CSV snapshots for backup, mentor reviews, or spreadsheet analysis."
+      />
       <div style={{display:"flex",flexDirection:"column",gap:12}}>
         {EXPORTS.map(ex=>(
-          <div key={ex.id} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"18px 20px",display:"flex",alignItems:"center",gap:16}}>
-            <span style={{fontSize:32,flexShrink:0}}>{ex.icon}</span>
+          <div key={ex.id} style={{background:`linear-gradient(180deg,${T.surface},${T.surface2})`,border:`1px solid ${T.border}`,borderRadius:18,padding:"18px 20px",display:"flex",alignItems:"center",gap:16,boxShadow:`0 16px 40px ${T.cardGlow}`}}>
+            <div style={{width:52,height:52,borderRadius:16,background:`linear-gradient(135deg,${T.accent}22,${T.pink}22)`,border:`1px solid ${T.border}`,display:"grid",placeItems:"center",fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:18,fontWeight:800,color:T.text,flexShrink:0}}>{ex.icon}</div>
             <div style={{flex:1}}>
+              <div style={{fontSize:10,fontWeight:700,color:T.accentBright,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:6}}>{ex.eyebrow}</div>
               <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text,marginBottom:4}}>{ex.title}</div>
-              <div style={{fontSize:12,color:T.textDim}}>{ex.desc}</div>
+              <div style={{fontSize:12,color:T.textDim,lineHeight:1.6}}>{ex.desc}</div>
             </div>
             <button onClick={ex.action} disabled={ex.count===0||exporting===ex.id} style={{
               background:ex.count===0?T.surface2:`linear-gradient(135deg,${T.accentBright},${T.pink})`,
@@ -2699,7 +2721,7 @@ function ExportTab({T, trades, dailyPlans, weeklyPlans}) {
           </div>
         ))}
       </div>
-      <div style={{marginTop:20,padding:"14px 16px",background:T.surface2,borderRadius:10,fontSize:12,color:T.muted,lineHeight:1.6}}>
+      <div style={{padding:"14px 16px",background:T.surface2,border:`1px solid ${T.border}`,borderRadius:14,fontSize:12,color:T.muted,lineHeight:1.6}}>
         Note: <b style={{color:T.textDim}}>Important:</b> Screenshots are not included in CSV exports due to file size. All other data including notes, tags, bias, and psychology fields are included.
       </div>
     </div>
