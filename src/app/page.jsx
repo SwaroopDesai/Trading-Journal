@@ -485,6 +485,7 @@ export default function App() {
   const filtered = useMemo(()=>trades.filter(t=>(filterPair==="ALL"||t.pair===filterPair)&&(filterResult==="ALL"||t.result===filterResult)).sort((a,b)=>new Date(b.date)-new Date(a.date)),[trades,filterPair,filterResult])
   const currentSession = useMemo(()=>getCurrentSessionInfo(new Date(sessionTick)),[sessionTick])
   const compactSession = viewportWidth < 1180
+  const isMobileViewport = viewportWidth < 768
 
   // Mobile shows only 5 primary tabs; rest accessible via More
   const TABS=[
@@ -556,7 +557,7 @@ export default function App() {
       {/* Main */}
       <main style={{flex:1,display:"flex",flexDirection:"column",marginLeft:200}}>
         {/* Topbar */}
-        <div style={{padding:"14px 28px",borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:18,background:T.surface,position:"sticky",top:0,zIndex:40}}>
+        <div style={{padding:isMobileViewport?"12px 16px":"14px 28px",borderBottom:`1px solid ${T.border}`,display:"flex",flexDirection:isMobileViewport?"column":"row",alignItems:isMobileViewport?"stretch":"flex-start",justifyContent:"space-between",gap:isMobileViewport?12:18,background:T.surface,position:"sticky",top:0,zIndex:40}}>
           <div style={{flex:1,minWidth:0}}>
             <HeaderMeta
               T={T}
@@ -565,7 +566,7 @@ export default function App() {
               subtitle={new Date().toLocaleDateString("en-GB",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}
               actions={
                 <>
-                  <button onClick={()=>setDark(!dark)} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:"7px 14px",borderRadius:20,cursor:"pointer",fontSize:13}}>
+                  <button onClick={()=>setDark(!dark)} aria-label="Toggle theme" style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:isMobileViewport?"8px 12px":"7px 14px",borderRadius:20,cursor:"pointer",fontSize:isMobileViewport?12:13,minWidth:isMobileViewport?76:"auto"}}>
                     {dark?"Light":"Dark"}
                   </button>
                   {tab==="journal"&&<Btn T={T} onClick={()=>setTradeModal("new")}>+ Log Trade</Btn>}
@@ -575,8 +576,8 @@ export default function App() {
               }
             />
           </div>
-          <div style={{flexShrink:0,alignSelf:"flex-start"}}>
-            <SessionPill T={T} session={currentSession} compact={compactSession} open={sessionOpen} onToggle={()=>setSessionOpen(v=>!v)}/>
+          <div style={{flexShrink:0,alignSelf:isMobileViewport?"stretch":"flex-start",display:"flex",justifyContent:isMobileViewport?"space-between":"flex-end"}}>
+            <SessionPill T={T} session={currentSession} compact={compactSession||isMobileViewport} mobile={isMobileViewport} open={sessionOpen} onToggle={()=>setSessionOpen(v=>!v)}/>
           </div>
         </div>
         {error&&<div style={{background:"#450a0a",borderBottom:"1px solid #991b1b",color:"#fca5a5",padding:"10px 28px",fontSize:13,display:"flex",alignItems:"center"}}>Alert: {error}<button onClick={()=>setError(null)} style={{marginLeft:12,background:"none",border:"none",color:"inherit",cursor:"pointer",fontWeight:700}}>x</button></div>}
@@ -680,7 +681,7 @@ function CardTitle({T,children}){return <div style={{fontFamily:"'Plus Jakarta S
 function HeaderMeta({T,eyebrow,title,subtitle,actions}) {
   return (
     <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:16}}>
-      <div>
+      <div style={{minWidth:0}}>
         {eyebrow&&<div style={{fontSize:10,color:T.muted,letterSpacing:"0.18em",textTransform:"uppercase",fontWeight:700,marginBottom:10}}>{eyebrow}</div>}
         <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:28,fontWeight:800,color:T.text,letterSpacing:"-0.04em",lineHeight:1}}>{title}</div>
         {subtitle&&<div style={{fontSize:13,color:T.textDim,marginTop:10,lineHeight:1.7,maxWidth:620}}>{subtitle}</div>}
@@ -689,7 +690,7 @@ function HeaderMeta({T,eyebrow,title,subtitle,actions}) {
     </div>
   )
 }
-function SessionPill({T,session,compact,open,onToggle}) {
+function SessionPill({T,session,compact,mobile,open,onToggle}) {
   const tones = {
     overlap: { dot:"#f59e0b", glow:"#f59e0b33", bg:`linear-gradient(135deg,${T.amber}22,${T.pink}14)` },
     london: { dot:T.accentBright, glow:`${T.accentBright}33`, bg:`linear-gradient(135deg,${T.accent}22,${T.pink}12)` },
@@ -701,19 +702,19 @@ function SessionPill({T,session,compact,open,onToggle}) {
   const sessionCode = session?.label==="London / NY" ? "OVR" : session?.label==="New York" ? "NY" : session?.label==="Between Sessions" ? "OFF" : (session?.label || "SES").slice(0,3).toUpperCase()
   return (
     <div style={{position:"relative"}}>
-      <button onClick={onToggle} title={`${session?.label} live. Next ${session?.nextLabel} in ${session?.nextIn}`} style={{minWidth:compact?118:220,padding:compact?"8px 10px":"10px 12px",borderRadius:18,background:tone.bg,border:`1px solid ${open?tone.dot:T.border}`,display:"flex",alignItems:"center",gap:10,boxShadow:open?`0 18px 36px ${tone.glow}`:`0 10px 30px ${T.cardGlow}`,cursor:"pointer",textAlign:"left"}}>
+      <button onClick={onToggle} title={`${session?.label} live. Next ${session?.nextLabel} in ${session?.nextIn}`} style={{minWidth:mobile?0:(compact?118:220),width:mobile?"100%":"auto",padding:mobile?"9px 10px":compact?"8px 10px":"10px 12px",borderRadius:18,background:tone.bg,border:`1px solid ${open?tone.dot:T.border}`,display:"flex",alignItems:"center",gap:mobile?8:10,boxShadow:open?`0 18px 36px ${tone.glow}`:`0 10px 30px ${T.cardGlow}`,cursor:"pointer",textAlign:"left"}}>
         <div style={{width:compact?28:34,height:compact?28:34,borderRadius:12,background:`linear-gradient(135deg,${tone.dot}30,${tone.dot}12)`,border:`1px solid ${tone.dot}55`,display:"grid",placeItems:"center",flexShrink:0}}>
           <span style={{fontSize:compact?10:11,fontWeight:800,color:tone.dot,letterSpacing:"0.08em"}}>{sessionCode}</span>
         </div>
         <div style={{lineHeight:1.1,minWidth:0}}>
           {!compact&&<div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:5}}>Current Session</div>}
-          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:compact?13:15,fontWeight:800,color:T.text,letterSpacing:"-0.03em",whiteSpace:"nowrap"}}>{session?.label}</div>
-          {!compact&&<div style={{fontSize:11,color:T.textDim,marginTop:4,whiteSpace:"nowrap"}}>{session?.detail} . Next {session?.nextLabel} in {session?.nextIn}</div>}
+          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:compact?13:15,fontWeight:800,color:T.text,letterSpacing:"-0.03em",whiteSpace:mobile?"normal":"nowrap"}}>{session?.label}</div>
+          {!compact&&<div style={{fontSize:11,color:T.textDim,marginTop:4,whiteSpace:mobile?"normal":"nowrap"}}>{session?.detail} . Next {session?.nextLabel} in {session?.nextIn}</div>}
         </div>
-        <div style={{marginLeft:"auto",fontSize:11,color:T.textDim}}>{open?"Hide":"Open"}</div>
+        {!mobile&&<div style={{marginLeft:"auto",fontSize:11,color:T.textDim}}>{open?"Hide":"Open"}</div>}
       </button>
       {open&&(
-        <div style={{position:"absolute",right:0,top:"calc(100% + 10px)",width:compact?260:320,background:`linear-gradient(180deg,${T.surface},${T.surface2})`,border:`1px solid ${T.border}`,borderRadius:18,padding:"14px 14px 12px",boxShadow:`0 24px 60px ${T.bg}aa`,zIndex:60}}>
+        <div style={{position:"absolute",right:0,top:"calc(100% + 10px)",width:mobile?"min(320px, calc(100vw - 32px))":compact?260:320,background:`linear-gradient(180deg,${T.surface},${T.surface2})`,border:`1px solid ${T.border}`,borderRadius:18,padding:"14px 14px 12px",boxShadow:`0 24px 60px ${T.bg}aa`,zIndex:60}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,gap:12}}>
             <div>
               <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:5}}>Session Pulse</div>
