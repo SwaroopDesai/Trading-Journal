@@ -33,7 +33,7 @@ function getWeekTrades(trades, plan) {
   })
 }
 
-function buildWeeklyPrompt(plan, trades) {
+function buildWeekSummary(trades) {
   const wins = trades.filter((trade) => trade.result === "WIN")
   const losses = trades.filter((trade) => trade.result === "LOSS")
   const totalR = trades.reduce((sum, trade) => sum + Number(trade.rr || 0), 0)
@@ -59,6 +59,29 @@ function buildWeeklyPrompt(plan, trades) {
     if (trade.mistakes && trade.mistakes !== "None") byMistake[trade.mistakes] = (byMistake[trade.mistakes] || 0) + 1
   })
 
+  const bestPair = Object.entries(byPair).sort((a, b) => b[1].r - a[1].r)[0] || null
+  const bestSetup = Object.entries(bySetup).sort((a, b) => b[1].r - a[1].r)[0] || null
+  const topEmotion = Object.entries(byEmotion).sort((a, b) => b[1] - a[1])[0] || null
+  const topMistake = Object.entries(byMistake).sort((a, b) => b[1] - a[1])[0] || null
+
+  return {
+    wins,
+    losses,
+    totalR,
+    byPair,
+    bySetup,
+    byEmotion,
+    byMistake,
+    bestPair,
+    bestSetup,
+    topEmotion,
+    topMistake,
+    winRate: trades.length ? ((wins.length / trades.length) * 100).toFixed(1) : "0",
+  }
+}
+
+function buildWeeklyPrompt(plan, trades) {
+  const summary = buildWeekSummary(trades)
   const recentTrades = trades.slice(0, 12).map((trade) => [
     `${trade.date} ${trade.pair || "Unknown"} ${trade.direction || ""}`.trim(),
     `Result: ${trade.result || "-"}`,
@@ -83,22 +106,22 @@ WEEKLY PLAN
 
 WEEKLY PERFORMANCE
 - Total Trades: ${trades.length}
-- Wins: ${wins.length}
-- Losses: ${losses.length}
-- Win Rate: ${trades.length ? ((wins.length / trades.length) * 100).toFixed(1) : "0"}%
-- Total R: ${totalR >= 0 ? "+" : ""}${totalR.toFixed(2)}R
+- Wins: ${summary.wins.length}
+- Losses: ${summary.losses.length}
+- Win Rate: ${summary.winRate}%
+- Total R: ${summary.totalR >= 0 ? "+" : ""}${summary.totalR.toFixed(2)}R
 
 PAIR BREAKDOWN
-${Object.entries(byPair).map(([pair, data]) => `${pair}: ${data.count} trades, ${data.wins} wins, ${data.r >= 0 ? "+" : ""}${data.r.toFixed(2)}R`).join("\n") || "No pair data"}
+${Object.entries(summary.byPair).map(([pair, data]) => `${pair}: ${data.count} trades, ${data.wins} wins, ${data.r >= 0 ? "+" : ""}${data.r.toFixed(2)}R`).join("\n") || "No pair data"}
 
 SETUP BREAKDOWN
-${Object.entries(bySetup).map(([setup, data]) => `${setup}: ${data.count} trades, ${data.wins} wins, ${data.r >= 0 ? "+" : ""}${data.r.toFixed(2)}R`).join("\n") || "No setup data"}
+${Object.entries(summary.bySetup).map(([setup, data]) => `${setup}: ${data.count} trades, ${data.wins} wins, ${data.r >= 0 ? "+" : ""}${data.r.toFixed(2)}R`).join("\n") || "No setup data"}
 
 EMOTIONAL STATES
-${Object.entries(byEmotion).map(([emotion, count]) => `${emotion}: ${count}x`).join("\n") || "None logged"}
+${Object.entries(summary.byEmotion).map(([emotion, count]) => `${emotion}: ${count}x`).join("\n") || "None logged"}
 
 RECURRING MISTAKES
-${Object.entries(byMistake).map(([mistake, count]) => `${mistake}: ${count}x`).join("\n") || "No mistakes logged"}
+${Object.entries(summary.byMistake).map(([mistake, count]) => `${mistake}: ${count}x`).join("\n") || "No mistakes logged"}
 
 TRADES
 ${recentTrades.join("\n") || "No trades logged for this week."}
@@ -155,28 +178,64 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
 }
 
-function formatEmailHtml(plan, text) {
-  const paragraphs = escapeHtml(text).split(/\n{2,}/).map((block) => {
-    const lines = block.split("\n").map((line) => line.trim()).filter(Boolean)
-    if (lines.length === 0) return ""
-    if (lines.length === 1) return `<p style="margin:0 0 16px;color:#d7d8e2;line-height:1.7;font-size:14px;">${lines[0]}</p>`
-    const [head, ...rest] = lines
-    return `<div style="margin:0 0 18px;">
-      <div style="margin:0 0 8px;color:#ffffff;font-weight:700;font-size:14px;">${head}</div>
-      <p style="margin:0;color:#d7d8e2;line-height:1.7;font-size:14px;">${rest.join("<br/>")}</p>
-    </div>`
-  }).join("")
+function sectionizeDebrief(text) {
+  return text
+    .split(/\n(?=\d+\.\s)/)
+    .map((block) => block.trim())
+    .filter(Boolean)
+    .map((block) => {
+      const lines = block.split("\n").map((line) => line.trim()).filter(Boolean)
+      const heading = lines.shift() || ""
+      return { heading, body: lines.join("<br/>") }
+    })
+}
+
+function formatEmailHtml(plan, text, trades) {
+  const summary = buildWeekSummary(trades)
+  const sections = sectionizeDebrief(escapeHtml(text))
+  const statCards = [
+    { label: "Trades", value: String(trades.length), tone: "#ffffff" },
+    { label: "Win Rate", value: `${summary.winRate}%`, tone: "#56d37e" },
+    { label: "Total R", value: `${summary.totalR >= 0 ? "+" : ""}${summary.totalR.toFixed(2)}R`, tone: summary.totalR >= 0 ? "#56d37e" : "#ff6b7d" },
+    { label: "Best Pair", value: summary.bestPair?.[0] || "-", tone: "#f4f5fb" },
+  ].map((card) => `
+    <div style="flex:1;min-width:132px;padding:14px 16px;border-radius:16px;background:#191a25;border:1px solid #2a2b38;">
+      <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#8d92b2;font-weight:700;margin-bottom:8px;">${card.label}</div>
+      <div style="font-size:22px;font-weight:800;color:${card.tone};line-height:1.2;">${escapeHtml(card.value)}</div>
+    </div>
+  `).join("")
+
+  const summaryStrip = `
+    <div style="margin:0 0 22px;padding:16px 18px;border-radius:16px;background:#151827;border:1px solid #2a2b38;">
+      <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#b961ff;font-weight:700;margin-bottom:10px;">Week Context</div>
+      <div style="font-size:14px;color:#d7d8e2;line-height:1.8;">
+        <div><b style="color:#ffffff;">Bias:</b> ${escapeHtml(plan.overallBias || "Not specified")}</div>
+        <div><b style="color:#ffffff;">Top setup:</b> ${escapeHtml(summary.bestSetup?.[0] || "No clear setup edge yet")}</div>
+        <div><b style="color:#ffffff;">Dominant state:</b> ${escapeHtml(summary.topEmotion?.[0] || "Not enough emotion data")}</div>
+        <div><b style="color:#ffffff;">Recurring mistake:</b> ${escapeHtml(summary.topMistake?.[0] || "No repeated mistake logged")}</div>
+      </div>
+    </div>
+  `
+
+  const body = sections.map((section) => `
+    <div style="margin:0 0 16px;padding:18px 18px 16px;border-radius:18px;background:#171923;border:1px solid #2a2b38;">
+      <div style="margin:0 0 10px;color:#ffffff;font-weight:800;font-size:15px;line-height:1.4;">${section.heading}</div>
+      <div style="margin:0;color:#d7d8e2;line-height:1.8;font-size:14px;">${section.body || "No notes."}</div>
+    </div>
+  `).join("")
 
   return `
   <div style="background:#0b0b10;padding:32px 16px;font-family:Inter,Arial,sans-serif;">
     <div style="max-width:680px;margin:0 auto;background:#14141d;border:1px solid #2a2b38;border-radius:20px;overflow:hidden;">
-      <div style="padding:28px 28px 18px;background:linear-gradient(135deg,#1a1326,#171a28);border-bottom:1px solid #2a2b38;">
+      <div style="padding:30px 28px 20px;background:radial-gradient(circle at top left,#27143b 0%,#181a27 48%,#13131a 100%);border-bottom:1px solid #2a2b38;">
         <div style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#b961ff;font-weight:700;margin-bottom:10px;">FXEDGE Weekly Debrief</div>
-        <div style="font-size:28px;font-weight:800;color:#ffffff;margin-bottom:8px;">Your Sunday Coaching Report</div>
-        <div style="font-size:14px;color:#a1a6c5;line-height:1.7;">Week reviewed: ${escapeHtml(plan.weekStart)} to ${escapeHtml(plan.weekEnd)}</div>
+        <div style="font-size:30px;font-weight:800;color:#ffffff;line-height:1.15;margin-bottom:10px;">Your Sunday Coaching Report</div>
+        <div style="font-size:14px;color:#a1a6c5;line-height:1.7;margin-bottom:18px;">Week reviewed: ${escapeHtml(plan.weekStart)} to ${escapeHtml(plan.weekEnd)}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:10;">${statCards}</div>
       </div>
       <div style="padding:24px 28px;">
-        ${paragraphs}
+        ${summaryStrip}
+        ${body}
         <div style="margin-top:24px;padding:16px 18px;border-radius:14px;background:#1c1d29;border:1px solid #2a2b38;">
           <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#b961ff;font-weight:700;margin-bottom:8px;">Open FXEDGE</div>
           <div style="font-size:14px;color:#d7d8e2;line-height:1.7;margin-bottom:14px;">Your debrief has also been saved in the Review tab so you can revisit it inside the journal.</div>
@@ -264,7 +323,7 @@ async function processDebriefs() {
       if (updateError) throw updateError
 
       const subject = `Your FXEDGE Weekly Debrief: ${plan.weekStart} to ${plan.weekEnd}`
-      const html = formatEmailHtml(plan, debrief)
+      const html = formatEmailHtml(plan, debrief, weekTrades)
       await sendEmail(email, subject, html)
 
       results.push({ planId: plan.id, email, status: "sent" })
