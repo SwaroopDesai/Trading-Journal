@@ -2123,15 +2123,22 @@ function Heatmap({T, trades, viewportWidth, onViewImg}) {
 
           {/* Monthly calendar */}
           <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${T.border}`,borderRadius:20,padding:isMobile?"14px 14px":"16px 18px",boxShadow:`0 18px 34px ${T.cardGlow}`}}>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,flexWrap:"wrap",gap:8}}>
+            <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:16,flexWrap:"wrap",gap:12}}>
               <div>
-                <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:18,fontWeight:800,color:T.text}}>{MONTHS[month]} {year}</div>
-                <div style={{display:"flex",gap:14,marginTop:4,flexWrap:"wrap"}}>
-                  <span style={{fontSize:12,color:T.muted}}>{monthTrades.length} trades</span>
-                  <span style={{fontSize:12,fontWeight:700,color:monthR>=0?T.green:T.red}}>{monthR>=0?"+":""}{monthR.toFixed(2)}R</span>
-                  <span style={{fontSize:12,color:T.textDim}}>{monthWR}% WR</span>
-                  <span style={{fontSize:12,color:T.textDim}}>{monthWins}W / {monthTrades.length-monthWins}L</span>
-                  <span style={{fontSize:12,color:T.textDim}}>Click an active day to inspect trades</span>
+                <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?22:24,fontWeight:800,color:T.text}}>{MONTHS[month]} {year}</div>
+                <div style={{fontSize:12,color:T.textDim,marginTop:6}}>Tap a green or red day to open that day’s trade replay and screenshots.</div>
+                <div style={{display:"flex",gap:10,marginTop:12,flexWrap:"wrap"}}>
+                  {[
+                    {label:"Trades",value:monthTrades.length,color:T.text},
+                    {label:"Total R",value:`${monthR>=0?"+":""}${monthR.toFixed(2)}R`,color:monthR>=0?T.green:T.red},
+                    {label:"Win Rate",value:`${monthWR}%`,color:T.blue},
+                    {label:"Record",value:`${monthWins}W / ${monthTrades.length-monthWins}L`,color:T.textDim},
+                  ].map(item=>(
+                    <div key={item.label} style={{minWidth:isMobile?118:132,background:`linear-gradient(180deg,${T.surface2} 0%,${T.surface} 100%)`,border:`1px solid ${T.border}`,borderRadius:14,padding:isMobile?"10px 12px":"12px 14px",boxShadow:`0 12px 26px ${T.cardGlow}`}}>
+                      <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6}}>{item.label}</div>
+                      <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?18:20,fontWeight:800,color:item.color}}>{item.value}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
               <div style={{display:"flex",gap:8}}>
