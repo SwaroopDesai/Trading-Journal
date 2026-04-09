@@ -593,8 +593,7 @@ export default function App() {
         </div>
       </main>
 
-      {tradeModal&&(tradeModal!=="new"?<TradeModal T={T} initial={tradeModal} onSave={saveTrade} onClose={()=>setTradeModal(null)} syncing={syncing}/>:<ChecklistGate T={T} onPass={()=>setTradeModal("go")} onClose={()=>setTradeModal(null)}/>)}
-      {tradeModal==="go"&&<TradeModal T={T} userId={user.id} initial={null} onSave={saveTrade} onClose={()=>setTradeModal(null)} syncing={syncing}/>}
+      {tradeModal&&<TradeModal T={T} userId={user.id} initial={tradeModal==="new"?null:tradeModal} onSave={saveTrade} onClose={()=>setTradeModal(null)} syncing={syncing}/>}
       {dailyModal&&<DailyModal T={T} userId={user.id} initial={dailyModal==="new"?null:dailyModal} onSave={saveDaily} onClose={()=>setDailyModal(null)} syncing={syncing}/>}
       {weeklyModal&&<WeeklyModal T={T} userId={user.id} initial={weeklyModal==="new"?null:weeklyModal} onSave={saveWeekly} onClose={()=>setWeeklyModal(null)} syncing={syncing}/>}
       {deleteTarget&&(
