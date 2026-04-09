@@ -585,7 +585,7 @@ export default function App() {
           {mountedTabs.includes("calculator")&&<TabPanel active={tab==="calculator"}><Calculator T={T}/></TabPanel>}
           {mountedTabs.includes("gallery")&&<TabPanel active={tab==="gallery"}><ScreenshotGallery T={T} trades={trades} onViewImg={setImgViewer} viewportWidth={viewportWidth}/></TabPanel>}
           {mountedTabs.includes("review")&&<TabPanel active={tab==="review"}><WeeklyReview T={T} weeklyPlans={weeklyPlans} trades={trades} saveWeekly={saveWeekly} viewportWidth={viewportWidth}/></TabPanel>}
-          {mountedTabs.includes("heatmap")&&<TabPanel active={tab==="heatmap"}><Heatmap T={T} trades={trades}/></TabPanel>}
+          {mountedTabs.includes("heatmap")&&<TabPanel active={tab==="heatmap"}><Heatmap T={T} trades={trades} viewportWidth={viewportWidth}/></TabPanel>}
           {mountedTabs.includes("playbook")&&<TabPanel active={tab==="playbook"}><Playbook T={T} trades={trades}/></TabPanel>}
           {mountedTabs.includes("ai")&&<TabPanel active={tab==="ai"}><AIAnalysis T={T} trades={trades} dailyPlans={dailyPlans}/></TabPanel>}
           {mountedTabs.includes("export")&&<TabPanel active={tab==="export"}><ExportTab T={T} trades={trades} dailyPlans={dailyPlans} weeklyPlans={weeklyPlans}/></TabPanel>}
@@ -1900,8 +1900,9 @@ function ChecklistGate({T, onPass, onClose}) {
 }
 
 // ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ Advanced Analytics Heatmap ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬
-function Heatmap({T, trades}) {
+function Heatmap({T, trades, viewportWidth}) {
   const now = new Date()
+  const isMobile = viewportWidth ? viewportWidth < 760 : false
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth())
   const [activeView, setActiveView] = useState("calendar") // calendar | weekday | session | streak | drawdown
@@ -1930,6 +1931,8 @@ function Heatmap({T, trades}) {
   const monthR = monthTrades.reduce((s,t)=>s+(t.rr||0),0)
   const monthWins = monthTrades.filter(t=>t.result==="WIN").length
   const monthWR = monthTrades.length?(monthWins/monthTrades.length*100).toFixed(0):0
+  const activeDays = Object.keys(dailyMap).length
+  const bestDay = Object.entries(dailyMap).sort((a,b)=>(b[1]?.r||0)-(a[1]?.r||0))[0]
 
   // ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ Day of week performance ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬
   const dowData = useMemo(()=>{
@@ -2043,29 +2046,40 @@ function Heatmap({T, trades}) {
 
   return (
     <div>
+      <div style={{marginBottom:18}}>
+        <SectionLead
+          T={T}
+          eyebrow="Pattern Analysis"
+          title="Heatmap"
+          copy="Read your calendar, sessions, streaks, and drawdown in one tighter performance surface."
+        />
+      </div>
+
       {/* Top stats row */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:18}}>
+      <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:12,marginBottom:18}}>
         {[
-          {l:"Total R",v:`${trades.reduce((s,t)=>s+(t.rr||0),0)>=0?"+":""}${trades.reduce((s,t)=>s+(t.rr||0),0).toFixed(2)}R`,c:trades.reduce((s,t)=>s+(t.rr||0),0)>=0?T.green:T.red},
-          {l:"Win Rate",v:`${trades.length?(trades.filter(t=>t.result==="WIN").length/trades.length*100).toFixed(1):0}%`,c:T.blue},
-          {l:"Max Win Streak",v:`${streakData.maxWin}`,c:T.green},
-          {l:"Max Drawdown",v:`${drawdownData.maxDD.toFixed(2)}R`,c:T.red},
+          {l:"Total R",v:`${trades.reduce((s,t)=>s+(t.rr||0),0)>=0?"+":""}${trades.reduce((s,t)=>s+(t.rr||0),0).toFixed(2)}R`,c:trades.reduce((s,t)=>s+(t.rr||0),0)>=0?T.green:T.red,meta:`${trades.length} trades tracked`},
+          {l:"Win Rate",v:`${trades.length?(trades.filter(t=>t.result==="WIN").length/trades.length*100).toFixed(1):0}%`,c:T.blue,meta:`${trades.filter(t=>t.result==="WIN").length}W / ${trades.filter(t=>t.result==="LOSS").length}L`},
+          {l:"Active Days",v:`${activeDays}`,c:T.amber,meta:bestDay?`Best day ${new Date(bestDay[0]).toLocaleDateString("en-GB",{day:"2-digit",month:"short"})}`:"No daily cluster yet"},
+          {l:"Max Drawdown",v:`${drawdownData.maxDD.toFixed(2)}R`,c:T.red,meta:`Best streak ${streakData.maxWin} wins`},
         ].map(k=>(
-          <div key={k.l} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px"}}>
+          <div key={k.l} style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${T.border}`,borderRadius:16,padding:isMobile?"14px 14px":"16px 18px",boxShadow:`0 16px 30px ${T.cardGlow}`}}>
             <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6}}>{k.l}</div>
-            <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,fontWeight:800,color:k.c}}>{k.v}</div>
+            <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?20:22,fontWeight:800,color:k.c}}>{k.v}</div>
+            <div style={{fontSize:11,color:T.textDim,marginTop:6,lineHeight:1.5}}>{k.meta}</div>
           </div>
         ))}
       </div>
 
       {/* View switcher */}
-      <div style={{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}>
+      <div style={{display:"flex",gap:8,marginBottom:16,flexWrap:"wrap"}}>
         {VIEWS.map(v=>(
           <button key={v.id} onClick={()=>setActiveView(v.id)} style={{
-            padding:"8px 16px",borderRadius:20,fontSize:12,fontWeight:activeView===v.id?700:500,cursor:"pointer",fontFamily:"Inter,sans-serif",
+            padding:isMobile?"9px 14px":"9px 16px",borderRadius:999,fontSize:12,fontWeight:activeView===v.id?800:600,cursor:"pointer",fontFamily:"Inter,sans-serif",
             background:activeView===v.id?`linear-gradient(135deg,${T.accentBright},${T.pink})`:`${T.surface}`,
             color:activeView===v.id?"#fff":T.textDim,
             border:`1px solid ${activeView===v.id?"transparent":T.border}`,
+            boxShadow:activeView===v.id?`0 12px 26px ${T.cardGlow}`:"none",
             transition:"all .2s",
           }}>{v.label}</button>
         ))}
@@ -2075,15 +2089,18 @@ function Heatmap({T, trades}) {
       {activeView==="calendar"&&(
         <div>
           {/* Year overview */}
-          <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:18,padding:"16px 18px",marginBottom:14,boxShadow:`0 10px 30px ${T.cardGlow}`}}>
+          <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${T.border}`,borderRadius:20,padding:isMobile?"14px 14px":"16px 18px",marginBottom:14,boxShadow:`0 18px 34px ${T.cardGlow}`}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,flexWrap:"wrap",gap:8}}>
-              <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text}}>Year Overview / {year}</div>
+              <div>
+                <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text}}>Year Overview / {year}</div>
+                <div style={{fontSize:12,color:T.textDim,marginTop:4}}>Tap a month to jump straight into its calendar.</div>
+              </div>
               <div style={{display:"flex",gap:8}}>
                 <button onClick={()=>setYear(y=>y-1)} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontSize:12}}>{year-1}</button>
                 <button onClick={()=>setYear(y=>y+1)} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontSize:12}}>{year+1}</button>
               </div>
             </div>
-            <div style={{display:"flex",gap:5,alignItems:"flex-end",height:78}}>
+            <div style={{display:"flex",gap:isMobile?4:5,alignItems:"flex-end",height:isMobile?70:78}}>
               {yearlyData.map((d,i)=>(
                 <div key={d.month} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3,cursor:"pointer"}} onClick={()=>{setMonth(i);setActiveView("calendar")}}>
                   <div style={{fontSize:9,fontWeight:700,color:d.r>=0?T.green:T.red,marginBottom:1}}>{d.count>0?`${d.r>=0?"+":""}${d.r.toFixed(1)}`:""}</div>
@@ -2102,7 +2119,7 @@ function Heatmap({T, trades}) {
           </div>
 
           {/* Monthly calendar */}
-          <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:18,padding:"16px 18px",boxShadow:`0 10px 30px ${T.cardGlow}`}}>
+          <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${T.border}`,borderRadius:20,padding:isMobile?"14px 14px":"16px 18px",boxShadow:`0 18px 34px ${T.cardGlow}`}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,flexWrap:"wrap",gap:8}}>
               <div>
                 <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:18,fontWeight:800,color:T.text}}>{MONTHS[month]} {year}</div>
@@ -2118,27 +2135,27 @@ function Heatmap({T, trades}) {
                 <button onClick={()=>{if(month===11){setMonth(0);setYear(y=>y+1)}else setMonth(m=>m+1)}} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:"6px 14px",borderRadius:8,cursor:"pointer"}}>Next</button>
               </div>
             </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(7,minmax(0,1fr))",gap:6,marginBottom:6}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(7,minmax(0,1fr))",gap:isMobile?4:6,marginBottom:6}}>
               {DAYS_SHORT.map(d=><div key={d} style={{textAlign:"center",fontSize:10,fontWeight:700,color:T.muted,padding:"2px 0",letterSpacing:"0.08em",textTransform:"uppercase"}}>{d}</div>)}
             </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(7,minmax(0,1fr))",gap:6}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(7,minmax(0,1fr))",gap:isMobile?4:6}}>
               {cells.map((cell,i)=>{
-                if(!cell) return <div key={i} style={{minHeight:74}}/>
+                if(!cell) return <div key={i} style={{minHeight:isMobile?58:74}}/>
                 const isToday=cell.dateStr===new Date().toISOString().split("T")[0]
                 return (
                   <div key={cell.dateStr} style={{
-                    minHeight:74,borderRadius:14,padding:"7px 8px",
+                    minHeight:isMobile?58:74,borderRadius:isMobile?12:14,padding:isMobile?"6px 6px":"7px 8px",
                     background:getCalColor(cell.data,cell.isWeekend),
                     border:getCellBorder(cell.data,isToday),
                     display:"flex",flexDirection:"column",justifyContent:"space-between",
                     position:"relative",cursor:cell.data?"pointer":"default",
                     boxShadow:isToday?`0 0 0 2px ${T.accentBright}40`:`inset 0 1px 0 rgba(255,255,255,0.02)`,
                   }}>
-                    <div style={{fontSize:11,fontWeight:700,color:cell.isWeekend?T.muted:cell.data?(cell.data.r>=0?"#fff":T.red):T.textDim}}>{cell.dayNum}</div>
+                    <div style={{fontSize:isMobile?10:11,fontWeight:700,color:cell.isWeekend?T.muted:cell.data?(cell.data.r>=0?"#fff":T.red):T.textDim}}>{cell.dayNum}</div>
                     {cell.data&&(
                       <>
-                        <div style={{fontSize:11,fontWeight:800,color:cell.data.r>=0?"#fff":T.red,lineHeight:1.1}}>{cell.data.r>=0?"+":""}{cell.data.r.toFixed(1)}R</div>
-                        <div style={{fontSize:9,color:cell.data.r>=0?"rgba(255,255,255,0.75)":T.textDim,letterSpacing:"0.02em"}}>{cell.data.count}t / {cell.data.wins}W</div>
+                        <div style={{fontSize:isMobile?10:11,fontWeight:800,color:cell.data.r>=0?"#fff":T.red,lineHeight:1.1}}>{cell.data.r>=0?"+":""}{cell.data.r.toFixed(1)}R</div>
+                        {!isMobile&&<div style={{fontSize:9,color:cell.data.r>=0?"rgba(255,255,255,0.75)":T.textDim,letterSpacing:"0.02em"}}>{cell.data.count}t / {cell.data.wins}W</div>}
                       </>
                     )}
                     {isToday&&<div style={{position:"absolute",top:4,right:5,width:5,height:5,borderRadius:"50%",background:T.accentBright}}/>}
@@ -2162,9 +2179,9 @@ function Heatmap({T, trades}) {
       {/* ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ DAY OF WEEK VIEW ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ */}
       {activeView==="weekday"&&(
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
-          <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"18px 20px"}}>
+          <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${T.border}`,borderRadius:18,padding:isMobile?"16px 14px":"18px 20px",boxShadow:`0 18px 34px ${T.cardGlow}`}}>
             <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text,marginBottom:16}}>Performance by Day of Week</div>
-            {trades.length===0?<div style={{color:T.muted,textAlign:"center",padding:40,fontSize:14}}>Log trades to see day of week performance</div>:(
+            {trades.length===0?<EmptyState T={T} compact title="No weekday edge yet" copy="Log trades to see which weekday is really paying you."/>:(
               <>
                 {/* Bar chart */}
                 <div style={{display:"flex",gap:8,alignItems:"flex-end",height:140,marginBottom:20}}>
@@ -2189,14 +2206,14 @@ function Heatmap({T, trades}) {
                 {/* Table */}
                 <div style={{display:"grid",gridTemplateColumns:"1fr",gap:6}}>
                   {dowData.filter(d=>d.count>0).sort((a,b)=>b.totalR-a.totalR).map((d,i)=>(
-                    <div key={d.dow} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 14px",background:T.surface2,borderRadius:10,border:`1px solid ${d.totalR>0?T.green+"40":d.totalR<0?T.red+"40":T.border}`}}>
+                    <div key={d.dow} style={{display:"flex",alignItems:isMobile?"flex-start":"center",flexDirection:isMobile?"column":"row",gap:isMobile?8:12,padding:"10px 14px",background:T.surface2,borderRadius:10,border:`1px solid ${d.totalR>0?T.green+"40":d.totalR<0?T.red+"40":T.border}`}}>
                       <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:13,fontWeight:800,color:T.text,minWidth:90}}>{d.dow}</div>
-                      <div style={{flex:1,height:6,background:T.surface,borderRadius:3,overflow:"hidden"}}>
+                      <div style={{flex:1,width:isMobile?"100%":"auto",height:6,background:T.surface,borderRadius:3,overflow:"hidden"}}>
                         <div style={{height:"100%",background:d.totalR>=0?T.green:T.red,width:`${Math.min(100,d.count>0?d.wins/d.count*100:0)}%`,transition:"width .5s"}}/>
                       </div>
-                      <div style={{fontSize:12,color:T.textDim,minWidth:50,textAlign:"right"}}>{d.wins}W / {d.count-d.wins}L</div>
-                      <div style={{fontSize:12,fontWeight:700,color:d.totalR>=0?T.green:T.red,minWidth:55,textAlign:"right"}}>{d.totalR>=0?"+":""}{d.totalR.toFixed(2)}R</div>
-                      <div style={{fontSize:11,color:T.muted,minWidth:40,textAlign:"right"}}>{d.wr}% WR</div>
+                      <div style={{fontSize:12,color:T.textDim,minWidth:50,textAlign:isMobile?"left":"right"}}>{d.wins}W / {d.count-d.wins}L</div>
+                      <div style={{fontSize:12,fontWeight:700,color:d.totalR>=0?T.green:T.red,minWidth:55,textAlign:isMobile?"left":"right"}}>{d.totalR>=0?"+":""}{d.totalR.toFixed(2)}R</div>
+                      <div style={{fontSize:11,color:T.muted,minWidth:40,textAlign:isMobile?"left":"right"}}>{d.wr}% WR</div>
                       {i===0&&<span style={{fontSize:10,background:`${T.green}20`,color:T.green,border:`1px solid ${T.green}40`,padding:"2px 8px",borderRadius:10,fontWeight:700}}>Best</span>}
                     </div>
                   ))}
@@ -2209,30 +2226,30 @@ function Heatmap({T, trades}) {
 
       {/* ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ SESSION GRID VIEW ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ */}
       {activeView==="session"&&(
-        <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"18px 20px"}}>
+        <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${T.border}`,borderRadius:18,padding:isMobile?"16px 14px":"18px 20px",boxShadow:`0 18px 34px ${T.cardGlow}`}}>
           <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text,marginBottom:6}}>Session / Day Heatmap</div>
           <div style={{fontSize:12,color:T.muted,marginBottom:16}}>Which session on which day makes you the most money?</div>
-          {trades.length===0?<div style={{color:T.muted,textAlign:"center",padding:40,fontSize:14}}>Log trades to see session performance</div>:(
+          {trades.length===0?<EmptyState T={T} compact title="No session map yet" copy="Log trades to see which session and weekday combination carries your edge."/>:(
             <>
               {/* Header row */}
-              <div style={{display:"grid",gridTemplateColumns:"120px repeat(5,1fr)",gap:6,marginBottom:6}}>
+              <div style={{display:"grid",gridTemplateColumns:isMobile?"92px repeat(5,minmax(0,1fr))":"120px repeat(5,1fr)",gap:6,marginBottom:6}}>
                 <div/>
                 {["Mon","Tue","Wed","Thu","Fri"].map(d=><div key={d} style={{textAlign:"center",fontSize:12,fontWeight:700,color:T.muted}}>{d}</div>)}
               </div>
               {sessionDowGrid.sessions.map(session=>(
-                <div key={session} style={{display:"grid",gridTemplateColumns:"120px repeat(5,1fr)",gap:6,marginBottom:6}}>
-                  <div style={{fontSize:12,fontWeight:700,color:T.textDim,display:"flex",alignItems:"center"}}>{session.split("/")[0]}</div>
+                <div key={session} style={{display:"grid",gridTemplateColumns:isMobile?"92px repeat(5,minmax(0,1fr))":"120px repeat(5,1fr)",gap:6,marginBottom:6}}>
+                  <div style={{fontSize:isMobile?11:12,fontWeight:700,color:T.textDim,display:"flex",alignItems:"center"}}>{session.split("/")[0]}</div>
                   {[1,2,3,4,5].map(dow=>{
                     const cell=sessionDowGrid.grid[session]?.[dow]||{r:0,count:0,wins:0}
                     const bg=cell.count===0?T.surface2:cell.r>2?T.isDark?"#14532d":"#bbf7d0":cell.r>0?T.isDark?"#166534":"#86efac":cell.r<-2?T.isDark?"#450a0a":"#fca5a5":cell.r<0?T.isDark?"#7f1d1d":"#fecaca":T.surface2
                     return (
-                      <div key={dow} style={{background:bg,border:`1px solid ${cell.count>0?(cell.r>=0?T.green+"50":T.red+"50"):T.border}`,borderRadius:10,padding:"10px 8px",textAlign:"center",minHeight:60,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3}}>
+                      <div key={dow} style={{background:bg,border:`1px solid ${cell.count>0?(cell.r>=0?T.green+"50":T.red+"50"):T.border}`,borderRadius:10,padding:isMobile?"8px 4px":"10px 8px",textAlign:"center",minHeight:isMobile?54:60,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3}}>
                         {cell.count===0?(
-                          <div style={{fontSize:11,color:T.muted}}>No data</div>
+                          <div style={{fontSize:isMobile?9:11,color:T.muted}}>No data</div>
                         ):(
                           <>
-                            <div style={{fontSize:12,fontWeight:800,color:cell.r>=0?T.green:T.red}}>{cell.r>=0?"+":""}{cell.r.toFixed(1)}R</div>
-                            <div style={{fontSize:10,color:T.textDim}}>{cell.wins}W/{cell.count}t</div>
+                            <div style={{fontSize:isMobile?10:12,fontWeight:800,color:cell.r>=0?T.green:T.red}}>{cell.r>=0?"+":""}{cell.r.toFixed(1)}R</div>
+                            <div style={{fontSize:isMobile?8:10,color:T.textDim}}>{cell.wins}W/{cell.count}t</div>
                           </>
                         )}
                       </div>
@@ -2249,14 +2266,14 @@ function Heatmap({T, trades}) {
       {activeView==="streak"&&(
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
           {/* Streak KPIs */}
-          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
+          <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,1fr)",gap:12}}>
             {[
               {l:"Current Streak",v:`${streakData.curStreak} ${streakData.curType==="WIN"?"W":"L"}`,sub:streakData.curType||"None",c:streakData.curType==="WIN"?T.green:T.red},
               {l:"Best Win Streak",v:`${streakData.maxWin} W`,sub:"consecutive wins",c:T.green},
               {l:"Worst Loss Streak",v:`${streakData.maxLoss} L`,sub:"consecutive losses",c:T.red},
               {l:"Total Trades",v:trades.length,sub:`${trades.filter(t=>t.result==="WIN").length}W / ${trades.filter(t=>t.result==="LOSS").length}L`,c:T.accentBright},
             ].map(k=>(
-              <div key={k.l} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:"16px"}}>
+              <div key={k.l} style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",boxShadow:`0 16px 30px ${T.cardGlow}`}}>
                 <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.1em",marginBottom:8}}>{k.l}</div>
                 <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:24,fontWeight:800,color:k.c}}>{k.v}</div>
                 <div style={{fontSize:11,color:T.muted,marginTop:4}}>{k.sub}</div>
@@ -2264,9 +2281,9 @@ function Heatmap({T, trades}) {
             ))}
           </div>
           {/* Streak visualization - last 30 trades */}
-          <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"18px 20px"}}>
+          <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${T.border}`,borderRadius:18,padding:isMobile?"16px 14px":"18px 20px",boxShadow:`0 18px 34px ${T.cardGlow}`}}>
             <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text,marginBottom:16}}>Last 30 Trades / Streak View</div>
-            {trades.length===0?<div style={{color:T.muted,textAlign:"center",padding:40,fontSize:14}}>No trades yet</div>:(
+            {trades.length===0?<EmptyState T={T} compact title="No streak tape yet" copy="Log trades to watch your recent streak structure develop."/>:(
               <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
                 {streakData.streaks.map((t,i)=>(
                   <div key={i} title={`${t.pair} ${t.date} ${t.r>=0?"+":""}${t.r.toFixed(2)}R`} style={{
@@ -2287,22 +2304,22 @@ function Heatmap({T, trades}) {
       {/* ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ DRAWDOWN VIEW ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ */}
       {activeView==="drawdown"&&(
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
+          <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(3,1fr)",gap:12}}>
             {[
               {l:"Max Drawdown",v:`${drawdownData.maxDD.toFixed(2)}R`,c:T.red,sub:"peak to trough"},
               {l:"Current Drawdown",v:`${drawdownData.currentDD.toFixed(2)}R`,c:drawdownData.currentDD>0?T.amber:T.green,sub:"from current peak"},
               {l:"Peak Equity",v:`+${drawdownData.peak.toFixed(2)}R`,c:T.green,sub:"highest point reached"},
             ].map(k=>(
-              <div key={k.l} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:"16px"}}>
+              <div key={k.l} style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",boxShadow:`0 16px 30px ${T.cardGlow}`}}>
                 <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.1em",marginBottom:8}}>{k.l}</div>
                 <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:24,fontWeight:800,color:k.c}}>{k.v}</div>
                 <div style={{fontSize:11,color:T.muted,marginTop:4}}>{k.sub}</div>
               </div>
             ))}
           </div>
-          <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"18px 20px"}}>
+          <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${T.border}`,borderRadius:18,padding:isMobile?"16px 14px":"18px 20px",boxShadow:`0 18px 34px ${T.cardGlow}`}}>
             <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text,marginBottom:16}}>Equity & Drawdown Chart</div>
-            {drawdownData.points.length===0?<div style={{color:T.muted,textAlign:"center",padding:40,fontSize:14}}>Log trades to see your drawdown chart</div>:(()=>{
+            {drawdownData.points.length===0?<EmptyState T={T} compact title="No drawdown curve yet" copy="Log trades to see how equity and drawdown evolve over time."/>:(()=>{
               const pts=drawdownData.points
               const W=600,H=160
               const allR=pts.map(p=>p.cum)
