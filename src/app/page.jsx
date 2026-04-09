@@ -1227,6 +1227,13 @@ function DailyTab({T,plans,onEdit,onDelete,onViewImg,onNew}) {
   const sorted=[...plans].sort((a,b)=>new Date(b.date)-new Date(a.date))
   return (
     <div>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,marginBottom:16,flexWrap:"wrap",padding:"0 2px"}}>
+        <div>
+          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:24,fontWeight:800,color:T.text,letterSpacing:"-0.03em"}}>Daily Plans</div>
+          <div style={{fontSize:13,color:T.textDim,marginTop:6}}>Map the day fast, keep the bias clear, and update the plan when context shifts.</div>
+        </div>
+        <Btn T={T} onClick={onNew}>+ Daily Plan</Btn>
+      </div>
       {sorted.length===0&&(
         <div style={{marginBottom:16}}>
           <EmptyState T={T} title="Build the day before the market does" copy="Keep the plan short, clear, and visible before you start executing." action={<Btn T={T} onClick={onNew}>Create Daily Plan</Btn>}/>
@@ -1287,6 +1294,13 @@ function WeeklyTab({T,plans,onEdit,onDelete,onViewImg,onNew}) {
   const sorted=[...plans].sort((a,b)=>new Date(b.weekStart)-new Date(a.weekStart))
   return (
     <div>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,marginBottom:16,flexWrap:"wrap",padding:"0 2px"}}>
+        <div>
+          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:24,fontWeight:800,color:T.text,letterSpacing:"-0.03em"}}>Weekly Plans</div>
+          <div style={{fontSize:13,color:T.textDim,marginTop:6}}>Frame the week once, set your pair views, and keep the bigger picture visible.</div>
+        </div>
+        <Btn T={T} onClick={onNew}>+ Weekly Plan</Btn>
+      </div>
       {sorted.length===0&&(
         <div style={{marginBottom:16}}>
           <EmptyState T={T} title="Frame the week before the sessions get noisy" copy="Set the bias, key events, and your pair notes once so the rest of the week stays focused." action={<Btn T={T} onClick={onNew}>Create Weekly Plan</Btn>}/>
