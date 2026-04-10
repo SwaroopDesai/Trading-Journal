@@ -477,7 +477,7 @@ export default function App() {
     const equityCurve=[];
     let cum=0;
     const sortedT=[...t].sort((a,b)=>new Date(a.date)-new Date(b.date));
-    sortedT.forEach(x=>{ cum+=(x.rr||0); equityCurve.push({r:cum,result:x.result}) });
+    sortedT.forEach(x=>{ cum+=(x.rr||0); equityCurve.push({r:cum,result:x.result,date:x.date,pair:x.pair,rr:x.rr||0}) });
     return {total:t.length,wins:wins.length,losses:losses.length,be:be.length,totalR,avgRR,winRate,byPair,bySession,equityCurve}
   },[trades])
 
@@ -1148,18 +1148,86 @@ function AIResultView({ T, text }) {
 
 function MiniEquityCurve({T,data}) {
   if(!data.length) return <EmptyState T={T} compact title="Equity curve waiting for its first shape" copy="As soon as you log a few trades, your R-multiple curve will start telling the real story of your execution." />
-  const W=500,H=90,vals=data.map(d=>d.r),mn=Math.min(0,...vals),mx=Math.max(0,...vals),rng=mx-mn||1
-  const px=i=>(i/(data.length-1||1))*(W-20)+10, py=v=>H-8-((v-mn)/rng)*(H-16)
-  const path=data.map((d,i)=>`${i===0?"M":"L"} ${px(i)} ${py(d.r)}`).join(" ")
-  const col=data[data.length-1]?.r>=0?T.green:T.red
+  const W=780,H=210,padX=18,padTop=18,padBottom=28
+  const vals=data.map(d=>d.r)
+  const mn=Math.min(0,...vals)
+  const mx=Math.max(0,...vals)
+  const rng=mx-mn||1
+  const px=i=>(i/(Math.max(data.length-1,1)))*(W-padX*2)+padX
+  const py=v=>H-padBottom-((v-mn)/rng)*(H-padTop-padBottom)
+  const stepPath=data.map((d,i)=>{
+    const x=px(i), y=py(d.r)
+    if(i===0) return `M ${x} ${y}`
+    const prevX=px(i-1)
+    return `L ${x} ${py(data[i-1].r)} L ${x} ${y}`
+  }).join(" ")
+  const areaPath=`${stepPath} L ${px(data.length-1)} ${H-padBottom} L ${px(0)} ${H-padBottom} Z`
+  const current=data[data.length-1]
+  const col=current?.r>=0?T.green:T.red
+  const peak=data.reduce((best,point)=>point.r>best.r?point:best,data[0])
+  let peakR=-Infinity, maxDrawdown=0
+  data.forEach(point=>{
+    peakR=Math.max(peakR,point.r)
+    maxDrawdown=Math.min(maxDrawdown,point.r-peakR)
+  })
+  const curveStats=[
+    {label:"Current",value:fmtRR(current?.r||0),tone:col},
+    {label:"Peak",value:fmtRR(peak?.r||0),tone:T.accentBright},
+    {label:"Max DD",value:fmtRR(maxDrawdown),tone:maxDrawdown<0?T.red:T.muted},
+    {label:"Trades",value:String(data.length),tone:T.text},
+  ]
   return (
-    <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{display:"block"}}>
-      <defs><linearGradient id="eq" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={col} stopOpacity="0.3"/><stop offset="100%" stopColor={col} stopOpacity="0"/></linearGradient></defs>
-      <line x1="10" y1={py(0)} x2={W-10} y2={py(0)} stroke={T.border} strokeWidth="1" strokeDasharray="4 4"/>
-      <path d={path+` L ${px(data.length-1)} ${H} L ${px(0)} ${H} Z`} fill="url(#eq)"/>
-      <path d={path} fill="none" stroke={col} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-      {data.map((d,i)=>i===data.length-1?<circle key={i} cx={px(i)} cy={py(d.r)} r="4" fill={col}/>:null)}
-    </svg>
+    <div style={{display:"flex",flexDirection:"column",gap:16}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))",gap:10}}>
+        {curveStats.map((stat)=>(
+          <div key={stat.label} style={{background:T.surface2,border:`1px solid ${T.border}`,borderRadius:14,padding:"12px 14px",minWidth:0}}>
+            <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:6}}>{stat.label}</div>
+            <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,fontWeight:800,color:stat.tone,lineHeight:1.05}}>{stat.value}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{position:"relative",background:`linear-gradient(180deg,${T.surface2},${T.surface})`,border:`1px solid ${T.border}`,borderRadius:18,padding:"12px 12px 10px"}}>
+        <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{display:"block",height:"clamp(180px, 28vw, 260px)"}} preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="eq-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={col} stopOpacity="0.34"/>
+              <stop offset="100%" stopColor={col} stopOpacity="0.03"/>
+            </linearGradient>
+            <linearGradient id="eq-stroke" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor={T.accentBright}/>
+              <stop offset="100%" stopColor={col}/>
+            </linearGradient>
+          </defs>
+          {[0.25,0.5,0.75].map((step)=>(
+            <line key={step} x1={padX} y1={padTop+(H-padTop-padBottom)*step} x2={W-padX} y2={padTop+(H-padTop-padBottom)*step} stroke={T.border} strokeWidth="1" strokeDasharray="4 8" opacity="0.55" />
+          ))}
+          <line x1={padX} y1={py(0)} x2={W-padX} y2={py(0)} stroke={T.border} strokeWidth="1.2" strokeDasharray="6 8" opacity="0.9" />
+          <path d={areaPath} fill="url(#eq-fill)"/>
+          <path d={stepPath} fill="none" stroke="url(#eq-stroke)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+          {data.map((point,i)=>(
+            <circle
+              key={`${point.date||"trade"}-${i}`}
+              cx={px(i)}
+              cy={py(point.r)}
+              r={i===data.length-1?6:3.5}
+              fill={i===data.length-1?col:T.surface}
+              stroke={i===data.length-1?T.surface:T.accentBright}
+              strokeWidth={i===data.length-1?3:2}
+            />
+          ))}
+          <text x={padX} y={H-6} fill={T.muted} fontSize="11" fontWeight="700">{data[0]?.date ? fmtDate(data[0].date) : "First trade"}</text>
+          <text x={W-padX} y={H-6} fill={T.muted} fontSize="11" fontWeight="700" textAnchor="end">{current?.date ? fmtDate(current.date) : "Latest"}</text>
+        </svg>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:10,marginTop:8,flexWrap:"wrap"}}>
+          <div style={{fontSize:12,color:T.textDim}}>
+            {peak?.pair ? <>Best run peaked on <span style={{color:T.text,fontWeight:700}}>{peak.pair}</span></> : "Cumulative performance by trade"}
+          </div>
+          <div style={{fontSize:12,color:T.muted}}>
+            Zero line shown for breakeven reference
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
 
