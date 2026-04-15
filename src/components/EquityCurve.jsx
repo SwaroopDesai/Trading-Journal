@@ -72,10 +72,8 @@ function smoothPath(pts) {
   return d;
 }
 
-function fmtStat(v) {
-  const s = fmtRR(v);
-  return v > 0 ? `+${s}` : s;
-}
+// fmtRR already prefixes + for positive values, so use it directly
+const fmtStat = fmtRR;
 
 // ── Main component ─────────────────────────────────────────────────────────
 export default function EquityCurve({ T, data = [] }) {
@@ -91,7 +89,7 @@ export default function EquityCurve({ T, data = [] }) {
     if (!el) return;
     const ro = new ResizeObserver(([entry]) => {
       const w = entry.contentRect.width;
-      setSize({ w: Math.max(w, 200), h: Math.round(Math.max(w * 0.17, 120)) });
+      setSize({ w: Math.max(w, 200), h: Math.round(Math.max(w * 0.11, 90)) });
     });
     ro.observe(el);
     return () => ro.disconnect();
@@ -185,7 +183,7 @@ export default function EquityCurve({ T, data = [] }) {
       {/* ── Header ── */}
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "18px 22px 14px", gap: 12, flexWrap: "wrap",
+        padding: "12px 18px 10px", gap: 12, flexWrap: "wrap",
         borderBottom: `1px solid ${T.border}`,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -233,7 +231,7 @@ export default function EquityCurve({ T, data = [] }) {
       }}>
         {statCards.map((s, i) => (
           <div key={s.label} style={{
-            padding: "14px 18px",
+            padding: "10px 16px",
             borderRight: i < 3 ? `1px solid ${T.border}` : "none",
           }}>
             <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, letterSpacing: "0.14em", marginBottom: 5 }}>{s.label}</div>
@@ -412,7 +410,7 @@ export default function EquityCurve({ T, data = [] }) {
       {/* ── Footer ── */}
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "10px 20px", borderTop: `1px solid ${T.border}`,
+        padding: "7px 16px", borderTop: `1px solid ${T.border}`,
         flexWrap: "wrap", gap: 8,
       }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: T.muted, letterSpacing: "0.08em" }}>
