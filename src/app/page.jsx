@@ -329,6 +329,7 @@ export default function App() {
 
   useEffect(()=>{
     if(typeof window==="undefined") return
+    setViewportWidth(window.innerWidth)
     const onResize = ()=>setViewportWidth(window.innerWidth)
     window.addEventListener("resize", onResize)
     return ()=>window.removeEventListener("resize", onResize)
