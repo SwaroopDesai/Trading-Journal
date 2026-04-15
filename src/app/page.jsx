@@ -606,7 +606,7 @@ export default function App() {
       {/* Main */}
       <main style={{flex:1,display:"flex",flexDirection:"column",marginLeft:200}}>
         {/* Topbar */}
-        <div style={{padding:isMobileViewport?"12px 16px":"14px 28px",borderBottom:`1px solid ${T.border}`,display:"flex",flexDirection:isMobileViewport?"row":"row",alignItems:isMobileViewport?"flex-start":"flex-start",justifyContent:"space-between",gap:isMobileViewport?12:18,background:T.surface,position:"sticky",top:0,zIndex:40}}>
+        <div className="topbar" style={{borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,background:T.surface,position:"sticky",top:0,zIndex:40}}>
           <div style={{flex:1,minWidth:0}}>
             <HeaderMeta
               T={T}
@@ -615,8 +615,8 @@ export default function App() {
               subtitle={new Date().toLocaleDateString("en-GB",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}
             />
           </div>
-          <div style={{flexShrink:0,alignSelf:"flex-start",display:"flex",flexDirection:"column",alignItems:"flex-end",gap:10,minWidth:isMobileViewport?132:0}}>
-            <button onClick={()=>setDark(!dark)} aria-label="Toggle theme" style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,padding:isMobileViewport?"8px 12px":"7px 14px",borderRadius:20,cursor:"pointer",fontSize:isMobileViewport?12:13,minWidth:isMobileViewport?76:"auto"}}>
+          <div className="topbar-right" style={{flexShrink:0,alignSelf:"flex-start",display:"flex",flexDirection:"column",alignItems:"flex-end",gap:10}}>
+            <button onClick={()=>setDark(!dark)} aria-label="Toggle theme" className="theme-btn" style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,borderRadius:20,cursor:"pointer"}}>
               {dark?"Light":"Dark"}
             </button>
             <SessionPill T={T} session={currentSession} compact={compactSession||isMobileViewport} mobile={isMobileViewport} open={sessionOpen} onToggle={()=>setSessionOpen(v=>!v)}/>
@@ -640,7 +640,7 @@ export default function App() {
           </div>
         )}
 
-        <div style={{padding:isMobileViewport?"16px 14px":"24px 28px",flex:1}}>
+        <div className="tab-content" style={{flex:1}}>
           {mountedTabs.includes("dashboard")&&<TabPanel active={tab==="dashboard"}><Dashboard T={T} stats={stats} trades={trades} dailyPlans={dailyPlans} weeklyPlans={weeklyPlans} onNewTrade={()=>setTradeModal("new")} onNewDaily={()=>setDailyModal("new")} viewportWidth={viewportWidth}/></TabPanel>}
           {mountedTabs.includes("journal")&&<TabPanel active={tab==="journal"}><Journal T={T} filtered={filtered} filterPair={filterPair} setFilterPair={setFilterPair} filterResult={filterResult} setFilterResult={setFilterResult} onEdit={t=>setTradeModal(t)} onDelete={t=>setDeleteTarget({type:"trade",dbid:t._dbid,name:`${t.pair} ${t.direction}`})} onViewImg={setImgViewer} onNew={()=>setTradeModal("new")} viewportWidth={viewportWidth}/></TabPanel>}
           {mountedTabs.includes("daily")&&<TabPanel active={tab==="daily"}><DailyTab T={T} plans={dailyPlans} onEdit={p=>setDailyModal(p)} onDelete={p=>setDeleteTarget({type:"daily",dbid:p._dbid,name:`Daily ${p.date}`})} onViewImg={setImgViewer} onNew={()=>setDailyModal("new")}/></TabPanel>}
@@ -825,7 +825,7 @@ function SessionPill({T,session,compact,mobile,open,onToggle}) {
         </div>
         <div style={{lineHeight:1.1,minWidth:0}}>
           {!compact&&<div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:5}}>Current Session</div>}
-          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:compact?13:15,fontWeight:800,color:T.text,letterSpacing:"-0.03em",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:mobile?80:220}}>{session?.label}</div>
+          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:compact?13:15,fontWeight:800,color:T.text,letterSpacing:"-0.03em"}} className="pill-label">{session?.label}</div>
           {!compact&&<div style={{fontSize:11,color:T.textDim,marginTop:4,whiteSpace:mobile?"normal":"nowrap"}}>{session?.detail} . Next {session?.nextLabel} in {session?.nextIn}</div>}
         </div>
         {!mobile&&<div style={{marginLeft:"auto",fontSize:11,color:T.textDim}}>{open?"Hide":"Open"}</div>}
@@ -3173,12 +3173,22 @@ function buildCSS(T) {
     .nav-btn { display:block; width:100%; padding:10px 20px; background:none; border:none; border-left:3px solid transparent; cursor:pointer; font-family:Inter,sans-serif; font-size:13px; font-weight:500; text-align:left; transition:all .15s; }
     .nav-btn:hover { background:${T.surface2}; color:${T.text} !important; }
     .bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; z-index:50; }
+    .topbar{padding:14px 28px;}
+    .tab-content{padding:24px 28px;}
+    .topbar-right{min-width:0;}
+    .theme-btn{padding:7px 14px;font-size:13px;min-width:auto;}
+    .pill-label{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     @media(max-width:768px){
       .sidebar{display:none;}
       main{margin-left:0 !important;padding-bottom:76px;}
       .bottom-nav{display:flex !important;}
       .kpi-grid{grid-template-columns:repeat(2,1fr) !important;}
       .hide-mobile{display:none !important;}
+      .topbar{padding:12px 16px !important;}
+      .tab-content{padding:16px 14px !important;}
+      .topbar-right{min-width:132px !important;}
+      .theme-btn{padding:8px 12px !important;font-size:12px !important;min-width:76px !important;}
+      .pill-label{max-width:80px !important;}
     }
   `
 }
