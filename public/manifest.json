@@ -1,0 +1,14 @@
+{
+  "name": "FX Edge — Trading Journal",
+  "short_name": "FX Edge",
+  "description": "Professional forex trading journal with equity curve, analytics, and playbooks.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0d0d14",
+  "theme_color": "#a855f7",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

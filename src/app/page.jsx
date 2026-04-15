@@ -306,6 +306,7 @@ export default function App() {
   const [deleteTarget,setDeleteTarget] = useState(null)
   const [imgViewer,setImgViewer] = useState(null)
   const [mountedTabs,setMountedTabs] = useState(["dashboard"])
+  const [toasts,setToasts] = useState([])
   const scrollPositionsRef = useRef({})
   const restoreFrameRef = useRef(null)
 
@@ -398,6 +399,28 @@ export default function App() {
     setTab(nextTab)
   },[tab])
 
+  const showToast = useCallback((msg, type="success")=>{
+    const id = Date.now()
+    setToasts(t=>[...t,{id,msg,type}])
+    setTimeout(()=>setToasts(t=>t.filter(x=>x.id!==id)), 3000)
+  },[])
+
+  // ── Keyboard shortcuts ──────────────────────────────────────────────────────
+  useEffect(()=>{
+    const handler=(e)=>{
+      const tag=document.activeElement?.tagName
+      if(tag==="INPUT"||tag==="TEXTAREA"||document.activeElement?.isContentEditable) return
+      if(e.metaKey||e.ctrlKey||e.altKey) return
+      if(e.key==="n"&&!tradeModal&&!dailyModal&&!weeklyModal) setTradeModal("quick")
+      if(e.key==="d") changeTab("dashboard")
+      if(e.key==="j") changeTab("journal")
+      if(e.key==="a") changeTab("analytics")
+      if(e.key==="h") changeTab("heatmap")
+    }
+    window.addEventListener("keydown",handler)
+    return ()=>window.removeEventListener("keydown",handler)
+  },[tradeModal,dailyModal,weeklyModal,changeTab])
+
   const clean = (obj) => { const o={...obj}; delete o._dbid; delete o.id; delete o.created_at; return o }
 
   const saveTrade = async(t)=>{
@@ -407,6 +430,7 @@ export default function App() {
       const preScreenshot = await uploadImageValue(supabase, user.id, "trades/pre", t.preScreenshot)
       const postScreenshot = await uploadImageValue(supabase, user.id, "trades/post", t.postScreenshot)
       const payload = {...clean({...t, preScreenshot, postScreenshot}), user_id:user.id}
+      const isEdit = !!t._dbid
       if(t._dbid){ await supabase.from("trades").update(payload).eq("id",t._dbid).eq("user_id",user.id); setTrades(ts=>ts.map(x=>x._dbid===t._dbid?{...payload,_dbid:t._dbid}:x)) }
       else { const {data,error}=await supabase.from("trades").insert([payload]).select(); if(error)throw error; setTrades(ts=>[{...data[0],_dbid:data[0].id},...ts]); clearDraft(user.id, "trade") }
       if(existing){
@@ -414,6 +438,7 @@ export default function App() {
         if(existing.postScreenshot && existing.postScreenshot !== postScreenshot) await deleteStoredImages(supabase, existing.postScreenshot)
       }
       setTradeModal(null)
+      showToast(isEdit ? "Trade updated ✓" : "Trade logged ✓")
     } catch(e){ setError("Failed to save trade: "+e.message) }
     finally{ setSyncing(false) }
   }
@@ -424,10 +449,12 @@ export default function App() {
       const existing = p._dbid ? dailyPlans.find(x=>x._dbid===p._dbid) : null
       const chartImages = await uploadImageList(supabase, user.id, "daily-plans", getDailyPlanImages(p))
       const payload = {...clean({...p, chartImage:serializeImageList(chartImages)}), user_id:user.id}
+      const isEditD = !!p._dbid
       if(p._dbid){ await supabase.from("daily_plans").update(payload).eq("id",p._dbid).eq("user_id",user.id); setDailyPlans(ps=>ps.map(x=>x._dbid===p._dbid?{...payload,_dbid:p._dbid}:x)) }
       else { const {data,error}=await supabase.from("daily_plans").insert([payload]).select(); if(error)throw error; setDailyPlans(ps=>[{...data[0],_dbid:data[0].id},...ps]); clearDraft(user.id, "daily") }
       if(existing) await deleteStoredImages(supabase, getDailyPlanImages(existing).filter(src=>!chartImages.includes(src)))
       setDailyModal(null)
+      showToast(isEditD ? "Plan updated ✓" : "Daily plan saved ✓")
     } catch(e){ setError("Failed to save daily: "+e.message) }
     finally{ setSyncing(false) }
   }
@@ -441,10 +468,12 @@ export default function App() {
       if(weeklyImages.length>0) premiumDiscount.__screenshots = weeklyImages
       else delete premiumDiscount.__screenshots
       const payload = {...clean({...p, premiumDiscount}), user_id:user.id}
+      const isEditW = !!p._dbid
       if(p._dbid){ await supabase.from("weekly_plans").update(payload).eq("id",p._dbid).eq("user_id",user.id); setWeeklyPlans(ps=>ps.map(x=>x._dbid===p._dbid?{...payload,_dbid:p._dbid}:x)) }
       else { const {data,error}=await supabase.from("weekly_plans").insert([payload]).select(); if(error)throw error; setWeeklyPlans(ps=>[{...data[0],_dbid:data[0].id},...ps]); clearDraft(user.id, "weekly") }
       if(existing) await deleteStoredImages(supabase, getWeeklyPlanImages(existing).filter(src=>!weeklyImages.includes(src)))
       setWeeklyModal(null)
+      showToast(isEditW ? "Plan updated ✓" : "Weekly plan saved ✓")
     } catch(e){ setError("Failed to save weekly: "+e.message) }
     finally{ setSyncing(false) }
   }
@@ -468,6 +497,7 @@ export default function App() {
       if(deleteTarget.type==="daily") setDailyPlans(ps=>ps.filter(x=>x._dbid!==deleteTarget.dbid))
       if(deleteTarget.type==="weekly") setWeeklyPlans(ps=>ps.filter(x=>x._dbid!==deleteTarget.dbid))
       setDeleteTarget(null)
+      showToast("Deleted")
     } catch(e){ setError("Failed to delete: "+e.message) }
     finally{ setSyncing(false) }
   }
@@ -632,7 +662,7 @@ export default function App() {
       {!tradeModal && !dailyModal && !weeklyModal && (
         <button
           onClick={() => setTradeModal("quick")}
-          title="Quick Log Trade"
+          title="Quick Log Trade  (N)"
           style={{
             position:"fixed", right:20,
             bottom: isMobileViewport ? 80 : 24,
@@ -666,6 +696,23 @@ export default function App() {
         </Overlay>
       )}
       {imgViewer&&<Overlay onClose={()=>setImgViewer(null)}><img src={imgViewer} alt="chart" style={{maxWidth:"95vw",maxHeight:"90vh",borderRadius:8,boxShadow:"0 20px 80px rgba(0,0,0,.8)"}}/></Overlay>}
+
+      {/* ── Toast stack ── */}
+      {toasts.length>0&&(
+        <div style={{position:"fixed",bottom:isMobileViewport?90:32,left:"50%",transform:"translateX(-50%)",display:"flex",flexDirection:"column",gap:8,zIndex:500,pointerEvents:"none",alignItems:"center"}}>
+          {toasts.map(t=>(
+            <div key={t.id} style={{
+              background:t.type==="error"?"#dc2626":t.msg==="Deleted"?T.textDim:"#16a34a",
+              color:"#fff",padding:"10px 22px",borderRadius:12,
+              fontSize:13,fontWeight:700,letterSpacing:"0.01em",
+              boxShadow:"0 8px 28px rgba(0,0,0,.5)",
+              animation:"toastIn .18s ease",whiteSpace:"nowrap",
+              fontFamily:"Inter,sans-serif",
+            }}>{t.msg}</div>
+          ))}
+        </div>
+      )}
+
       <BottomNav T={T} tab={tab} setTab={changeTab} TABS={TABS} MOBILE_PRIMARY={MOBILE_PRIMARY}/>
     </div>
   )
