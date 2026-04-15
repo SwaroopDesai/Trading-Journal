@@ -4,7 +4,7 @@ import { PAIRS, SESSIONS, SETUPS, EMOTIONS } from "@/lib/constants";
 import { readDraft, writeDraft, clearDraft, getAutoSession } from "@/lib/utils";
 import { ModalShell, Btn, FL, Section, Inp, Sel, Toggle, Textarea, PasteImageInput } from "@/components/ui";
 
-export default function TradeModal({T, userId, initial, onSave, onClose, syncing}) {
+export default function TradeModal({T, userId, initial, onSave, onClose, syncing, initialMode}) {
   const blank = {
     pair:"EURUSD", date:new Date().toISOString().split("T")[0],
     direction:"LONG", session:"London", dailyBias:"Bullish",
@@ -18,7 +18,7 @@ export default function TradeModal({T, userId, initial, onSave, onClose, syncing
   };
 
   const [f, setF]         = useState(() => initial ? {...initial, tags:(initial.tags||[]).join(",")} : {...blank, ...(readDraft(userId,"trade")||{})});
-  const [quickLog, setQL] = useState(false);
+  const [quickLog, setQL] = useState(initialMode === "quick");
   const skipDraftRef      = useRef(false);
 
   const upd = (k, v) => setF(x => {

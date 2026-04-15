@@ -136,6 +136,18 @@ export default function EquityCurve({ T, data = [] }) {
     ? `${line} L ${pts[pts.length-1].x},${z0} L ${pts[0].x},${z0} Z`
     : "";
 
+  // ── Drawdown band: fill between running-peak line and equity line ─────────
+  const peakArr = [];
+  let runPk = -Infinity;
+  filtered.forEach(d => { if (d.r > runPk) runPk = d.r; peakArr.push(runPk); });
+  const ddPath = pts.length > 1
+    ? `M ${pts[0].x},${py(peakArr[0])} ` +
+      pts.slice(1).map((p, i) => `L ${p.x},${py(peakArr[i + 1])}`).join(" ") +
+      ` L ${pts[pts.length - 1].x},${pts[pts.length - 1].y} ` +
+      [...pts].reverse().slice(1).map(p => `L ${p.x},${p.y}`).join(" ") +
+      " Z"
+    : "";
+
   const last  = pts[pts.length - 1];
   const lineColor = netPL >= 0 ? T.green : T.red;
 
@@ -298,6 +310,9 @@ export default function EquityCurve({ T, data = [] }) {
               stroke={T.border} strokeWidth="1.5" strokeDasharray="5 9" opacity="0.9"/>
           )}
 
+          {/* Drawdown band */}
+          {ddPath && <path d={ddPath} fill={`${T.red}22`} stroke="none"/>}
+
           {/* Area fill */}
           {area && <path d={area} fill="url(#ec-fill)"/>}
 
@@ -424,6 +439,10 @@ export default function EquityCurve({ T, data = [] }) {
           <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: T.textDim }}>
             <span style={{ width: 22, height: 0, border: `1px dashed ${T.border}`, display: "inline-block" }}/>
             Breakeven
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: T.textDim }}>
+            <span style={{ width: 12, height: 12, borderRadius: 3, background: `${T.red}44`, display: "inline-block" }}/>
+            Drawdown
           </div>
         </div>
       </div>

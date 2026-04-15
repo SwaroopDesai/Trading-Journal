@@ -235,6 +235,9 @@ export default function AdvancedStats({ T, trades }) {
 
   if(!trades.length) return null;
 
+  const MIN_TRADES = 10;
+  const hasEnough  = t.length >= MIN_TRADES;
+
   const streakColor = curType === "WIN" ? T.green : curType === "LOSS" ? T.red : T.textDim;
   const streakLabel = curType === "WIN" ? `${cur}W streak` : curType === "LOSS" ? `${cur}L streak` : "No streak";
 
@@ -244,13 +247,13 @@ export default function AdvancedStats({ T, trades }) {
       {/* ── Row 1: Key metrics ── */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(130px,1fr))", gap: 10 }}>
         <StatCard T={T} label="Profit Factor"
-          value={profitFactor >= 99 ? "∞" : profitFactor}
-          sub="Gross wins ÷ losses"
-          color={profitFactor >= 1.5 ? T.green : profitFactor >= 1 ? T.amber || "#f59e0b" : T.red}/>
+          value={hasEnough ? (profitFactor >= 99 ? "∞" : profitFactor) : "—"}
+          sub={hasEnough ? "Gross wins ÷ losses" : `Need ${MIN_TRADES}+ trades`}
+          color={hasEnough ? (profitFactor >= 1.5 ? T.green : profitFactor >= 1 ? T.amber || "#f59e0b" : T.red) : T.muted}/>
         <StatCard T={T} label="Expectancy"
-          value={`${exp >= 0 ? "+" : ""}${exp}R`}
-          sub="Per trade edge"
-          color={exp >= 0 ? T.green : T.red}/>
+          value={hasEnough ? `${exp >= 0 ? "+" : ""}${exp}R` : "—"}
+          sub={hasEnough ? "Per trade edge" : `Need ${MIN_TRADES}+ trades`}
+          color={hasEnough ? (exp >= 0 ? T.green : T.red) : T.muted}/>
         <StatCard T={T} label="Max Win Streak"
           value={maxW} sub="Consecutive wins" color={T.green}/>
         <StatCard T={T} label="Max Loss Streak"
