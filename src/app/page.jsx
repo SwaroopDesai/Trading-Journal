@@ -605,7 +605,7 @@ export default function App() {
       </nav>
 
       {/* Main */}
-      <main style={{flex:1,display:"flex",flexDirection:"column",marginLeft:200}}>
+      <main className="app-main" style={{flex:1,display:"flex",flexDirection:"column"}}>
         {/* Topbar */}
         <div className="topbar" style={{borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,background:T.surface,position:"sticky",top:0,zIndex:40}}>
           <div style={{flex:1,minWidth:0}}>
