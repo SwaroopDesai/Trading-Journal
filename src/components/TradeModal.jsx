@@ -98,9 +98,9 @@ export default function TradeModal({T, userId, initial, onSave, onClose, syncing
       <Section T={T} title="Result">
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
           <FL label="Result" T={T}><Toggle T={T} value={f.result} opts={["WIN","LOSS","BREAKEVEN"]} onChange={v=>upd("result",v)}/></FL>
-          <FL label="P&L (pips)" T={T}><Inp T={T} type="number" placeholder="+40" value={f.pips} onChange={e=>upd("pips",e.target.value)}/></FL>
+          <FL label="R:R Achieved" T={T}><Inp T={T} type="number" placeholder="e.g. 2.5" value={f.rr} onChange={e=>upd("rr",e.target.value)}/></FL>
           {!quickLog && (
-            <FL label="R:R Achieved" T={T}><Inp T={T} type="number" placeholder="auto-calculated" value={f.rr} onChange={e=>upd("rr",e.target.value)}/></FL>
+            <FL label="P&L (pips)" T={T}><Inp T={T} type="number" placeholder="+40" value={f.pips} onChange={e=>upd("pips",e.target.value)}/></FL>
           )}
         </div>
       </Section>
