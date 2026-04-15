@@ -5,22 +5,47 @@ import { NextResponse } from "next/server";
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"; // Groq's current free vision model
 
-const PROMPT = `You are analyzing a trading chart screenshot. Extract any visible trade data and return ONLY a valid JSON object with these fields (use null for fields you cannot determine):
+const PROMPT = `You are an expert trading chart analyst. Study this chart screenshot carefully and extract every piece of trade information you can see.
 
-{
-  "pair": "currency pair or instrument symbol (e.g. EURUSD, NAS100)",
-  "direction": "Long or Short",
-  "entry": "entry price as a number",
-  "sl": "stop loss price as a number",
-  "tp": "take profit price as a number",
-  "result": "WIN, LOSS, or BE (breakeven) — only if trade is closed",
-  "rr": "risk:reward ratio as a number (e.g. 2.5)",
-  "pips": "pips gained or lost as a number",
-  "setup": "setup type if identifiable (e.g. Order Block, FVG, Liquidity Sweep)",
-  "notes": "brief description of what you see"
-}
+WHAT TO LOOK FOR:
 
-Return ONLY the JSON object, no markdown, no explanation.`;
+1. INSTRUMENT/PAIR — Check top-left corner of the chart, the tab title, or any label. Examples: EURUSD, GBPUSD, XAUUSD, NAS100, US30, BTCUSD, GER40. Output in uppercase with no slash (e.g. "EURUSD" not "EUR/USD").
+
+2. DIRECTION — Look for:
+   - Buy/Long: upward arrow, green entry line, "BUY" label, price going up from entry
+   - Sell/Short: downward arrow, red entry line, "SELL" label, price going down from entry
+
+3. PRICE LEVELS — Look for horizontal lines with price labels on the right axis:
+   - Entry: the line where the trade was opened (often labeled "Entry", "Open", or just a price)
+   - Stop Loss: the line labeled "SL", "Stop", usually in red, on the losing side
+   - Take Profit: the line labeled "TP", "Target", usually in green, on the winning side
+   - Read the exact price numbers from the right-side axis labels or inline labels
+
+4. RESULT — Only fill if the trade is clearly closed:
+   - WIN: price reached TP, green P&L shown, "profit" text visible
+   - LOSS: price reached SL, red P&L shown, "loss" text visible
+   - BREAKEVEN: closed at entry level
+
+5. R:R RATIO — May be shown as "RR: 2.5", "1:2.5", or calculate from SL/TP distances if visible.
+
+6. PIPS — May be shown as "+45 pips", "45.0 pips", or a P&L number. Use positive for profit, negative for loss.
+
+7. SETUP TYPE — Identify any visible patterns or labels:
+   - Order Block (OB), Fair Value Gap (FVG), Liquidity Sweep, Breaker Block
+   - BOS (Break of Structure), CHoCH (Change of Character)
+   - Supply/Demand zone, Support/Resistance
+   - If labeled on chart, use exact label text
+
+8. NOTES — Brief 1-2 sentence description of what the chart shows.
+
+IMPORTANT RULES:
+- Read price numbers carefully from axis labels — do not guess or approximate
+- Use null for any field you are not confident about — do not fabricate data
+- "result" should be null if the trade appears still open
+- Output the pair without slashes: "EURUSD" not "EUR/USD"
+
+Return ONLY this JSON object, no markdown fences, no explanation, no extra text:
+{"pair":null,"direction":null,"entry":null,"sl":null,"tp":null,"result":null,"rr":null,"pips":null,"setup":null,"notes":null}`;
 
 export async function POST(request) {
   if (!GROQ_API_KEY) {
@@ -56,7 +81,7 @@ export async function POST(request) {
       },
     ],
     temperature: 0.1,
-    max_tokens: 512,
+    max_tokens: 1024,
   };
 
   let orRes;
