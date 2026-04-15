@@ -7,44 +7,55 @@ const MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"; // Groq's current fre
 
 const PROMPT = `You are an expert trading chart analyst. Study this chart screenshot carefully and extract every piece of trade information you can see.
 
-WHAT TO LOOK FOR:
+STEP 1 — IDENTIFY INSTRUMENT/PAIR:
+- Look at the very top-left of the chart for the instrument name (e.g. "British Pound / U.S. Dollar", "EURUSD", "XAUUSD", "NAS100")
+- Convert to uppercase symbol without slash: "British Pound / U.S. Dollar" → "GBPUSD", "Gold" → "XAUUSD"
 
-1. INSTRUMENT/PAIR — Check top-left corner of the chart, the tab title, or any label. Examples: EURUSD, GBPUSD, XAUUSD, NAS100, US30, BTCUSD, GER40. Output in uppercase with no slash (e.g. "EURUSD" not "EUR/USD").
+STEP 2 — IDENTIFY THE TRADE BOX PATTERN (very common on TradingView):
+This is the most important pattern. Look for two colored rectangles stacked vertically:
+  PATTERN A — SHORT trade:
+    - PINK or RED rectangle on TOP  → this is the RISK zone (stop loss area)
+    - TEAL or GREEN rectangle on BOTTOM → this is the REWARD zone (take profit area)
+    - The BOUNDARY LINE between the two boxes = ENTRY PRICE
+    - TOP edge of the pink/red box = STOP LOSS price
+    - BOTTOM edge of the teal/green box = TAKE PROFIT price
+    - Direction = "Short" (SL is above entry)
 
-2. DIRECTION — Look for:
-   - Buy/Long: upward arrow, green entry line, "BUY" label, price going up from entry
-   - Sell/Short: downward arrow, red entry line, "SELL" label, price going down from entry
+  PATTERN B — LONG trade:
+    - TEAL or GREEN rectangle on TOP → this is the REWARD zone
+    - PINK or RED rectangle on BOTTOM → this is the RISK zone
+    - The BOUNDARY LINE between the two boxes = ENTRY PRICE
+    - BOTTOM edge of the red/pink box = STOP LOSS price
+    - TOP edge of the teal/green box = TAKE PROFIT price
+    - Direction = "Long" (SL is below entry)
 
-3. PRICE LEVELS — Look for horizontal lines with price labels on the right axis:
-   - Entry: the line where the trade was opened (often labeled "Entry", "Open", or just a price)
-   - Stop Loss: the line labeled "SL", "Stop", usually in red, on the losing side
-   - Take Profit: the line labeled "TP", "Target", usually in green, on the winning side
-   - Read the exact price numbers from the right-side axis labels or inline labels
+  To read the prices: look at the RIGHT-SIDE price axis (vertical numbers on right edge of chart).
+  Find the price level that aligns horizontally with each box edge.
 
-4. RESULT — Only fill if the trade is clearly closed:
-   - WIN: price reached TP, green P&L shown, "profit" text visible
-   - LOSS: price reached SL, red P&L shown, "loss" text visible
-   - BREAKEVEN: closed at entry level
+STEP 3 — ALTERNATIVE TRADE MARKERS (if no colored boxes):
+- Horizontal lines labeled "SL", "TP", "Entry", "Open", "Stop", "Target"
+- Buy/Sell arrows on the chart
+- Trade panel showing open price, SL, TP values
 
-5. R:R RATIO — May be shown as "RR: 2.5", "1:2.5", or calculate from SL/TP distances if visible.
+STEP 4 — RESULT (only if trade is clearly closed):
+- WIN: price reached the TP level, green P&L shown
+- LOSS: price reached the SL level, red P&L shown
+- BREAKEVEN: closed at entry
+- null if trade appears still open
 
-6. PIPS — May be shown as "+45 pips", "45.0 pips", or a P&L number. Use positive for profit, negative for loss.
+STEP 5 — CALCULATE R:R if not shown:
+- R:R = distance(entry to TP) / distance(entry to SL)
+- Only calculate if you can read all three prices clearly
 
-7. SETUP TYPE — Identify any visible patterns or labels:
-   - Order Block (OB), Fair Value Gap (FVG), Liquidity Sweep, Breaker Block
-   - BOS (Break of Structure), CHoCH (Change of Character)
-   - Supply/Demand zone, Support/Resistance
-   - If labeled on chart, use exact label text
+STEP 6 — SETUP TYPE from visible labels or patterns:
+Order Block, FVG, Fair Value Gap, Liquidity Sweep, Breaker Block, BOS, CHoCH, Supply Zone, Demand Zone
 
-8. NOTES — Brief 1-2 sentence description of what the chart shows.
+RULES:
+- Read prices directly from the right-axis labels aligned with each line/box edge
+- Use null for anything you cannot determine with confidence — never fabricate
+- Pair format: uppercase no slash ("GBPUSD" not "GBP/USD")
 
-IMPORTANT RULES:
-- Read price numbers carefully from axis labels — do not guess or approximate
-- Use null for any field you are not confident about — do not fabricate data
-- "result" should be null if the trade appears still open
-- Output the pair without slashes: "EURUSD" not "EUR/USD"
-
-Return ONLY this JSON object, no markdown fences, no explanation, no extra text:
+Return ONLY this JSON, no markdown, no explanation:
 {"pair":null,"direction":null,"entry":null,"sl":null,"tp":null,"result":null,"rr":null,"pips":null,"setup":null,"notes":null}`;
 
 export async function POST(request) {
