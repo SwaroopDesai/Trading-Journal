@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 // Uses Groq — free vision API, no billing required, 14,400 req/day free.
 // Get a free key at https://console.groq.com
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
-const MODEL = "llama-3.2-11b-vision-preview";
+const MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"; // Groq's current free vision model
 
 const PROMPT = `You are analyzing a trading chart screenshot. Extract any visible trade data and return ONLY a valid JSON object with these fields (use null for fields you cannot determine):
 
