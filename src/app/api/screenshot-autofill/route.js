@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 
-// Uses OpenRouter — free vision models, no billing required.
-// Get a free key at https://openrouter.ai
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const MODEL = "meta-llama/llama-3.2-11b-vision-instruct:free"; // free tier, vision capable
+// Uses Groq — free vision API, no billing required, 14,400 req/day free.
+// Get a free key at https://console.groq.com
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const MODEL = "llama-3.2-11b-vision-preview";
 
 const PROMPT = `You are analyzing a trading chart screenshot. Extract any visible trade data and return ONLY a valid JSON object with these fields (use null for fields you cannot determine):
 
@@ -23,8 +23,8 @@ const PROMPT = `You are analyzing a trading chart screenshot. Extract any visibl
 Return ONLY the JSON object, no markdown, no explanation.`;
 
 export async function POST(request) {
-  if (!OPENROUTER_API_KEY) {
-    return NextResponse.json({ error: "OPENROUTER_API_KEY not configured — get a free key at openrouter.ai" }, { status: 500 });
+  if (!GROQ_API_KEY) {
+    return NextResponse.json({ error: "GROQ_API_KEY not configured — get a free key at console.groq.com" }, { status: 500 });
   }
 
   let body;
@@ -61,23 +61,21 @@ export async function POST(request) {
 
   let orRes;
   try {
-    orRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    orRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type":  "application/json",
-        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-        "HTTP-Referer":  "https://trading-journal.vercel.app",
-        "X-Title":       "Trading Journal",
+        "Authorization": `Bearer ${GROQ_API_KEY}`,
       },
       body: JSON.stringify(orBody),
     });
   } catch {
-    return NextResponse.json({ error: "Failed to reach OpenRouter API" }, { status: 502 });
+    return NextResponse.json({ error: "Failed to reach Groq API" }, { status: 502 });
   }
 
   if (!orRes.ok) {
     const errText = await orRes.text();
-    return NextResponse.json({ error: `OpenRouter error: ${errText}` }, { status: orRes.status });
+    return NextResponse.json({ error: `Groq error: ${errText}` }, { status: orRes.status });
   }
 
   const orData  = await orRes.json();
