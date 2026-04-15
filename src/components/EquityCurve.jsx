@@ -80,7 +80,7 @@ export default function EquityCurve({ T, data = [] }) {
   const [range, setRange]      = useState("all");
   const [tooltip, setTip]      = useState(null);
   const [selectedTrade, setSel] = useState(null);
-  const [size, setSize]        = useState({ w: 900, h: 260 });
+  const [size, setSize]        = useState({ w: 0, h: 0 });
   const wrapRef = useRef(null);
   const svgRef  = useRef(null);
 
@@ -270,17 +270,16 @@ export default function EquityCurve({ T, data = [] }) {
       })()}
 
       {/* ── Chart ── */}
-      <div ref={wrapRef} style={{ position: "relative", padding: 0 }}>
-        <svg
+      <div ref={wrapRef} style={{ position: "relative", padding: 0, minHeight: w > 0 ? h : 80 }}>
+        {w > 0 && <svg
           ref={svgRef}
           width={w}
           height={h}
           viewBox={`0 0 ${w} ${h}`}
-          style={{ display: "block", width: "100%", height: "auto" }}
+          style={{ display: "block", width: "100%", height: "auto", cursor: "crosshair" }}
           onMouseMove={onMove}
           onMouseLeave={onLeave}
           onClick={() => { if (tooltip) setSel(s => s?.i === tooltip.idx ? null : { ...tooltip.pt.d, i: tooltip.idx }); }}
-          style={{ cursor: "crosshair" }}
         >
           <defs>
             {/* Area gradient */}
@@ -399,7 +398,7 @@ export default function EquityCurve({ T, data = [] }) {
               </text>
             </>
           )}
-        </svg>
+        </svg>}
 
         {/* Tooltip card */}
         {tooltip && (() => {
