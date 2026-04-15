@@ -55,9 +55,9 @@ export default function TradeModal({T, userId, initial, onSave, onClose, syncing
 
   const enableQuickLog = () => { setQL(true); upd("session", getAutoSession()); };
 
-  // ── Unified autofill: called from file picker OR paste ─────────────────
-  // dataUrl is already a base64 data URL (from FileReader or PasteImageInput)
-  const runAutofill = useCallback(async (dataUrl) => {
+  // ── Core autofill: sends image to Gemini, merges returned fields ──────────
+  // screenshotField: which field to store the image in ("preScreenshot" | "postScreenshot")
+  const runAutofill = useCallback(async (dataUrl, screenshotField = "preScreenshot") => {
     if(!dataUrl) return;
     setAF(true);
     setAFE("");
@@ -72,17 +72,17 @@ export default function TradeModal({T, userId, initial, onSave, onClose, syncing
       setF(prev => {
         const next = {
           ...prev,
-          ...(d.pair      ? { pair:      d.pair }                                                   : {}),
-          ...(d.direction ? { direction: d.direction.toUpperCase()==="SHORT" ? "SHORT" : "LONG" }   : {}),
-          ...(d.entry     ? { entry:     String(d.entry) }                                           : {}),
-          ...(d.sl        ? { sl:        String(d.sl) }                                              : {}),
-          ...(d.tp        ? { tp:        String(d.tp) }                                              : {}),
-          ...(d.result    ? { result:    d.result.toUpperCase() }                                    : {}),
-          ...(d.rr        ? { rr:        String(d.rr) }                                             : {}),
-          ...(d.pips      ? { pips:      String(d.pips) }                                            : {}),
-          ...(d.setup     ? { setup:     d.setup }                                                   : {}),
-          ...(d.notes     ? { notes:     (prev.notes ? prev.notes + "\n" : "") + d.notes }           : {}),
-          preScreenshot: dataUrl,
+          ...(d.pair      ? { pair:      d.pair }                                                 : {}),
+          ...(d.direction ? { direction: d.direction.toUpperCase()==="SHORT" ? "SHORT" : "LONG" } : {}),
+          ...(d.entry     ? { entry:     String(d.entry) }                                         : {}),
+          ...(d.sl        ? { sl:        String(d.sl) }                                            : {}),
+          ...(d.tp        ? { tp:        String(d.tp) }                                            : {}),
+          ...(d.result    ? { result:    d.result.toUpperCase() }                                  : {}),
+          ...(d.rr        ? { rr:        String(d.rr) }                                            : {}),
+          ...(d.pips      ? { pips:      String(d.pips) }                                          : {}),
+          ...(d.setup     ? { setup:     d.setup }                                                 : {}),
+          ...(d.notes     ? { notes:     (prev.notes ? prev.notes + "\n" : "") + d.notes }         : {}),
+          [screenshotField]: dataUrl,
         };
         if(!initial) writeDraft(userId, "trade", next);
         return next;
@@ -94,7 +94,7 @@ export default function TradeModal({T, userId, initial, onSave, onClose, syncing
     }
   }, [initial, userId]);
 
-  // File picker → autofill (toolbar button)
+  // Toolbar file picker → autofill into preScreenshot
   const handleFilePick = useCallback(async (e) => {
     const file = e.target.files?.[0];
     if(!file) return;
@@ -105,14 +105,13 @@ export default function TradeModal({T, userId, initial, onSave, onClose, syncing
       reader.readAsDataURL(file);
     });
     e.target.value = "";
-    await runAutofill(dataUrl);
+    await runAutofill(dataUrl, "preScreenshot");
   }, [runAutofill]);
 
-  // PasteImageInput onChange → autofill (Ctrl+V paste into pre-screenshot box)
-  const handlePrePaste = useCallback((dataUrl) => {
-    upd("preScreenshot", dataUrl);
-    runAutofill(dataUrl);
-  }, [runAutofill]);
+  // Pre-screenshot paste/upload → autofill
+  const handlePrePaste  = useCallback((dataUrl) => runAutofill(dataUrl, "preScreenshot"),  [runAutofill]);
+  // Post-screenshot paste/upload → autofill
+  const handlePostPaste = useCallback((dataUrl) => runAutofill(dataUrl, "postScreenshot"), [runAutofill]);
 
   // ── Render ─────────────────────────────────────────────────────────────
   const footer = (
@@ -214,7 +213,7 @@ export default function TradeModal({T, userId, initial, onSave, onClose, syncing
       <Section T={T} title={quickLog ? "Screenshots & Notes" : "Notes & Screenshots"}>
         {/* Screenshots — shown in both modes; pre-screenshot paste triggers autofill */}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
-          <FL label={autofilling ? "🔄 Reading chart..." : "Pre-Trade — Ctrl+V to paste & auto-fill"} T={T}>
+          <FL label={autofilling ? "🔄 Reading..." : "Pre-Trade / Ctrl+V → auto-fills fields"} T={T}>
             <PasteImageInput
               T={T}
               label="Pre"
@@ -223,12 +222,13 @@ export default function TradeModal({T, userId, initial, onSave, onClose, syncing
               disabled={autofilling}
             />
           </FL>
-          <FL label="Post-Trade — Ctrl+V to paste" T={T}>
+          <FL label={autofilling ? "🔄 Reading..." : "Post-Trade / Ctrl+V → auto-fills result"} T={T}>
             <PasteImageInput
               T={T}
               label="Post"
               value={f.postScreenshot}
-              onChange={v=>upd("postScreenshot",v)}
+              onChange={handlePostPaste}
+              disabled={autofilling}
             />
           </FL>
         </div>
