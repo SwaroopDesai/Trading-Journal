@@ -1,6 +1,6 @@
 "use client"
-import { useState, useRef, useCallback } from "react";
-import { PAIRS, SESSIONS, BIASES, MANI_TYPES, POI_TYPES, SETUPS, EMOTIONS, MISTAKES } from "@/lib/constants";
+import { useState, useRef } from "react";
+import { PAIRS, SESSIONS, MANI_TYPES, POI_TYPES, SETUPS, EMOTIONS, MISTAKES } from "@/lib/constants";
 import { readDraft, writeDraft, clearDraft, getAutoSession } from "@/lib/utils";
 import { ModalShell, Btn, FL, Section, Inp, Sel, Toggle, Textarea, PasteImageInput } from "@/components/ui";
 
@@ -15,15 +15,13 @@ export default function TradeModal({T, userId, initial, onSave, onClose, syncing
     preScreenshot:"", postScreenshot:"", tags:"",
   };
 
-  const [f, setF]               = useState(() => initial ? {...initial, tags:(initial.tags||[]).join(",")} : {...blank, ...(readDraft(userId,"trade")||{})});
-  const [quickLog, setQL]       = useState(false);
-  const [autofilling, setAF]    = useState(false);
-  const [autofillError, setAFE] = useState("");
-  const skipDraftWriteRef       = useRef(false);
+  const [f, setF]       = useState(() => initial ? {...initial, tags:(initial.tags||[]).join(",")} : {...blank, ...(readDraft(userId,"trade")||{})});
+  const [quickLog, setQL] = useState(false);
+  const skipDraftRef    = useRef(false);
 
   const upd = (k, v) => setF(x => {
     const next = {...x, [k]:v};
-    if(!initial && !skipDraftWriteRef.current) writeDraft(userId, "trade", next);
+    if(!initial && !skipDraftRef.current) writeDraft(userId, "trade", next);
     return next;
   });
 
@@ -48,72 +46,13 @@ export default function TradeModal({T, userId, initial, onSave, onClose, syncing
   };
 
   const cancelDraft = () => {
-    skipDraftWriteRef.current = true;
+    skipDraftRef.current = true;
     if(!initial) clearDraft(userId, "trade");
     onClose();
   };
 
   const enableQuickLog = () => { setQL(true); upd("session", getAutoSession()); };
 
-  // ── Core autofill: sends image to Gemini, merges returned fields ──────────
-  // screenshotField: which field to store the image in ("preScreenshot" | "postScreenshot")
-  const runAutofill = useCallback(async (dataUrl, screenshotField = "preScreenshot") => {
-    if(!dataUrl) return;
-    setAF(true);
-    setAFE("");
-    try {
-      const res  = await fetch("/api/screenshot-autofill", {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ image: dataUrl }),
-      });
-      const json = await res.json();
-      if(!res.ok) throw new Error(json.error || "Autofill failed");
-      const d = json.data || {};
-      setF(prev => {
-        const next = {
-          ...prev,
-          ...(d.pair      ? { pair:      d.pair }                                                 : {}),
-          ...(d.direction ? { direction: d.direction.toUpperCase()==="SHORT" ? "SHORT" : "LONG" } : {}),
-          ...(d.entry     ? { entry:     String(d.entry) }                                         : {}),
-          ...(d.sl        ? { sl:        String(d.sl) }                                            : {}),
-          ...(d.tp        ? { tp:        String(d.tp) }                                            : {}),
-          ...(d.result    ? { result:    d.result.toUpperCase() }                                  : {}),
-          ...(d.rr        ? { rr:        String(d.rr) }                                            : {}),
-          ...(d.pips      ? { pips:      String(d.pips) }                                          : {}),
-          ...(d.setup     ? { setup:     d.setup }                                                 : {}),
-          ...(d.notes     ? { notes:     (prev.notes ? prev.notes + "\n" : "") + d.notes }         : {}),
-          [screenshotField]: dataUrl,
-        };
-        if(!initial) writeDraft(userId, "trade", next);
-        return next;
-      });
-    } catch(err) {
-      setAFE(err.message || "Could not read screenshot");
-    } finally {
-      setAF(false);
-    }
-  }, [initial, userId]);
-
-  // Toolbar file picker → autofill into preScreenshot
-  const handleFilePick = useCallback(async (e) => {
-    const file = e.target.files?.[0];
-    if(!file) return;
-    const reader = new FileReader();
-    const dataUrl = await new Promise((res, rej) => {
-      reader.onload = ev => res(ev.target.result);
-      reader.onerror = rej;
-      reader.readAsDataURL(file);
-    });
-    e.target.value = "";
-    await runAutofill(dataUrl, "preScreenshot");
-  }, [runAutofill]);
-
-  // Pre-screenshot paste/upload → autofill
-  const handlePrePaste  = useCallback((dataUrl) => runAutofill(dataUrl, "preScreenshot"),  [runAutofill]);
-  // Post-screenshot paste/upload → autofill
-  const handlePostPaste = useCallback((dataUrl) => runAutofill(dataUrl, "postScreenshot"), [runAutofill]);
-
-  // ── Render ─────────────────────────────────────────────────────────────
   const footer = (
     <>
       <Btn T={T} onClick={submit}>{syncing ? "Saving..." : initial ? "Update Trade" : "Log Trade"}</Btn>
@@ -130,8 +69,8 @@ export default function TradeModal({T, userId, initial, onSave, onClose, syncing
       width={640}
       footer={footer}
     >
-      {/* ── Toolbar ── */}
-      <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+      {/* ── Quick Log toggle ── */}
+      <div>
         <button
           onClick={() => quickLog ? setQL(false) : enableQuickLog()}
           style={{
@@ -144,22 +83,9 @@ export default function TradeModal({T, userId, initial, onSave, onClose, syncing
         >
           ⚡ Quick Log {quickLog ? "ON" : "OFF"}
         </button>
-
-        <label style={{
-          background:T.surface2, border:`1px solid ${T.border}`,
-          color: T.textDim, padding:"6px 14px", borderRadius:20,
-          fontSize:12, fontWeight:600, cursor: autofilling ? "wait" : "pointer",
-          fontFamily:"Inter,sans-serif", display:"flex", alignItems:"center", gap:6,
-          opacity: autofilling ? 0.6 : 1,
-        }}>
-          <input type="file" accept="image/*" style={{display:"none"}} onChange={handleFilePick} disabled={autofilling}/>
-          {autofilling ? "🔄 Reading..." : "📷 Auto-fill from screenshot"}
-        </label>
-
-        {autofillError && <span style={{fontSize:11, color:T.red}}>{autofillError}</span>}
       </div>
 
-      {/* ── Core fields (always shown) ── */}
+      {/* ── Core fields ── */}
       <Section T={T} title="Instrument & Timing">
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
           <FL label="Date" T={T}><Inp T={T} type="date" value={f.date} onChange={e=>upd("date",e.target.value)}/></FL>
@@ -209,30 +135,16 @@ export default function TradeModal({T, userId, initial, onSave, onClose, syncing
         </>
       )}
 
-      {/* ── Notes & Screenshots (always shown) ── */}
-      <Section T={T} title={quickLog ? "Screenshots & Notes" : "Notes & Screenshots"}>
-        {/* Screenshots — shown in both modes; pre-screenshot paste triggers autofill */}
+      {/* ── Screenshots & Notes ── */}
+      <Section T={T} title="Screenshots & Notes">
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
-          <FL label={autofilling ? "🔄 Reading..." : "Pre-Trade / Ctrl+V → auto-fills fields"} T={T}>
-            <PasteImageInput
-              T={T}
-              label="Pre"
-              value={f.preScreenshot}
-              onChange={handlePrePaste}
-              disabled={autofilling}
-            />
+          <FL label="Pre-Trade / Ctrl+V to paste" T={T}>
+            <PasteImageInput T={T} label="Pre" value={f.preScreenshot} onChange={v=>upd("preScreenshot",v)}/>
           </FL>
-          <FL label={autofilling ? "🔄 Reading..." : "Post-Trade / Ctrl+V → auto-fills result"} T={T}>
-            <PasteImageInput
-              T={T}
-              label="Post"
-              value={f.postScreenshot}
-              onChange={handlePostPaste}
-              disabled={autofilling}
-            />
+          <FL label="Post-Trade / Ctrl+V to paste" T={T}>
+            <PasteImageInput T={T} label="Post" value={f.postScreenshot} onChange={v=>upd("postScreenshot",v)}/>
           </FL>
         </div>
-
         <FL label="Trade Notes" T={T}>
           <Textarea T={T} rows={quickLog ? 2 : 3} placeholder="Setup rationale, lessons, observations..." value={f.notes} onChange={e=>upd("notes",e.target.value)}/>
         </FL>
