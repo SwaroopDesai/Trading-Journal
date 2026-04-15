@@ -1,6 +1,6 @@
 ﻿"use client"
 import { createClient } from "@/lib/supabase"
-import { useState, useMemo, useEffect, useLayoutEffect, useCallback, useRef } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import TradeModal from "@/components/TradeModal";
 import EquityCurve from "@/components/EquityCurve";
 import AdvancedStats from "@/components/AdvancedStats";
@@ -296,7 +296,7 @@ export default function App() {
   const [tab,setTab] = useState("dashboard")
   const [sessionTick,setSessionTick] = useState(()=>Date.now())
   const [sessionOpen,setSessionOpen] = useState(false)
-  const [viewportWidth,setViewportWidth] = useState(0)
+  const [viewportWidth,setViewportWidth] = useState(()=>typeof window==="undefined"?0:window.innerWidth)
   const [tradeModal,setTradeModal] = useState(null)
   const [dailyModal,setDailyModal] = useState(null)
   const [weeklyModal,setWeeklyModal] = useState(null)
@@ -327,7 +327,8 @@ export default function App() {
     return ()=>window.clearInterval(id)
   },[])
 
-  useLayoutEffect(()=>{
+  useEffect(()=>{
+    if(typeof window==="undefined") return
     setViewportWidth(window.innerWidth)
     const onResize = ()=>setViewportWidth(window.innerWidth)
     window.addEventListener("resize", onResize)
