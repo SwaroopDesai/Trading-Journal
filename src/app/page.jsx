@@ -1,6 +1,6 @@
 ﻿"use client"
 import { createClient } from "@/lib/supabase"
-import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { useState, useMemo, useEffect, useLayoutEffect, useCallback, useRef } from "react";
 import TradeModal from "@/components/TradeModal";
 import EquityCurve from "@/components/EquityCurve";
 import AdvancedStats from "@/components/AdvancedStats";
@@ -327,8 +327,7 @@ export default function App() {
     return ()=>window.clearInterval(id)
   },[])
 
-  useEffect(()=>{
-    if(typeof window==="undefined") return
+  useLayoutEffect(()=>{
     setViewportWidth(window.innerWidth)
     const onResize = ()=>setViewportWidth(window.innerWidth)
     window.addEventListener("resize", onResize)
