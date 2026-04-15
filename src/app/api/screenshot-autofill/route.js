@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 // Uses OpenRouter — free vision models, no billing required.
 // Get a free key at https://openrouter.ai
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const MODEL = "google/gemini-2.0-flash-exp:free"; // free tier, vision capable
+const MODEL = "meta-llama/llama-3.2-11b-vision-instruct:free"; // free tier, vision capable
 
 const PROMPT = `You are analyzing a trading chart screenshot. Extract any visible trade data and return ONLY a valid JSON object with these fields (use null for fields you cannot determine):
 
