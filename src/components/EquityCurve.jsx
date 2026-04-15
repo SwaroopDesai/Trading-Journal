@@ -91,7 +91,7 @@ export default function EquityCurve({ T, data = [] }) {
     if (!el) return;
     const ro = new ResizeObserver(([entry]) => {
       const w = entry.contentRect.width;
-      setSize({ w: Math.max(w, 200), h: Math.round(Math.max(w * 0.27, 160)) });
+      setSize({ w: Math.max(w, 200), h: Math.round(Math.max(w * 0.17, 120)) });
     });
     ro.observe(el);
     return () => ro.disconnect();

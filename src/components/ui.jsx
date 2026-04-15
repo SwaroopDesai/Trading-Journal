@@ -223,11 +223,12 @@ export function FL({label,T,children,full}){return <div style={{gridColumn:full?
 export function Section({T,title,children}){return <div><div style={{fontSize:11,fontWeight:700,color:T.accentBright,letterSpacing:"0.12em",textTransform:"uppercase",paddingBottom:8,borderBottom:`1px solid ${T.border}`,marginBottom:12}}>{title}</div>{children}</div>}
 
 // ─── Image input components ────────────────────────────────────────────────
-export function PasteImageInput({T, value, onChange, label}) {
+export function PasteImageInput({T, value, onChange, label, disabled}) {
   const [pasting, setPasting] = useState(false)
   const ref = useRef(null)
 
   const handlePaste = useCallback((e) => {
+    if(disabled) return
     const items = e.clipboardData?.items
     if(!items) return
     for(const item of items) {
@@ -241,9 +242,10 @@ export function PasteImageInput({T, value, onChange, label}) {
         break
       }
     }
-  }, [onChange])
+  }, [onChange, disabled])
 
   const handleFile = (e) => {
+    if(disabled) return
     const file = e.target.files[0]
     if(!file) return
     const reader = new FileReader()
@@ -251,26 +253,36 @@ export function PasteImageInput({T, value, onChange, label}) {
     reader.readAsDataURL(file)
   }
 
+  const isLoading = disabled || pasting
+
   return (
     <div>
       <div
-        tabIndex={0}
+        tabIndex={disabled ? -1 : 0}
         onPaste={handlePaste}
         ref={ref}
-        style={{border:`2px dashed ${value?T.accentBright:T.border}`,borderRadius:10,padding:"14px",textAlign:"center",cursor:"pointer",outline:"none",background:T.surface2,transition:"border .2s"}}
-        onFocus={e=>e.currentTarget.style.borderColor=T.accentBright}
+        style={{
+          border:`2px dashed ${value ? T.accentBright : T.border}`,
+          borderRadius:10, padding:"14px", textAlign:"center",
+          cursor: disabled ? "wait" : "pointer",
+          outline:"none", background:T.surface2, transition:"border .2s",
+          opacity: disabled ? 0.6 : 1,
+        }}
+        onFocus={e=>{ if(!disabled) e.currentTarget.style.borderColor=T.accentBright }}
         onBlur={e=>e.currentTarget.style.borderColor=value?T.accentBright:T.border}
       >
         {value ? (
           <div style={{position:"relative"}}>
             <img src={value} alt={label} style={{width:"100%",maxHeight:180,objectFit:"cover",borderRadius:8}}/>
-            <button onClick={()=>onChange("")} style={{position:"absolute",top:6,right:6,background:"rgba(0,0,0,.7)",border:"none",color:"#fff",borderRadius:"50%",width:24,height:24,cursor:"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
+            {!disabled && <button onClick={()=>onChange("")} style={{position:"absolute",top:6,right:6,background:"rgba(0,0,0,.7)",border:"none",color:"#fff",borderRadius:"50%",width:24,height:24,cursor:"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>}
           </div>
         ) : (
           <div style={{color:T.muted,fontSize:12}}>
-            <div style={{fontSize:24,marginBottom:6}}>🖼</div>
-            <div style={{fontWeight:600,color:T.textDim,marginBottom:2}}>{pasting?"Processing...":"Ctrl+V to paste"}</div>
-            <div>or <label style={{color:T.accentBright,cursor:"pointer"}}><input type="file" accept="image/*" style={{display:"none"}} onChange={handleFile}/> browse file</label></div>
+            <div style={{fontSize:24,marginBottom:6}}>{isLoading ? "⏳" : "🖼"}</div>
+            <div style={{fontWeight:600,color:T.textDim,marginBottom:2}}>
+              {isLoading ? "Reading chart…" : "Ctrl+V to paste"}
+            </div>
+            {!disabled && <div>or <label style={{color:T.accentBright,cursor:"pointer"}}><input type="file" accept="image/*" style={{display:"none"}} onChange={handleFile}/> browse file</label></div>}
           </div>
         )}
       </div>

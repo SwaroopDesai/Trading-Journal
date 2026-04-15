@@ -15,11 +15,11 @@ export default function TradeModal({T, userId, initial, onSave, onClose, syncing
     preScreenshot:"", postScreenshot:"", tags:"",
   };
 
-  const [f, setF]         = useState(() => initial ? {...initial, tags:(initial.tags||[]).join(",")} : {...blank, ...(readDraft(userId,"trade")||{})});
-  const [quickLog, setQL] = useState(false);
-  const [autofilling, setAutofilling] = useState(false);
-  const [autofillError, setAutofillError]   = useState("");
-  const skipDraftWriteRef = useRef(false);
+  const [f, setF]               = useState(() => initial ? {...initial, tags:(initial.tags||[]).join(",")} : {...blank, ...(readDraft(userId,"trade")||{})});
+  const [quickLog, setQL]       = useState(false);
+  const [autofilling, setAF]    = useState(false);
+  const [autofillError, setAFE] = useState("");
+  const skipDraftWriteRef       = useRef(false);
 
   const upd = (k, v) => setF(x => {
     const next = {...x, [k]:v};
@@ -53,63 +53,66 @@ export default function TradeModal({T, userId, initial, onSave, onClose, syncing
     onClose();
   };
 
-  // ── Quick Log: auto-fill session from current time ─────────────────────
-  const enableQuickLog = () => {
-    setQL(true);
-    upd("session", getAutoSession());
-  };
+  const enableQuickLog = () => { setQL(true); upd("session", getAutoSession()); };
 
-  // ── Screenshot Autofill via Gemini ─────────────────────────────────────
-  const handleAutofill = useCallback(async (e) => {
-    const file = e.target.files?.[0];
-    if(!file) return;
-    setAutofilling(true);
-    setAutofillError("");
+  // ── Unified autofill: called from file picker OR paste ─────────────────
+  // dataUrl is already a base64 data URL (from FileReader or PasteImageInput)
+  const runAutofill = useCallback(async (dataUrl) => {
+    if(!dataUrl) return;
+    setAF(true);
+    setAFE("");
     try {
-      const reader = new FileReader();
-      const dataUrl = await new Promise((res, rej) => {
-        reader.onload = ev => res(ev.target.result);
-        reader.onerror = rej;
-        reader.readAsDataURL(file);
-      });
-
-      // Store screenshot in preScreenshot field
-      upd("preScreenshot", dataUrl);
-
-      const res = await fetch("/api/screenshot-autofill", {
-        method: "POST",
-        headers: { "Content-Type":"application/json" },
+      const res  = await fetch("/api/screenshot-autofill", {
+        method:"POST", headers:{"Content-Type":"application/json"},
         body: JSON.stringify({ image: dataUrl }),
       });
       const json = await res.json();
       if(!res.ok) throw new Error(json.error || "Autofill failed");
-
       const d = json.data || {};
       setF(prev => {
         const next = {
           ...prev,
-          ...(d.pair      ? { pair:      d.pair }                          : {}),
-          ...(d.direction ? { direction: d.direction.toUpperCase() === "SHORT" ? "SHORT" : "LONG" } : {}),
-          ...(d.entry     ? { entry:     String(d.entry) }                  : {}),
-          ...(d.sl        ? { sl:        String(d.sl) }                     : {}),
-          ...(d.tp        ? { tp:        String(d.tp) }                     : {}),
-          ...(d.result    ? { result:    d.result.toUpperCase() }            : {}),
-          ...(d.rr        ? { rr:        String(d.rr) }                     : {}),
-          ...(d.pips      ? { pips:      String(d.pips) }                   : {}),
-          ...(d.setup     ? { setup:     d.setup }                          : {}),
-          ...(d.notes     ? { notes:     (prev.notes ? prev.notes + "\n" : "") + d.notes } : {}),
+          ...(d.pair      ? { pair:      d.pair }                                                   : {}),
+          ...(d.direction ? { direction: d.direction.toUpperCase()==="SHORT" ? "SHORT" : "LONG" }   : {}),
+          ...(d.entry     ? { entry:     String(d.entry) }                                           : {}),
+          ...(d.sl        ? { sl:        String(d.sl) }                                              : {}),
+          ...(d.tp        ? { tp:        String(d.tp) }                                              : {}),
+          ...(d.result    ? { result:    d.result.toUpperCase() }                                    : {}),
+          ...(d.rr        ? { rr:        String(d.rr) }                                             : {}),
+          ...(d.pips      ? { pips:      String(d.pips) }                                            : {}),
+          ...(d.setup     ? { setup:     d.setup }                                                   : {}),
+          ...(d.notes     ? { notes:     (prev.notes ? prev.notes + "\n" : "") + d.notes }           : {}),
           preScreenshot: dataUrl,
         };
         if(!initial) writeDraft(userId, "trade", next);
         return next;
       });
     } catch(err) {
-      setAutofillError(err.message || "Could not read screenshot");
+      setAFE(err.message || "Could not read screenshot");
     } finally {
-      setAutofilling(false);
-      e.target.value = "";
+      setAF(false);
     }
   }, [initial, userId]);
+
+  // File picker → autofill (toolbar button)
+  const handleFilePick = useCallback(async (e) => {
+    const file = e.target.files?.[0];
+    if(!file) return;
+    const reader = new FileReader();
+    const dataUrl = await new Promise((res, rej) => {
+      reader.onload = ev => res(ev.target.result);
+      reader.onerror = rej;
+      reader.readAsDataURL(file);
+    });
+    e.target.value = "";
+    await runAutofill(dataUrl);
+  }, [runAutofill]);
+
+  // PasteImageInput onChange → autofill (Ctrl+V paste into pre-screenshot box)
+  const handlePrePaste = useCallback((dataUrl) => {
+    upd("preScreenshot", dataUrl);
+    runAutofill(dataUrl);
+  }, [runAutofill]);
 
   // ── Render ─────────────────────────────────────────────────────────────
   const footer = (
@@ -128,13 +131,13 @@ export default function TradeModal({T, userId, initial, onSave, onClose, syncing
       width={640}
       footer={footer}
     >
-      {/* ── Toolbar: Quick Log toggle + Screenshot Autofill ── */}
+      {/* ── Toolbar ── */}
       <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
         <button
           onClick={() => quickLog ? setQL(false) : enableQuickLog()}
           style={{
             background: quickLog ? `${T.accent}20` : "none",
-            border: `1px solid ${quickLog ? T.accentBright : T.border}`,
+            border:`1px solid ${quickLog ? T.accentBright : T.border}`,
             color: quickLog ? T.accentBright : T.textDim,
             padding:"6px 14px", borderRadius:20, fontSize:12, fontWeight:600,
             cursor:"pointer", fontFamily:"Inter,sans-serif",
@@ -144,19 +147,17 @@ export default function TradeModal({T, userId, initial, onSave, onClose, syncing
         </button>
 
         <label style={{
-          background:`${T.surface2}`, border:`1px solid ${T.border}`,
+          background:T.surface2, border:`1px solid ${T.border}`,
           color: T.textDim, padding:"6px 14px", borderRadius:20,
           fontSize:12, fontWeight:600, cursor: autofilling ? "wait" : "pointer",
           fontFamily:"Inter,sans-serif", display:"flex", alignItems:"center", gap:6,
           opacity: autofilling ? 0.6 : 1,
         }}>
-          <input type="file" accept="image/*" style={{display:"none"}} onChange={handleAutofill} disabled={autofilling}/>
+          <input type="file" accept="image/*" style={{display:"none"}} onChange={handleFilePick} disabled={autofilling}/>
           {autofilling ? "🔄 Reading..." : "📷 Auto-fill from screenshot"}
         </label>
 
-        {autofillError && (
-          <span style={{fontSize:11, color:T.red}}>{autofillError}</span>
-        )}
+        {autofillError && <span style={{fontSize:11, color:T.red}}>{autofillError}</span>}
       </div>
 
       {/* ── Core fields (always shown) ── */}
@@ -179,7 +180,7 @@ export default function TradeModal({T, userId, initial, onSave, onClose, syncing
         </div>
       </Section>
 
-      {/* ── Full mode only fields ── */}
+      {/* ── Full mode only ── */}
       {!quickLog && (
         <>
           <Section T={T} title="Bias & Context">
@@ -209,21 +210,32 @@ export default function TradeModal({T, userId, initial, onSave, onClose, syncing
         </>
       )}
 
-      {/* ── Notes & Screenshots ── */}
-      <Section T={T} title={quickLog ? "Notes (optional)" : "Notes & Screenshots"}>
+      {/* ── Notes & Screenshots (always shown) ── */}
+      <Section T={T} title={quickLog ? "Screenshots & Notes" : "Notes & Screenshots"}>
+        {/* Screenshots — shown in both modes; pre-screenshot paste triggers autofill */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
+          <FL label={autofilling ? "🔄 Reading chart..." : "Pre-Trade — Ctrl+V to paste & auto-fill"} T={T}>
+            <PasteImageInput
+              T={T}
+              label="Pre"
+              value={f.preScreenshot}
+              onChange={handlePrePaste}
+              disabled={autofilling}
+            />
+          </FL>
+          <FL label="Post-Trade — Ctrl+V to paste" T={T}>
+            <PasteImageInput
+              T={T}
+              label="Post"
+              value={f.postScreenshot}
+              onChange={v=>upd("postScreenshot",v)}
+            />
+          </FL>
+        </div>
+
         <FL label="Trade Notes" T={T}>
           <Textarea T={T} rows={quickLog ? 2 : 3} placeholder="Setup rationale, lessons, observations..." value={f.notes} onChange={e=>upd("notes",e.target.value)}/>
         </FL>
-        {!quickLog && (
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginTop:12}}>
-            <FL label="Pre-Trade Screenshot / Ctrl+V to paste" T={T}>
-              <PasteImageInput T={T} label="Pre" value={f.preScreenshot} onChange={v=>upd("preScreenshot",v)}/>
-            </FL>
-            <FL label="Post-Trade Screenshot / Ctrl+V to paste" T={T}>
-              <PasteImageInput T={T} label="Post" value={f.postScreenshot} onChange={v=>upd("postScreenshot",v)}/>
-            </FL>
-          </div>
-        )}
       </Section>
     </ModalShell>
   );
