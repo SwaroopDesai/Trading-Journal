@@ -1244,8 +1244,29 @@ function Journal({T,filtered,filterPair,setFilterPair,filterResult,setFilterResu
         )}
       </div>
       {displayTrades.length===0&&<EmptyState T={T} title="Your journal is still clean" copy="Start with one high-quality trade log and let the stats, screenshots, and reviews build from there." action={<Btn T={T} onClick={onNew}>+ Log Your First Trade</Btn>}/>}
-      <div style={{display:"flex",flexDirection:"column",gap:12}}>
-        {displayTrades.map(t=>(
+      {/* ── Date-grouped trade list ── */}
+      {(() => {
+        // group by date descending
+        const groups = [];
+        const seen = {};
+        displayTrades.forEach(t => {
+          const key = (t.date||"").slice(0,10);
+          if (!seen[key]) { seen[key] = []; groups.push({ date: key, trades: seen[key] }); }
+          seen[key].push(t);
+        });
+        return groups.map(({ date, trades: gt }) => {
+          const dayR = +gt.reduce((s,t) => s + (t.rr||0), 0).toFixed(2);
+          return (
+            <div key={date} style={{marginBottom:8}}>
+              {/* Day header */}
+              <div style={{display:"flex",alignItems:"center",gap:10,padding:"6px 4px 8px",borderBottom:`1px solid ${T.border}`,marginBottom:10}}>
+                <span style={{fontSize:12,fontWeight:700,color:T.textDim}}>{fmtDate(date)}</span>
+                <span style={{fontSize:11,color:T.muted}}>{gt.length} trade{gt.length!==1?"s":""}</span>
+                <span style={{marginLeft:"auto",fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:14,fontWeight:800,color:dayR>=0?T.green:T.red}}>{dayR>=0?"+":""}{dayR}R</span>
+              </div>
+              {/* Trades in this day */}
+              <div style={{display:"flex",flexDirection:"column",gap:12}}>
+                {gt.map(t=>(
           <div key={t._dbid} style={{background:`linear-gradient(180deg,${T.surface},${T.surface2})`,border:`1px solid ${T.border}`,borderRadius:18,padding:isMobile?"16px 16px 14px":"18px 20px",transition:"border-color .15s, transform .15s, box-shadow .15s",boxShadow:`0 10px 26px ${T.cardGlow}`,position:"relative",overflow:"hidden"}} onMouseEnter={e=>{if(!isMobile){e.currentTarget.style.borderColor=T.accent; e.currentTarget.style.transform="translateY(-1px)"; e.currentTarget.style.boxShadow=`0 14px 32px ${T.cardGlow}`}}} onMouseLeave={e=>{e.currentTarget.style.borderColor=T.border; e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow=`0 10px 26px ${T.cardGlow}`}}>
             <div style={{position:"absolute",left:0,top:0,bottom:0,width:4,background:t.result==="WIN"?`linear-gradient(180deg,${T.green},${T.blue})`:t.result==="LOSS"?`linear-gradient(180deg,${T.red},${T.pink})`:`linear-gradient(180deg,${T.amber},${T.accentBright})`}} />
             <div style={{display:"flex",alignItems:isMobile?"flex-start":"center",justifyContent:"space-between",marginBottom:12,flexWrap:"wrap",gap:8}}>
@@ -1289,8 +1310,12 @@ function Journal({T,filtered,filterPair,setFilterPair,filterResult,setFilterResu
               </div>
             </div>
           </div>
-        ))}
-      </div>
+                ))}
+              </div>
+            </div>
+          );
+        })
+      })()}
     </div>
   )
 }
@@ -2803,33 +2828,31 @@ function Playbook({T, trades}) {
 }
 
 function PlaybookModal({T, initial, onSave, onClose}) {
-  const EMOJIS=["PB","FX","OB","FVG","KZ","MS","RR","HTF","A+","SMC"]
-  const blank={name:"",description:"",emoji:"PB",setup:"",tags:"",rules:[""]}
-  const [f,setF]=useState(initial||blank)
+  const blank={name:"",setup:"",rules:[""]}
+  const [f,setF]=useState(()=>{
+    if(!initial) return blank;
+    const {name="",setup="",rules=[""]}=initial;
+    return {name,setup,rules:rules.length?rules:[""]};
+  })
   const upd=(k,v)=>setF(x=>({...x,[k]:v}))
   const addRule=()=>setF(x=>({...x,rules:[...x.rules,""]}))
   const updRule=(i,v)=>setF(x=>({...x,rules:x.rules.map((r,ri)=>ri===i?v:r)}))
   const delRule=(i)=>setF(x=>({...x,rules:x.rules.filter((_,ri)=>ri!==i)}))
   const submit=()=>{
     if(!f.name.trim()) return
-    onSave({...f,tags:f.tags?f.tags.split(",").map(t=>t.trim()).filter(Boolean):[],rules:f.rules.filter(r=>r.trim()),id:initial?.id})
+    onSave({...f,rules:f.rules.filter(r=>r.trim()),id:initial?.id})
   }
   return (
-    <ModalShell T={T} title={initial?"Edit Playbook":"New Playbook"} subtitle="Document your best setup with a clear name, matching tags, and rules you can actually follow." onClose={onClose} width={560} footer={<><Btn T={T} onClick={submit}>{initial?"Update":"Save Playbook"}</Btn><Btn T={T} ghost onClick={onClose}>Cancel</Btn></>}>
-          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-            {EMOJIS.map(e=><button key={e} onClick={()=>upd("emoji",e)} style={{width:36,height:36,fontSize:20,background:f.emoji===e?`${T.accent}30`:"none",border:`1px solid ${f.emoji===e?T.accentBright:T.border}`,borderRadius:8,cursor:"pointer"}}>{e}</button>)}
-          </div>
+    <ModalShell T={T} title={initial?"Edit Playbook":"New Playbook"} subtitle="Name your setup, pick the journal match, add your rules." onClose={onClose} width={500} footer={<><Btn T={T} onClick={submit}>{initial?"Update":"Save Playbook"}</Btn><Btn T={T} ghost onClick={onClose}>Cancel</Btn></>}>
           <FL label="Playbook Name" T={T}><Inp T={T} placeholder="e.g. London Sweep + OB Entry" value={f.name} onChange={e=>upd("name",e.target.value)}/></FL>
-          <FL label="Description" T={T}><Textarea T={T} rows={2} placeholder="What is this setup? When do you use it?" value={f.description} onChange={e=>upd("description",e.target.value)}/></FL>
-          <FL label="Primary Setup (matches journal)" T={T}><Sel T={T} val={f.setup} opts={["",  ...SETUPS]} on={v=>upd("setup",v)}/></FL>
-          <FL label="Match Tags (comma-sep)" T={T}><Inp T={T} placeholder="A+ Setup, OB, London" value={f.tags} onChange={e=>upd("tags",e.target.value)}/></FL>
+          <FL label="Primary Setup (matches journal entries)" T={T}><Sel T={T} val={f.setup} opts={["", ...SETUPS]} on={v=>upd("setup",v)}/></FL>
           <div>
-            <div style={{fontSize:11,fontWeight:600,color:T.textDim,marginBottom:8}}>Rules / Conditions</div>
+            <div style={{fontSize:11,fontWeight:600,color:T.textDim,marginBottom:8}}>Rules / Entry Conditions</div>
             {f.rules.map((r,i)=>(
               <div key={i} style={{display:"flex",gap:8,marginBottom:6}}>
                 <span style={{fontWeight:800,color:T.accentBright,lineHeight:"38px",minWidth:20}}>{i+1}.</span>
                 <Inp T={T} placeholder={`Rule ${i+1}...`} value={r} onChange={e=>updRule(i,e.target.value)}/>
-                {f.rules.length>1&&<button onClick={()=>delRule(i)} style={{background:"none",border:`1px solid ${T.border}`,color:T.red,padding:"0 10px",borderRadius:8,cursor:"pointer",fontSize:14}}>x</button>}
+                {f.rules.length>1&&<button onClick={()=>delRule(i)} style={{background:"none",border:`1px solid ${T.border}`,color:T.red,padding:"0 10px",borderRadius:8,cursor:"pointer",fontSize:14}}>×</button>}
               </div>
             ))}
             <button onClick={addRule} style={{background:"none",border:`1px dashed ${T.border}`,color:T.textDim,padding:"8px 16px",borderRadius:8,cursor:"pointer",fontSize:12,width:"100%",marginTop:4}}>+ Add Rule</button>

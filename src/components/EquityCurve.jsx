@@ -77,9 +77,10 @@ const fmtStat = fmtRR;
 
 // ── Main component ─────────────────────────────────────────────────────────
 export default function EquityCurve({ T, data = [] }) {
-  const [range, setRange]   = useState("all");
-  const [tooltip, setTip]   = useState(null);
-  const [size, setSize]     = useState({ w: 900, h: 260 });
+  const [range, setRange]      = useState("all");
+  const [tooltip, setTip]      = useState(null);
+  const [selectedTrade, setSel] = useState(null);
+  const [size, setSize]        = useState({ w: 900, h: 260 });
   const wrapRef = useRef(null);
   const svgRef  = useRef(null);
 
@@ -266,6 +267,8 @@ export default function EquityCurve({ T, data = [] }) {
           style={{ display: "block", width: "100%", height: "auto" }}
           onMouseMove={onMove}
           onMouseLeave={onLeave}
+          onClick={() => { if (tooltip) setSel(s => s?.i === tooltip.idx ? null : { ...tooltip.pt.d, i: tooltip.idx }); }}
+          style={{ cursor: "crosshair" }}
         >
           <defs>
             {/* Area gradient */}
@@ -328,6 +331,24 @@ export default function EquityCurve({ T, data = [] }) {
               filter="url(#ec-glow)"
             />
           )}
+
+          {/* Trade dots — colored by result, visible when ≤ 80 trades */}
+          {filtered.length <= 80 && pts.map((p, i) => {
+            const d = p.d;
+            const dotC = d.result === "WIN" ? T.green : d.result === "LOSS" ? T.red : (T.amber || "#f59e0b");
+            const isSel = selectedTrade?.i === i;
+            return (
+              <circle
+                key={i}
+                cx={p.x} cy={p.y}
+                r={isSel ? 6 : 3}
+                fill={dotC}
+                stroke={T.surface}
+                strokeWidth={isSel ? 2.5 : 1.5}
+                opacity={isSel ? 1 : 0.8}
+              />
+            );
+          })}
 
           {/* Hover crosshair */}
           {tooltip && (() => {
@@ -421,6 +442,70 @@ export default function EquityCurve({ T, data = [] }) {
           );
         })()}
       </div>
+
+      {/* ── Selected trade panel ── */}
+      {selectedTrade && (() => {
+        const d = selectedTrade;
+        const r = d.rr || 0;
+        const resultColor = d.result === "WIN" ? T.green : d.result === "LOSS" ? T.red : (T.amber || "#f59e0b");
+        return (
+          <div style={{
+            margin: "0 0 0 0",
+            borderTop: `1px solid ${T.border}`,
+            background: `linear-gradient(135deg,${T.surface2},${T.surface})`,
+            padding: "14px 18px",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize: 17, fontWeight: 800, color: T.accentBright }}>{d.pair || "Trade"}</span>
+                {d.direction && (
+                  <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 9px", borderRadius: 8,
+                    background: d.direction === "LONG" ? `${T.green}20` : `${T.red}20`,
+                    color: d.direction === "LONG" ? T.green : T.red,
+                  }}>{d.direction}</span>
+                )}
+                {d.date && <span style={{ fontSize: 11, color: T.muted }}>{fmtDate(d.date)}</span>}
+                {d.session && <span style={{ fontSize: 11, color: T.textDim, background: T.surface, border: `1px solid ${T.border}`, padding: "2px 8px", borderRadius: 999 }}>{d.session}</span>}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                {d.result && (
+                  <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 8,
+                    background: `${resultColor}20`, color: resultColor,
+                  }}>{d.result}</span>
+                )}
+                <span style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize: 18, fontWeight: 800, color: r >= 0 ? T.green : T.red }}>
+                  {fmtStat(r)}
+                </span>
+                <button onClick={() => setSel(null)} style={{
+                  background: "none", border: `1px solid ${T.border}`, color: T.muted,
+                  width: 26, height: 26, borderRadius: 8, cursor: "pointer", fontSize: 14,
+                  display: "grid", placeItems: "center", fontFamily: "Inter,sans-serif",
+                }}>×</button>
+              </div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(90px,1fr))", gap: 8 }}>
+              {[
+                { l: "Setup",   v: d.setup },
+                { l: "Emotion", v: d.emotion },
+                { l: "Pips",    v: d.pips ? `${d.pips >= 0 ? "+" : ""}${d.pips}` : null },
+                { l: "Entry",   v: d.entry || null },
+              ].filter(x => x.v).map(x => (
+                <div key={x.l} style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, padding: "8px 10px" }}>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 3 }}>{x.l}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: T.text }}>{x.v}</div>
+                </div>
+              ))}
+            </div>
+            {d.notes && (
+              <div style={{ marginTop: 10, fontSize: 12, color: T.textDim, lineHeight: 1.6,
+                background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, padding: "9px 12px",
+              }}>
+                {d.notes}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ── Footer ── */}
       <div style={{
