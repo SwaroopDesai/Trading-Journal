@@ -640,7 +640,7 @@ export default function App() {
           </div>
         )}
 
-        <div style={{padding:"24px 28px",flex:1}}>
+        <div style={{padding:isMobileViewport?"16px 14px":"24px 28px",flex:1}}>
           {mountedTabs.includes("dashboard")&&<TabPanel active={tab==="dashboard"}><Dashboard T={T} stats={stats} trades={trades} dailyPlans={dailyPlans} weeklyPlans={weeklyPlans} onNewTrade={()=>setTradeModal("new")} onNewDaily={()=>setDailyModal("new")} viewportWidth={viewportWidth}/></TabPanel>}
           {mountedTabs.includes("journal")&&<TabPanel active={tab==="journal"}><Journal T={T} filtered={filtered} filterPair={filterPair} setFilterPair={setFilterPair} filterResult={filterResult} setFilterResult={setFilterResult} onEdit={t=>setTradeModal(t)} onDelete={t=>setDeleteTarget({type:"trade",dbid:t._dbid,name:`${t.pair} ${t.direction}`})} onViewImg={setImgViewer} onNew={()=>setTradeModal("new")} viewportWidth={viewportWidth}/></TabPanel>}
           {mountedTabs.includes("daily")&&<TabPanel active={tab==="daily"}><DailyTab T={T} plans={dailyPlans} onEdit={p=>setDailyModal(p)} onDelete={p=>setDeleteTarget({type:"daily",dbid:p._dbid,name:`Daily ${p.date}`})} onViewImg={setImgViewer} onNew={()=>setDailyModal("new")}/></TabPanel>}
@@ -825,7 +825,7 @@ function SessionPill({T,session,compact,mobile,open,onToggle}) {
         </div>
         <div style={{lineHeight:1.1,minWidth:0}}>
           {!compact&&<div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:5}}>Current Session</div>}
-          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:compact?13:15,fontWeight:800,color:T.text,letterSpacing:"-0.03em",whiteSpace:mobile?"normal":"nowrap"}}>{session?.label}</div>
+          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:compact?13:15,fontWeight:800,color:T.text,letterSpacing:"-0.03em",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:mobile?80:220}}>{session?.label}</div>
           {!compact&&<div style={{fontSize:11,color:T.textDim,marginTop:4,whiteSpace:mobile?"normal":"nowrap"}}>{session?.detail} . Next {session?.nextLabel} in {session?.nextIn}</div>}
         </div>
         {!mobile&&<div style={{marginLeft:"auto",fontSize:11,color:T.textDim}}>{open?"Hide":"Open"}</div>}

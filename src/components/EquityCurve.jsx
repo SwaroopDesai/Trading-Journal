@@ -196,7 +196,8 @@ export default function EquityCurve({ T, data = [] }) {
       {/* ── Header ── */}
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "12px 18px 10px", gap: 12, flexWrap: "wrap",
+        padding: w < 440 ? "10px 14px 8px" : "12px 18px 10px",
+        gap: 8, flexWrap: "wrap",
         borderBottom: `1px solid ${T.border}`,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -227,7 +228,8 @@ export default function EquityCurve({ T, data = [] }) {
               background: range === r.id ? lineColor : "transparent",
               color: range === r.id ? "#fff" : T.textDim,
               border: "none", borderRadius: 7,
-              padding: "4px 11px", fontSize: 11, fontWeight: 700,
+              padding: w < 440 ? "4px 7px" : "4px 11px",
+              fontSize: w < 440 ? 10 : 11, fontWeight: 700,
               cursor: "pointer", fontFamily: "Inter,sans-serif",
               transition: "all .15s",
             }}>
@@ -238,24 +240,34 @@ export default function EquityCurve({ T, data = [] }) {
       </div>
 
       {/* ── Stat cards ── */}
-      <div style={{
-        display: "grid", gridTemplateColumns: "repeat(4,1fr)",
-        borderBottom: `1px solid ${T.border}`,
-      }}>
-        {statCards.map((s, i) => (
-          <div key={s.label} style={{
-            padding: "10px 16px",
-            borderRight: i < 3 ? `1px solid ${T.border}` : "none",
+      {(() => {
+        const cols2 = w < 440;
+        return (
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: cols2 ? "repeat(2,1fr)" : "repeat(4,1fr)",
+            borderBottom: `1px solid ${T.border}`,
           }}>
-            <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, letterSpacing: "0.14em", marginBottom: 5 }}>{s.label}</div>
-            <div style={{
-              fontFamily: "'Plus Jakarta Sans',sans-serif",
-              fontSize: "clamp(16px,2.2vw,24px)", fontWeight: 800,
-              color: s.color, letterSpacing: "-0.03em", lineHeight: 1,
-            }}>{s.val}</div>
+            {statCards.map((s, i) => {
+              // 2-col: right border on col 0; 4-col: right border on cols 0-2
+              const borderRight = cols2
+                ? (i % 2 === 0 ? `1px solid ${T.border}` : "none")
+                : (i < 3 ? `1px solid ${T.border}` : "none");
+              const borderBottom = cols2 && i < 2 ? `1px solid ${T.border}` : "none";
+              return (
+                <div key={s.label} style={{ padding: cols2 ? "9px 12px" : "10px 16px", borderRight, borderBottom }}>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, letterSpacing: "0.14em", marginBottom: 5 }}>{s.label}</div>
+                  <div style={{
+                    fontFamily: "'Plus Jakarta Sans',sans-serif",
+                    fontSize: cols2 ? 16 : "clamp(16px,2.2vw,24px)", fontWeight: 800,
+                    color: s.color, letterSpacing: "-0.03em", lineHeight: 1,
+                  }}>{s.val}</div>
+                </div>
+              );
+            })}
           </div>
-        ))}
-      </div>
+        );
+      })()}
 
       {/* ── Chart ── */}
       <div ref={wrapRef} style={{ position: "relative", padding: 0 }}>
@@ -510,23 +522,23 @@ export default function EquityCurve({ T, data = [] }) {
       {/* ── Footer ── */}
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "7px 16px", borderTop: `1px solid ${T.border}`,
-        flexWrap: "wrap", gap: 8,
+        padding: w < 440 ? "6px 12px" : "7px 16px", borderTop: `1px solid ${T.border}`,
+        flexWrap: "wrap", gap: 6,
       }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: T.muted, letterSpacing: "0.08em" }}>
           {filtered.length} trade{filtered.length !== 1 ? "s" : ""}
         </div>
-        <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: T.textDim }}>
-            <span style={{ width: 22, height: 2.5, background: `linear-gradient(90deg,${T.accentBright || "#8b5cf6"},${lineColor})`, borderRadius: 2, display: "inline-block" }}/>
-            Cumulative R
+        <div style={{ display: "flex", gap: w < 440 ? 10 : 16, alignItems: "center", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, color: T.textDim }}>
+            <span style={{ width: 18, height: 2.5, background: `linear-gradient(90deg,${T.accentBright || "#8b5cf6"},${lineColor})`, borderRadius: 2, display: "inline-block" }}/>
+            Cumul. R
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: T.textDim }}>
-            <span style={{ width: 22, height: 0, border: `1px dashed ${T.border}`, display: "inline-block" }}/>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, color: T.textDim }}>
+            <span style={{ width: 18, height: 0, border: `1px dashed ${T.border}`, display: "inline-block" }}/>
             Breakeven
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: T.textDim }}>
-            <span style={{ width: 12, height: 12, borderRadius: 3, background: `${T.red}44`, display: "inline-block" }}/>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, color: T.textDim }}>
+            <span style={{ width: 10, height: 10, borderRadius: 3, background: `${T.red}44`, display: "inline-block" }}/>
             Drawdown
           </div>
         </div>
