@@ -296,7 +296,7 @@ export default function App() {
   const [tab,setTab] = useState("dashboard")
   const [sessionTick,setSessionTick] = useState(()=>Date.now())
   const [sessionOpen,setSessionOpen] = useState(false)
-  const [viewportWidth,setViewportWidth] = useState(()=>typeof window==="undefined"?1440:window.innerWidth)
+  const [viewportWidth,setViewportWidth] = useState(0)
   const [tradeModal,setTradeModal] = useState(null)
   const [dailyModal,setDailyModal] = useState(null)
   const [weeklyModal,setWeeklyModal] = useState(null)
