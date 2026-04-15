@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent";
+// Uses OpenRouter — free vision models, no billing required.
+// Get a free key at https://openrouter.ai
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const MODEL = "google/gemini-2.0-flash-exp:free"; // free tier, vision capable
 
 const PROMPT = `You are analyzing a trading chart screenshot. Extract any visible trade data and return ONLY a valid JSON object with these fields (use null for fields you cannot determine):
 
@@ -21,8 +23,8 @@ const PROMPT = `You are analyzing a trading chart screenshot. Extract any visibl
 Return ONLY the JSON object, no markdown, no explanation.`;
 
 export async function POST(request) {
-  if (!GEMINI_API_KEY) {
-    return NextResponse.json({ error: "GEMINI_API_KEY not configured" }, { status: 500 });
+  if (!OPENROUTER_API_KEY) {
+    return NextResponse.json({ error: "OPENROUTER_API_KEY not configured — get a free key at openrouter.ai" }, { status: 500 });
   }
 
   let body;
@@ -37,53 +39,56 @@ export async function POST(request) {
     return NextResponse.json({ error: "Missing image (base64 data URL)" }, { status: 400 });
   }
 
-  // Strip data URL prefix to get raw base64
-  const base64Match = image.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/i);
-  if (!base64Match) {
+  if (!image.match(/^data:image\//i)) {
     return NextResponse.json({ error: "image must be a base64 data URL" }, { status: 400 });
   }
-  const mimeType   = base64Match[1];
-  const base64Data = base64Match[2];
 
-  const geminiBody = {
-    contents: [{
-      parts: [
-        { text: PROMPT },
-        { inline_data: { mime_type: mimeType, data: base64Data } },
-      ],
-    }],
-    generationConfig: {
-      temperature: 0.1,
-      maxOutputTokens: 512,
-    },
+  // OpenRouter uses OpenAI-compatible API with image_url for base64
+  const orBody = {
+    model: MODEL,
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text",      text: PROMPT },
+          { type: "image_url", image_url: { url: image } },
+        ],
+      },
+    ],
+    temperature: 0.1,
+    max_tokens: 512,
   };
 
-  let geminiRes;
+  let orRes;
   try {
-    geminiRes = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
+    orRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(geminiBody),
+      headers: {
+        "Content-Type":  "application/json",
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+        "HTTP-Referer":  "https://trading-journal.vercel.app",
+        "X-Title":       "Trading Journal",
+      },
+      body: JSON.stringify(orBody),
     });
-  } catch (err) {
-    return NextResponse.json({ error: "Failed to reach Gemini API" }, { status: 502 });
+  } catch {
+    return NextResponse.json({ error: "Failed to reach OpenRouter API" }, { status: 502 });
   }
 
-  if (!geminiRes.ok) {
-    const errText = await geminiRes.text();
-    return NextResponse.json({ error: `Gemini error: ${errText}` }, { status: geminiRes.status });
+  if (!orRes.ok) {
+    const errText = await orRes.text();
+    return NextResponse.json({ error: `OpenRouter error: ${errText}` }, { status: orRes.status });
   }
 
-  const geminiData = await geminiRes.json();
-  const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  const orData  = await orRes.json();
+  const rawText = orData?.choices?.[0]?.message?.content || "";
 
   let extracted;
   try {
-    // Gemini may wrap in markdown code blocks — strip them
     const cleaned = rawText.replace(/```json?\n?/gi, "").replace(/```/g, "").trim();
     extracted = JSON.parse(cleaned);
   } catch {
-    return NextResponse.json({ error: "Gemini returned unparseable response", raw: rawText }, { status: 422 });
+    return NextResponse.json({ error: "Model returned unparseable response", raw: rawText }, { status: 422 });
   }
 
   return NextResponse.json({ data: extracted });
