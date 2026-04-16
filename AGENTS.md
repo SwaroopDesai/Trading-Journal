@@ -135,34 +135,81 @@ Tab components are **read-only consumers** — they receive data as props and ca
 
 ## Roadmap
 
-### Tier 1 — Foundations (DONE)
-- Split `page.jsx` monolith into separate component files
-- Remove duplicate inline component definitions
-- Fix mobile layout overflow
+> North Star: **every feature should either make logging faster or make learning from your data easier.**
 
-### Tier 2 — UX Polish (START HERE)
-- [ ] **Keyboard shortcuts**: `N` = new trade, `J` = journal tab, `D` = daily tab, `Esc` = close modal
-- [ ] **Skeleton loaders**: replace the full-page `<Spinner>` with per-section skeleton cards
-- [x] **Unsaved changes guard**: confirm dialog when closing a modal with dirty fields
-- [x] **Smarter empty states**: actionable CTAs ("Log your first trade →") instead of plain text
-- [x] **Toast deduplication**: don't stack identical toasts within 2 seconds
+---
 
-### Tier 3 — Analytics Depth (ALREADY BUILT)
-- [x] Running equity curve with max drawdown overlay — `EquityCurve.jsx`
-- [x] Monthly P&L calendar heatmap — `Heatmap.jsx` (calendar + monthly bar views)
-- [x] Session / day-of-week heatmap grid — `Heatmap.jsx` + `AdvancedStats.jsx`
-- [x] Streak tracking (win/loss streaks) — `AdvancedStats.jsx`
-- [x] Best / worst trade of the week — `WeeklyReview.jsx` (auto-surfaced per week)
+### TIER 1 — Foundations
 
-### Tier 4 — Intelligence
-- [ ] AI pattern detection: surface repeated mistakes from trade notes
-- [ ] Rule-break tagging: "Did you follow your plan?" checkbox on each trade
-- [ ] Session-aware suggestions: warn if trading outside your best session window
+- [x] Split `page.jsx` monolith into `src/components/tabs/` files — `commit 4f471fd`
+- [x] Remove duplicate inline component definitions (Spinner, Overlay, ModalShell, etc.)
+- [x] Fix mobile layout overflow (EquityCurve hardcoded 900px width) — `commit 7b8777c`
+- [ ] Move inline `style={{ background: T.surface, ... }}` to CSS custom properties (`--fx-bg`, `--fx-surface`, `--fx-accent`) toggled by `data-theme` attribute — cuts JSX noise ~40%
 
-### Tier 5 — Scale & Polish
-- [ ] PWA manifest + service worker for offline access
-- [ ] Dark/light preference persisted to Supabase user profile
-- [ ] Trade import from CSV / MT4 export format
+---
+
+### TIER 2 — Smart Features (What Makes This an Edge)
+
+- [x] **Toast deduplication** — `toastDedupRef` in `page.jsx`, 2s window
+- [x] **Unsaved changes guard** — confirm dialog on modal close with dirty fields
+- [x] **Smarter empty states** — actionable CTAs (e.g. WeeklyReview, Dashboard)
+- [ ] **Keyboard shortcuts** — `N` = new trade, `J` = journal, `D` = daily, `Esc` = close modal
+- [ ] **Skeleton loaders** — replace full-page `<Spinner>` with per-section skeleton cards
+- [ ] **Smart defaults & one-tap logging**
+  - Auto-detect current session from the session clock (already computed — just pre-fill it)
+  - Pre-fill pair from last trade, bias from today's daily plan
+  - "Repeat last trade" button — same pair/session, just change result/RR
+- [ ] **Trade Rules Engine** — user defines rules ("Only London session", "Max 2 trades/day"), trade entry shows green/red checklist, weekly rule adherence score shown in Playbook
+- [ ] **Proactive AI Insights on Dashboard** — surface weekly cards like:
+  - "You're 0-3 on Fridays. Consider sitting out."
+  - "After a loss, your next trade wins 28% of the time. Add a cooling-off rule."
+  - "Your best setup has 3.2R expectancy. Your worst is -0.4R."
+- [ ] **Global date range filter** — "This Week / Month / Last 30 / Custom" — applies to all stats, equity curve, analytics. Currently NO time filtering exists anywhere.
+
+---
+
+### TIER 3 — UX Polish (Premium Feel)
+
+- [x] **Equity curve with drawdown overlay** — `EquityCurve.jsx`
+- [x] **Monthly P&L calendar heatmap** — `Heatmap.jsx`
+- [x] **Session / day-of-week heatmap grid** — `Heatmap.jsx` + `AdvancedStats.jsx`
+- [x] **Streak tracking** — `AdvancedStats.jsx`
+- [x] **Best / worst trade of the week** — `WeeklyReview.jsx`
+- [ ] **Journal search & smart filters** — text search across notes, tag filter, date range filter in Journal tab
+- [ ] **Full-screen trade detail view** — pre/post screenshots side by side, "similar trades" section, edit/delete actions
+- [ ] **Onboarding wizard** — "What pairs do you trade?", "What's your risk per trade?", "What sessions?" — personalizes the app on first use
+- [ ] **Mobile trade cards** — swipe left/right gestures, sticky date headers with day P&L, tap-to-expand inline
+
+---
+
+### TIER 4 — Power Features
+
+- [ ] **Trade import** — CSV with column mapping UI, MT4/MT5 statement parser, duplicate detection
+- [ ] **Risk journal ($ P&L)** — optional account size field, running balance, max drawdown in dollars, risk exposure view
+- [ ] **Trade correlation & sequence analysis**
+  - "After a 2+ loss streak, what happens next?"
+  - "How does your first trade of the day compare to your second?"
+  - Show as visual mini-reports in Analytics
+- [ ] **Offline PWA** — service worker, IndexedDB queue, sync on reconnect (manifest.json already exists)
+
+---
+
+### TIER 5 — Architecture & Performance
+
+- [ ] **Virtualized lists** — Journal + Gallery render all trades in DOM; use `react-window` or intersection observer at 500+ trades
+- [ ] **Optimistic updates** — update state immediately on save, sync in background, show error only on failure
+- [ ] **Image optimization** — compress to WebP client-side before upload, thumbnails for list views
+
+---
+
+### Sprint Plan
+
+| Sprint | Focus |
+|--------|-------|
+| **Now** | Finish Tier 2 remaining items (keyboard shortcuts, skeleton loaders, smart defaults) |
+| **Next** | Trade Rules Engine + Global date range filter — these unlock usability at scale |
+| **After** | Proactive AI insights on Dashboard + Journal search |
+| **Later** | Trade import, mobile card redesign, full-screen detail view |
 
 ---
 
