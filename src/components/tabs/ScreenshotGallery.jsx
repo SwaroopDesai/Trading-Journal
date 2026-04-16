@@ -1,7 +1,8 @@
 "use client"
 import { useState } from "react";
-import { fmtDate, normalizeImageList } from "@/lib/utils";
-import { SectionLead, EmptyState, Btn } from "@/components/ui";
+import { PAIRS } from "@/lib/constants";
+import { fmtDate, fmtRR, normalizeImageList } from "@/lib/utils";
+import { SectionLead, EmptyState, Btn, Chip, Overlay } from "@/components/ui";
 
 function ScreenshotGallery({T,trades,onViewImg,onNewTrade,viewportWidth}) {
   const [filterPair,setFilterPair]=useState("ALL")
