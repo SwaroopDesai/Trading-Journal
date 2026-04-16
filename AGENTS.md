@@ -113,6 +113,7 @@ Tab components are **read-only consumers** — they receive data as props and ca
 
 1. **Never redefine** anything from `ui.jsx`, `constants.js`, or `utils.js` inline in a component.
 2. **Never put** data-fetching or Supabase calls inside tab components — only in `page.jsx`.
+3. **Always verify imports match usage** — the build will pass even if a variable is used but not imported (runtime crash, not compile error). After editing any component, scan the JSX for every variable/component used and confirm it appears in the import block.
 3. **DailyModal** is a named export from `tabs/DailyTab.jsx`. **WeeklyModal** is a named export from `tabs/WeeklyTab.jsx`. Import them like: `import DailyTab, { DailyModal } from "@/components/tabs/DailyTab"`.
 4. **EquityCurve** uses `ResizeObserver` for width — do not pass a fixed `width` prop.
 5. All new UI primitives go in `components/ui.jsx`, not scattered across feature files.
