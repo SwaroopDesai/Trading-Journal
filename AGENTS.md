@@ -1,228 +1,177 @@
-# Trading Journal — Agent Handoff
+# Trading Journal — Agent Context
 
-> Read this entire file before touching any code.
-> It covers architecture, all recent changes, and rules for safe edits.
+> Read this before touching any code. It will save you from repeating work or breaking things.
 
 ---
 
 ## Stack
 
-| Layer | Tech |
-|---|---|
-| Framework | Next.js 15 App Router (`src/app/`) |
-| Auth + DB | Supabase (client in `src/lib/supabase.js`) |
-| Styling | **Inline JS objects only** — no Tailwind classes used anywhere |
-| Charting | Hand-rolled SVG — no chart libraries |
-| AI | Gemini 1.5 Flash via `/api/screenshot-autofill` |
-| Deploy | Vercel (auto-deploys on push to `main`) |
+- **Framework**: Next.js 16 (App Router, `"use client"` pages)
+- **Database**: Supabase (auth + Postgres)
+- **Styling**: Inline styles only — no Tailwind classes in components, design tokens via `T = dark ? DARK : LIGHT`
+- **State**: React `useState` / `useMemo` — no Redux or Zustand
+- **Language**: JavaScript (`.jsx`) — no TypeScript
 
 ---
 
-## File Map — start here
+## Project Structure
 
 ```
 src/
-  app/
-    page.jsx              ← Main app shell (tabs, auth, state, data fetching)
-                            ~3000 lines — be surgical, don't rewrite wholesale
-    layout.js             ← Root layout / fonts
-    globals.css           ← Minimal global resets only
-    api/
-      screenshot-autofill/
-        route.js          ← POST handler: image → Gemini Vision → trade fields
-  components/
-    EquityCurve.jsx       ← Smooth equity curve chart (ResizeObserver + monotone spline)
-    TradeModal.jsx        ← Log/edit trade modal (Quick Log + Screenshot Autofill)
-    ui.jsx                ← ALL shared UI primitives (Btn, Card, Toggle, Inp, Sel, etc.)
-  lib/
-    constants.js          ← All option arrays (PAIRS, SESSIONS, BIASES, etc.) + theme objects
-    utils.js              ← All pure helpers (fmtDate, fmtRR, calcStats, getAutoSession, etc.)
-    supabase.js           ← Supabase client (browser-safe singleton)
+├── app/
+│   ├── page.jsx              ← App shell only (~491 lines). Contains: state, data fetching,
+│   │                           save handlers, layout, modal wiring, buildCSS(). DO NOT bloat this.
+│   ├── globals.css           ← Mobile layout rules (sidebar hide, bottom-nav show, padding)
+│   ├── dashboard/page.jsx    ← /dashboard route
+│   ├── login/page.jsx        ← /login route
+│   └── api/
+│       ├── analysis/         ← AI trade analysis endpoint
+│       ├── news/             ← Market news endpoint
+│       ├── screenshot-autofill/  ← Screenshot → trade fields via AI
+│       └── weekly-debrief/   ← Weekly AI debrief endpoint
+│
+├── components/
+│   ├── ui.jsx                ← ALL shared primitives (Btn, Card, Inp, Sel, Toggle, Textarea,
+│   │                           ModalShell, Chip, Badge, Overlay, TabPanel, BottomNav, etc.)
+│   │                           ALWAYS check here before building a new primitive.
+│   ├── TradeModal.jsx        ← Trade entry/edit modal
+│   ├── EquityCurve.jsx       ← Equity chart (uses ResizeObserver, NOT hardcoded width)
+│   ├── AdvancedStats.jsx     ← Stats breakdown table
+│   ├── WeeklyCalendar.jsx    ← Calendar grid component
+│   ├── Psychology.jsx        ← Psychology tab content
+│   ├── Calculator.jsx        ← Risk calculator
+│   ├── MoreMenu.jsx          ← "More" tab menu
+│   ├── LoginScreen.jsx       ← Login UI
+│   └── tabs/                 ← One file per tab (extracted from monolith April 2026)
+│       ├── Dashboard.jsx
+│       ├── Journal.jsx
+│       ├── DailyTab.jsx      ← named export: DailyModal
+│       ├── WeeklyTab.jsx     ← named export: WeeklyModal
+│       ├── Analytics.jsx
+│       ├── ScreenshotGallery.jsx
+│       ├── WeeklyReview.jsx
+│       ├── Heatmap.jsx
+│       ├── Playbook.jsx
+│       ├── AIAnalysis.jsx
+│       └── ExportTab.jsx
+│
+└── lib/
+    ├── constants.js          ← PAIRS, SESSIONS, SETUPS, BIASES, MISTAKES, EMOTIONS,
+    │                           POI_TYPES, MANI_TYPES, HIGH_IMPACT, SESSION_WINDOWS,
+    │                           TRADE_BOOT_FIELDS, DAILY_BOOT_FIELDS, WEEKLY_BOOT_FIELDS,
+    │                           STORAGE_BUCKET, TAB_STORAGE_KEY, DARK, LIGHT, CHECKLIST_RULES
+    ├── utils.js              ← fmtDate, fmtRR, getWeeklyPairNotes, getDailyPairNotes,
+    │                           uploadImageValue, uploadImageList, deleteStoredImages,
+    │                           getDailyPlanImages, getWeeklyPlanImages, normalizeImageList,
+    │                           getCurrentSessionInfo, getAutoSession, readDraft, writeDraft,
+    │                           clearDraft, serializeDailyPairNotes
+    └── supabase.js           ← createClient()
 ```
 
 ---
 
-## Theme system
+## Theme System
 
-All colors come from `T` (theme object) passed as a prop. Never hardcode colors.
-
-```js
-// T object shape (from src/lib/constants.js — DARK and LIGHT themes)
-T.bg          // page background
-T.surface     // card background
-T.surface2    // secondary surface
-T.border      // border color
-T.text        // primary text
-T.textDim     // secondary text
-T.muted       // muted/label text
-T.accent      // accent (purple)
-T.accentBright// brighter accent
-T.green       // profit / win
-T.red         // loss
-T.amber       // warning / breakeven
-```
-
-Every component receives `T` as a prop and uses it for all style values.
-
----
-
-## UI primitives (src/components/ui.jsx)
-
-**Always import from here — never re-implement these.**
+Every component receives `T` as a prop — never hardcode colours.
 
 ```js
-import { ModalShell, Btn, FL, Section, Inp, Sel, Toggle,
-         Textarea, PasteImageInput, Card, CardTitle,
-         EmptyState, Chip, Badge, SessionPill } from "@/components/ui";
-```
+// In page.jsx
+const T = dark ? DARK : LIGHT   // DARK and LIGHT imported from @/lib/constants
 
-Key components:
-- `<ModalShell T footer title subtitle onClose width>` — wraps modals
-- `<Btn T ghost onClick>` — standard button
-- `<Toggle T value opts onChange>` — pill group switcher
-- `<Sel T val opts on>` — styled select
-- `<Inp T type value onChange ...>` — styled input
-- `<FL label T full>` — form field wrapper with label
-- `<Section T title>` — form section with divider
-- `<PasteImageInput T label value onChange>` — screenshot paste/upload input
-- `<EmptyState T title copy icon compact>` — empty state card
-
----
-
-## Data shape
-
-### Trade object (as stored in Supabase)
-```js
-{
-  id, user_id, created_at,
-  date,        // "YYYY-MM-DD"
-  pair,        // "EURUSD"
-  direction,   // "LONG" | "SHORT"
-  session,     // "London" | "New York" | "Asian" | "London/NY Overlap"
-  dailyBias,   // "Bullish" | "Bearish" | "Neutral"
-  manipulation,// string from MANI_TYPES
-  poi,         // string from POI_TYPES
-  setup,       // string from SETUPS
-  entry, sl, tp, // numbers
-  result,      // "WIN" | "LOSS" | "BREAKEVEN"
-  rr,          // number (negative for losses, 0 for BE)
-  pips,        // number
-  emotion,     // string from EMOTIONS
-  mistakes,    // string from MISTAKES
-  notes,       // string
-  preScreenshot,  // base64 data URL or ""
-  postScreenshot, // base64 data URL or ""
-  tags,        // string[] (stored as text[], rendered as comma-separated in form)
+// In any component
+function MyComponent({ T }) {
+  return <div style={{ background: T.surface, color: T.text }}>...</div>
 }
 ```
 
-### equityCurve array (computed in page.jsx → calcStats)
-```js
-// Each element:
-{ r: number,      // cumulative R at this point
-  rr: number,     // this trade's R
-  result: string, // "WIN" | "LOSS" | "BREAKEVEN"
-  date: string,   // "YYYY-MM-DD"
-  pair: string }
-```
+**Available token keys**: `bg`, `surface`, `surface2`, `border`, `text`, `textDim`,
+`accent`, `accentBright`, `green`, `red`, `amber`, `blue`
 
 ---
 
-## Key patterns in page.jsx
+## Data Flow
 
-### State hierarchy
 ```
-trades[]          ← raw Supabase rows
-stats             ← derived from calcStats(trades) — never mutate directly
-activeTab         ← "home" | "journal" | "analytics" | "playbook" | "settings"
-showTradeModal    ← boolean
-editingTrade      ← trade object | null
+Supabase
+  └─ page.jsx (fetches on mount, owns all state arrays)
+       ├─ trades[]        → Journal, Dashboard, Analytics, Heatmap, ScreenshotGallery, etc.
+       ├─ dailyPlans[]    → DailyTab, Dashboard, AIAnalysis, ExportTab
+       └─ weeklyPlans[]   → WeeklyTab, WeeklyReview, Dashboard, ExportTab
+
+Save handlers live in page.jsx:
+  saveTrade(data)    → upserts to supabase, updates trades[] state
+  saveDaily(data)    → upserts to supabase, updates dailyPlans[] state
+  saveWeekly(data)   → upserts to supabase, updates weeklyPlans[] state
 ```
 
-### Adding a new tab
-1. Add tab id to the `TABS` array near the top of page.jsx
-2. Add a render block inside the tab switch in the return JSX
-3. Keep the component extracted into its own function (pattern: `function MyTab({T, ...})`)
-
-### Saving a trade
-```js
-// onSave handler in page.jsx calls:
-await supabase.from("trades").upsert({ ...trade, user_id })
-// then refreshes: setTrades(await fetchTrades())
-```
+Tab components are **read-only consumers** — they receive data as props and call
+`onSave` / `onEdit` / `onDelete` callbacks. They never call Supabase directly.
 
 ---
 
-## EquityCurve (src/components/EquityCurve.jsx)
+## Rules
 
-The chart is SVG-based with no external libraries.
+1. **Never redefine** anything from `ui.jsx`, `constants.js`, or `utils.js` inline in a component.
+2. **Never put** data-fetching or Supabase calls inside tab components — only in `page.jsx`.
+3. **DailyModal** is a named export from `tabs/DailyTab.jsx`. **WeeklyModal** is a named export from `tabs/WeeklyTab.jsx`. Import them like: `import DailyTab, { DailyModal } from "@/components/tabs/DailyTab"`.
+4. **EquityCurve** uses `ResizeObserver` for width — do not pass a fixed `width` prop.
+5. All new UI primitives go in `components/ui.jsx`, not scattered across feature files.
+6. Run `npm run build` before committing — zero errors required.
 
-**How it works:**
-1. `ResizeObserver` measures the container's actual pixel width → sets `size.w` and `size.h`
-2. SVG is drawn at those exact pixel dimensions (no `preserveAspectRatio` distortion)
-3. Curve uses **monotone cubic Hermite spline** (`smoothPath()` function) — smooth without overshoot
-4. Time range filter recomputes cumulative R fresh from filtered trades
+---
 
-**Props:**
-```jsx
-<EquityCurve T={T} data={stats.equityCurve} />
+## What Was Done (April 2026)
+
+| Commit | What |
+|--------|------|
+| `b566862` | Fix responsive layout — CSS media queries replacing JS viewport detection |
+| `0752e96` | Default viewportWidth to 0 (mobile-first) |
+| `2c3f23e` | Restore direct window.innerWidth read |
+| `b72a6f2` | Move margin-left to globals.css |
+| `7b8777c` | Fix EquityCurve hardcoded 900px width causing mobile overflow |
+| `4f471fd` | **Tier 1 refactor** — split 3196-line page.jsx monolith into dedicated component files |
+
+---
+
+## Roadmap
+
+### Tier 1 — Foundations (DONE)
+- Split `page.jsx` monolith into separate component files
+- Remove duplicate inline component definitions
+- Fix mobile layout overflow
+
+### Tier 2 — UX Polish (START HERE)
+- [ ] **Keyboard shortcuts**: `N` = new trade, `J` = journal tab, `D` = daily tab, `Esc` = close modal
+- [ ] **Skeleton loaders**: replace the full-page `<Spinner>` with per-section skeleton cards
+- [ ] **Unsaved changes guard**: confirm dialog when closing a modal with dirty fields
+- [ ] **Smarter empty states**: actionable CTAs ("Log your first trade →") instead of plain text
+- [ ] **Toast deduplication**: don't stack identical toasts within 2 seconds
+
+### Tier 3 — Analytics Depth
+- [ ] Running equity curve with max drawdown overlay
+- [ ] Monthly P&L calendar heatmap (green/red cells by day)
+- [ ] Setup performance table (win rate + avg R per setup)
+- [ ] Best / worst trade of the week auto-highlight
+
+### Tier 4 — Intelligence
+- [ ] AI pattern detection: surface repeated mistakes from trade notes
+- [ ] Rule-break tagging: "Did you follow your plan?" checkbox on each trade
+- [ ] Session-aware suggestions: warn if trading outside your best session window
+
+### Tier 5 — Scale & Polish
+- [ ] PWA manifest + service worker for offline access
+- [ ] Dark/light preference persisted to Supabase user profile
+- [ ] Trade import from CSV / MT4 export format
+
+---
+
+## Dev Commands
+
+```bash
+npm run dev      # local dev server at localhost:3000
+npm run build    # production build (must pass before any commit)
+npm run lint     # ESLint check
 ```
 
-**Do not:**
-- Add `preserveAspectRatio="none"` — it warps bezier curves into staircases
-- Use viewBox scaling for responsiveness — use ResizeObserver instead
-
----
-
-## TradeModal (src/components/TradeModal.jsx)
-
-**Features:**
-- **Quick Log mode** (`⚡` toggle) — shows only Pair, Direction, Result, P&L; auto-fills Session from current time via `getAutoSession()`
-- **Screenshot Autofill** (`📷` button) — uploads chart screenshot → POST `/api/screenshot-autofill` → Gemini Vision extracts trade data → pre-fills form fields
-- Draft persistence via `readDraft/writeDraft/clearDraft` (localStorage, keyed by userId)
-
-**Props:**
-```jsx
-<TradeModal
-  T={T}
-  userId={user.id}
-  initial={editingTrade}   // null for new, trade object for edit
-  onSave={handleSave}
-  onClose={() => setShowTradeModal(false)}
-  syncing={syncing}
-/>
-```
-
----
-
-## Screenshot Autofill API (src/app/api/screenshot-autofill/route.js)
-
-- **Method:** POST
-- **Body:** `{ image: "data:image/png;base64,..." }`
-- **Returns:** `{ data: { pair, direction, entry, sl, tp, result, rr, pips, setup, notes } }`
-- **Env var required:** `GEMINI_API_KEY`
-- Uses `gemini-1.5-flash` model
-
----
-
-## Environment variables
-
-Set these in Vercel dashboard (Settings → Environment Variables):
-
-| Key | Used for |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
-| `GEMINI_API_KEY` | Screenshot autofill via Gemini Vision |
-
----
-
-## Rules for safe edits
-
-1. **Never touch the styling approach** — all styles are inline JS objects using `T.*` colors
-2. **Don't add npm packages for UI** — all primitives are in `ui.jsx`
-3. **Don't add charting libraries** — SVG only
-4. **page.jsx is large (~3000 lines)** — use surgical edits, not rewrites. Read the specific section you need with line offsets before editing
-5. **After any page.jsx edit** — verify with `grep -n "function " src/app/page.jsx` to confirm component boundaries are intact
-6. **Supabase schema lives in the dashboard** — don't assume columns exist; check the trade object shape above
-7. **Mobile breakpoint** — `isMobile` state in page.jsx (set via `window.innerWidth < 768`), passed to components that need it
+Environment variables are in `.env.local` (not committed).
+Required keys: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `OPENAI_API_KEY`
