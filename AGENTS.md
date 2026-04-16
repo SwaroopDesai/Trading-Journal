@@ -143,15 +143,16 @@ Tab components are **read-only consumers** — they receive data as props and ca
 ### Tier 2 — UX Polish (START HERE)
 - [ ] **Keyboard shortcuts**: `N` = new trade, `J` = journal tab, `D` = daily tab, `Esc` = close modal
 - [ ] **Skeleton loaders**: replace the full-page `<Spinner>` with per-section skeleton cards
-- [ ] **Unsaved changes guard**: confirm dialog when closing a modal with dirty fields
-- [ ] **Smarter empty states**: actionable CTAs ("Log your first trade →") instead of plain text
-- [ ] **Toast deduplication**: don't stack identical toasts within 2 seconds
+- [x] **Unsaved changes guard**: confirm dialog when closing a modal with dirty fields
+- [x] **Smarter empty states**: actionable CTAs ("Log your first trade →") instead of plain text
+- [x] **Toast deduplication**: don't stack identical toasts within 2 seconds
 
-### Tier 3 — Analytics Depth
-- [ ] Running equity curve with max drawdown overlay
-- [ ] Monthly P&L calendar heatmap (green/red cells by day)
-- [ ] Setup performance table (win rate + avg R per setup)
-- [ ] Best / worst trade of the week auto-highlight
+### Tier 3 — Analytics Depth (ALREADY BUILT)
+- [x] Running equity curve with max drawdown overlay — `EquityCurve.jsx`
+- [x] Monthly P&L calendar heatmap — `Heatmap.jsx` (calendar + monthly bar views)
+- [x] Session / day-of-week heatmap grid — `Heatmap.jsx` + `AdvancedStats.jsx`
+- [x] Streak tracking (win/loss streaks) — `AdvancedStats.jsx`
+- [x] Best / worst trade of the week — `WeeklyReview.jsx` (auto-surfaced per week)
 
 ### Tier 4 — Intelligence
 - [ ] AI pattern detection: surface repeated mistakes from trade notes
