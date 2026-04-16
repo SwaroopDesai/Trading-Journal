@@ -1,7 +1,7 @@
 "use client"
 import { useState, useMemo } from "react";
 import { PAIRS, SESSIONS, SETUPS } from "@/lib/constants";
-import { fmtDate, normalizeImageList } from "@/lib/utils";
+import { fmtDate, fmtRR, normalizeImageList } from "@/lib/utils";
 import { Card, CardTitle, SectionLead, Btn, Chip, EmptyState, Badge, Overlay } from "@/components/ui";
 
 function Heatmap({T, trades, viewportWidth, onViewImg}) {

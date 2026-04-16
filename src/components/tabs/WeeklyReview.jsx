@@ -1,7 +1,7 @@
 "use client"
 import { useState, useCallback } from "react";
 import { CHECKLIST_RULES } from "@/lib/constants";
-import { fmtDate, getWeeklyPairNotes } from "@/lib/utils";
+import { fmtDate, fmtRR, getWeeklyPairNotes } from "@/lib/utils";
 import { Card, CardTitle, Btn, SectionLead, EmptyState, Textarea, Badge, Overlay } from "@/components/ui";
 
 function WeeklyReview({T,weeklyPlans,trades,saveWeekly,onNewWeekly,viewportWidth}) {
