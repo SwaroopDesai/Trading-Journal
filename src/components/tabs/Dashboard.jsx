@@ -3,7 +3,7 @@ import { Card, CardTitle, EmptyState, Btn, Badge } from "@/components/ui";
 import EquityCurve from "@/components/EquityCurve";
 import { fmtDate, fmtRR, getWeeklyPairNotes } from "@/lib/utils";
 
-function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,viewportWidth}) {
+function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,onNewWeekly,viewportWidth}) {
   const today = new Date().toISOString().split("T")[0]
   const todayTrades = trades.filter(t=>t.date===today)
   const latestDaily = [...dailyPlans].sort((a,b)=>new Date(b.date)-new Date(a.date))[0]
@@ -91,7 +91,7 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,
                 </>}
                 {latestWeekly.notes&&<div style={{fontSize:12,color:T.textDim,lineHeight:1.6}}>{latestWeekly.notes}</div>}
               </div>
-            :<EmptyState T={T} compact title="No weekly plan yet" copy="Set the weekly bias, key events, and pair notes before the sessions start." />
+            :<EmptyState T={T} compact title="No weekly plan yet" copy="Map the week before the sessions open so your daily plans have real context behind them." action={<Btn T={T} onClick={onNewWeekly}>+ Weekly Plan</Btn>} />
           }
         </Card>
 

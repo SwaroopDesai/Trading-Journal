@@ -153,9 +153,9 @@ Tab components are **read-only consumers** — they receive data as props and ca
 - [x] **Toast deduplication** — `toastDedupRef` in `page.jsx`, 2s window
 - [x] **Unsaved changes guard** — confirm dialog on modal close with dirty fields
 - [x] **Smarter empty states** — actionable CTAs (e.g. WeeklyReview, Dashboard)
-- [ ] **Keyboard shortcuts** — `N` = new trade, `J` = journal, `D` = daily, `Esc` = close modal
-- [ ] **Skeleton loaders** — replace full-page `<Spinner>` with per-section skeleton cards
-- [ ] **Smart defaults & one-tap logging**
+- [x] **Keyboard shortcuts** — `N` = new trade, `J` = journal, `D` = daily, `Esc` = close modal
+- [x] **Skeleton loaders** — replace full-page `<Spinner>` with per-section skeleton cards
+- [x] **Smart defaults & one-tap logging**
   - Auto-detect current session from the session clock (already computed — just pre-fill it)
   - Pre-fill pair from last trade, bias from today's daily plan
   - "Repeat last trade" button — same pair/session, just change result/RR

@@ -1,8 +1,10 @@
 "use client"
 import { useState } from "react";
 import { SESSIONS, SETUPS, MANI_TYPES } from "@/lib/constants";
-import { Card, CardTitle, EmptyState, Chip } from "@/components/ui";
+import { Card, CardTitle, EmptyState, Chip, Btn } from "@/components/ui";
 import AdvancedStats from "@/components/AdvancedStats";
+import EquityCurve from "@/components/EquityCurve";
+import WeeklyCalendar from "@/components/WeeklyCalendar";
 
 function filterTradesByRange(trades, range) {
   if (range === "all" || !trades.length) return trades;
@@ -14,7 +16,7 @@ function filterTradesByRange(trades, range) {
   return trades.filter(t => t.date && new Date(t.date) >= cutoff);
 }
 
-function Analytics({T,stats,trades,viewportWidth}) {
+function Analytics({T,stats,trades,onNewTrade,viewportWidth}) {
   const [range, setRange] = useState("all");
   const ft = filterTradesByRange(trades, range);
   const byManip=MANI_TYPES.filter(m=>m!=="None").map(m=>{const t=ft.filter(x=>x.manipulation===m);return{m,count:t.length,wins:t.filter(x=>x.result==="WIN").length}}).filter(x=>x.count>0)
@@ -25,7 +27,7 @@ function Analytics({T,stats,trades,viewportWidth}) {
   const bestSession = [...bySession].sort((a,b)=>b.totalR-a.totalR)[0]
   const bestSetup = [...bySetup].sort((a,b)=>b.totalR-a.totalR)[0]
   const cleanestManip = [...byManip].sort((a,b)=>(b.wins/b.count)-(a.wins/a.count))[0]
-  const E=<EmptyState T={T} compact title="Analytics wakes up after a few trades" copy="Once you log a small sample, sessions, setups, and manipulation patterns will start showing you where your edge actually lives." />
+  const E=<EmptyState T={T} compact title="Analytics wakes up after a few trades" copy="A few clean logs are enough to surface where your edge is strongest and where your leaks keep showing up." action={<Btn T={T} onClick={onNewTrade}>+ Log Trade</Btn>} />
 
   const BarRow=({label,wins,count,totalR,color})=>(
     <div style={{display:"flex",alignItems:"center",gap:10,padding:"6px 0",borderBottom:`1px solid ${T.border}`}}>

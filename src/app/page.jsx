@@ -2,8 +2,8 @@
 import { createClient } from "@/lib/supabase";
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { DARK, LIGHT, PAIRS, SESSIONS, TAB_STORAGE_KEY, TRADE_BOOT_FIELDS, DAILY_BOOT_FIELDS, WEEKLY_BOOT_FIELDS } from "@/lib/constants";
-import { getCurrentSessionInfo, uploadImageValue, uploadImageList, deleteStoredImages, getDailyPlanImages, getWeeklyPlanImages, clearDraft } from "@/lib/utils";
-import { Spinner, TabPanel, BottomNav, Overlay, HeaderMeta, SessionPill } from "@/components/ui";
+import { getCurrentSessionInfo, uploadImageValue, uploadImageList, deleteStoredImages, getDailyPlanImages, getWeeklyPlanImages, clearDraft, serializeImageList, getAutoSession } from "@/lib/utils";
+import { Spinner, AppShellSkeleton, TabPanel, BottomNav, Overlay, HeaderMeta, SessionPill } from "@/components/ui";
 import TradeModal from "@/components/TradeModal";
 import Psychology from "@/components/Psychology";
 import Calculator from "@/components/Calculator";
@@ -49,6 +49,7 @@ export default function App() {
   const [toasts,setToasts] = useState([])
   const scrollPositionsRef = useRef({})
   const restoreFrameRef = useRef(null)
+  const toastDedupRef = useRef(new Map())
 
   useEffect(()=>{
     supabase.auth.getSession().then(({data:{session}})=>{ setUser(session?.user??null); setAuthLoading(false) })
@@ -141,7 +142,12 @@ export default function App() {
   },[tab])
 
   const showToast = useCallback((msg, type="success")=>{
-    const id = Date.now()
+    const key = `${type}:${msg}`
+    const now = Date.now()
+    const lastShown = toastDedupRef.current.get(key) || 0
+    if(now - lastShown < 2000) return
+    toastDedupRef.current.set(key, now)
+    const id = now + Math.random()
     setToasts(t=>[...t,{id,msg,type}])
     setTimeout(()=>setToasts(t=>t.filter(x=>x.id!==id)), 3000)
   },[])
@@ -152,11 +158,18 @@ export default function App() {
       const tag=document.activeElement?.tagName
       if(tag==="INPUT"||tag==="TEXTAREA"||document.activeElement?.isContentEditable) return
       if(e.metaKey||e.ctrlKey||e.altKey) return
-      if(e.key==="n"&&!tradeModal&&!dailyModal&&!weeklyModal) setTradeModal("quick")
-      if(e.key==="d") changeTab("dashboard")
-      if(e.key==="j") changeTab("journal")
-      if(e.key==="a") changeTab("analytics")
-      if(e.key==="h") changeTab("heatmap")
+      const key = e.key.toLowerCase()
+      if(key==="escape" && (tradeModal||dailyModal||weeklyModal)){
+        e.preventDefault()
+        window.dispatchEvent(new Event("fxedge:request-modal-close"))
+        return
+      }
+      if(key==="n"&&!tradeModal&&!dailyModal&&!weeklyModal) setTradeModal("quick")
+      if(key==="d") changeTab("daily")
+      if(key==="j") changeTab("journal")
+      if(key==="w") changeTab("weekly")
+      if(key==="a") changeTab("analytics")
+      if(key==="h") changeTab("heatmap")
     }
     window.addEventListener("keydown",handler)
     return ()=>window.removeEventListener("keydown",handler)
@@ -276,6 +289,49 @@ export default function App() {
   const currentSession = useMemo(()=>getCurrentSessionInfo(new Date(sessionTick)),[sessionTick])
   const compactSession = viewportWidth < 1180
   const isMobileViewport = viewportWidth < 768
+  const todayKey = useMemo(()=>new Date().toISOString().split("T")[0],[])
+  const latestTrade = useMemo(()=>{
+    if(!trades.length) return null
+    return [...trades].sort((a,b)=>new Date(b.created_at||b.date)-new Date(a.created_at||a.date))[0]
+  },[trades])
+  const latestDailyPlan = useMemo(()=>{
+    if(!dailyPlans.length) return null
+    return [...dailyPlans].sort((a,b)=>new Date(b.created_at||b.date)-new Date(a.created_at||a.date))[0]
+  },[dailyPlans])
+  const todaysDailyPlan = useMemo(
+    ()=>dailyPlans.find(plan=>plan.date===todayKey) || latestDailyPlan,
+    [dailyPlans,latestDailyPlan,todayKey]
+  )
+  const newTradeDefaults = useMemo(()=>{
+    const defaults = { session:getAutoSession() }
+    if(latestTrade){
+      defaults.pair = latestTrade.pair || defaults.pair
+      defaults.direction = latestTrade.direction || defaults.direction
+      defaults.setup = latestTrade.setup || defaults.setup
+      defaults.emotion = latestTrade.emotion || defaults.emotion
+      defaults.dailyBias = latestTrade.dailyBias || defaults.dailyBias
+      defaults.tags = Array.isArray(latestTrade.tags) ? latestTrade.tags.join(",") : ""
+    }
+    if(todaysDailyPlan){
+      const planBiases = todaysDailyPlan.biases || {}
+      const preferredPair = defaults.pair || latestTrade?.pair
+      if(preferredPair && planBiases[preferredPair]) defaults.dailyBias = planBiases[preferredPair]
+    }
+    return defaults
+  },[latestTrade,todaysDailyPlan])
+  const repeatLastTrade = useCallback(()=>{
+    if(!latestTrade) return
+    setTradeModal({
+      ...latestTrade,
+      _dbid: undefined,
+      id: undefined,
+      created_at: undefined,
+      date: todayKey,
+      notes: "",
+      preScreenshot: "",
+      postScreenshot: "",
+    })
+  },[latestTrade,todayKey])
 
   // Mobile shows only 5 primary tabs; rest accessible via More
   const TABS=[
@@ -304,7 +360,7 @@ export default function App() {
 
   if(authLoading) return <Spinner T={T}/>
   if(!user) return <LoginScreen supabase={supabase}/>
-  if(loading) return <Spinner T={T} label="Loading your journal..."/>
+  if(loading) return <AppShellSkeleton T={T}/>
 
   return (
     <div style={{display:"flex",minHeight:"100vh",background:T.bg,color:T.text,fontFamily:"Inter,sans-serif",transition:"background .3s, color .3s"}}>
@@ -382,15 +438,15 @@ export default function App() {
         )}
 
         <div className="tab-content" style={{flex:1}}>
-          {mountedTabs.includes("dashboard")&&<TabPanel active={tab==="dashboard"}><Dashboard T={T} stats={stats} trades={trades} dailyPlans={dailyPlans} weeklyPlans={weeklyPlans} onNewTrade={()=>setTradeModal("new")} onNewDaily={()=>setDailyModal("new")} viewportWidth={viewportWidth}/></TabPanel>}
-          {mountedTabs.includes("journal")&&<TabPanel active={tab==="journal"}><Journal T={T} filtered={filtered} filterPair={filterPair} setFilterPair={setFilterPair} filterResult={filterResult} setFilterResult={setFilterResult} onEdit={t=>setTradeModal(t)} onDelete={t=>setDeleteTarget({type:"trade",dbid:t._dbid,name:`${t.pair} ${t.direction}`})} onViewImg={setImgViewer} onNew={()=>setTradeModal("new")} viewportWidth={viewportWidth}/></TabPanel>}
+          {mountedTabs.includes("dashboard")&&<TabPanel active={tab==="dashboard"}><Dashboard T={T} stats={stats} trades={trades} dailyPlans={dailyPlans} weeklyPlans={weeklyPlans} onNewTrade={()=>setTradeModal("new")} onNewDaily={()=>setDailyModal("new")} onNewWeekly={()=>setWeeklyModal("new")} viewportWidth={viewportWidth}/></TabPanel>}
+          {mountedTabs.includes("journal")&&<TabPanel active={tab==="journal"}><Journal T={T} filtered={filtered} filterPair={filterPair} setFilterPair={setFilterPair} filterResult={filterResult} setFilterResult={setFilterResult} onEdit={t=>setTradeModal(t)} onDelete={t=>setDeleteTarget({type:"trade",dbid:t._dbid,name:`${t.pair} ${t.direction}`})} onViewImg={setImgViewer} onNew={()=>setTradeModal("new")} onRepeatLast={latestTrade?repeatLastTrade:null} viewportWidth={viewportWidth}/></TabPanel>}
           {mountedTabs.includes("daily")&&<TabPanel active={tab==="daily"}><DailyTab T={T} plans={dailyPlans} onEdit={p=>setDailyModal(p)} onDelete={p=>setDeleteTarget({type:"daily",dbid:p._dbid,name:`Daily ${p.date}`})} onViewImg={setImgViewer} onNew={()=>setDailyModal("new")}/></TabPanel>}
           {mountedTabs.includes("weekly")&&<TabPanel active={tab==="weekly"}><WeeklyTab T={T} plans={weeklyPlans} onEdit={p=>setWeeklyModal(p)} onDelete={p=>setDeleteTarget({type:"weekly",dbid:p._dbid,name:`Week ${p.weekStart}`})} onViewImg={setImgViewer} onNew={()=>setWeeklyModal("new")}/></TabPanel>}
-          {mountedTabs.includes("analytics")&&<TabPanel active={tab==="analytics"}><Analytics T={T} stats={stats} trades={trades} viewportWidth={viewportWidth}/></TabPanel>}
+          {mountedTabs.includes("analytics")&&<TabPanel active={tab==="analytics"}><Analytics T={T} stats={stats} trades={trades} onNewTrade={()=>setTradeModal("new")} viewportWidth={viewportWidth}/></TabPanel>}
           {mountedTabs.includes("psychology")&&<TabPanel active={tab==="psychology"}><Psychology T={T} stats={stats} trades={trades}/></TabPanel>}
           {mountedTabs.includes("calculator")&&<TabPanel active={tab==="calculator"}><Calculator T={T}/></TabPanel>}
-          {mountedTabs.includes("gallery")&&<TabPanel active={tab==="gallery"}><ScreenshotGallery T={T} trades={trades} onViewImg={setImgViewer} viewportWidth={viewportWidth}/></TabPanel>}
-          {mountedTabs.includes("review")&&<TabPanel active={tab==="review"}><WeeklyReview T={T} weeklyPlans={weeklyPlans} trades={trades} saveWeekly={saveWeekly} viewportWidth={viewportWidth}/></TabPanel>}
+          {mountedTabs.includes("gallery")&&<TabPanel active={tab==="gallery"}><ScreenshotGallery T={T} trades={trades} onViewImg={setImgViewer} onNewTrade={()=>setTradeModal("new")} viewportWidth={viewportWidth}/></TabPanel>}
+          {mountedTabs.includes("review")&&<TabPanel active={tab==="review"}><WeeklyReview T={T} weeklyPlans={weeklyPlans} trades={trades} saveWeekly={saveWeekly} onNewWeekly={()=>setWeeklyModal("new")} viewportWidth={viewportWidth}/></TabPanel>}
           {mountedTabs.includes("heatmap")&&<TabPanel active={tab==="heatmap"}><Heatmap T={T} trades={trades} viewportWidth={viewportWidth} onViewImg={setImgViewer}/></TabPanel>}
           {mountedTabs.includes("playbook")&&<TabPanel active={tab==="playbook"}><Playbook T={T} trades={trades}/></TabPanel>}
           {mountedTabs.includes("ai")&&<TabPanel active={tab==="ai"}><AIAnalysis T={T} trades={trades} dailyPlans={dailyPlans}/></TabPanel>}
@@ -420,7 +476,7 @@ export default function App() {
         >+</button>
       )}
 
-      {tradeModal&&<TradeModal T={T} userId={user.id} initial={tradeModal==="new"||tradeModal==="quick"?null:tradeModal} initialMode={tradeModal==="quick"?"quick":undefined} onSave={saveTrade} onClose={()=>setTradeModal(null)} syncing={syncing}/>}
+      {tradeModal&&<TradeModal T={T} userId={user.id} initial={tradeModal==="new"||tradeModal==="quick"?null:tradeModal} defaults={newTradeDefaults} initialMode={tradeModal==="quick"?"quick":undefined} onSave={saveTrade} onClose={()=>setTradeModal(null)} syncing={syncing}/>}
       {dailyModal&&<DailyModal T={T} userId={user.id} initial={dailyModal==="new"?null:dailyModal} onSave={saveDaily} onClose={()=>setDailyModal(null)} syncing={syncing}/>}
       {weeklyModal&&<WeeklyModal T={T} userId={user.id} initial={weeklyModal==="new"?null:weeklyModal} onSave={saveWeekly} onClose={()=>setWeeklyModal(null)} syncing={syncing}/>}
       {deleteTarget&&(
@@ -488,4 +544,3 @@ function buildCSS(T) {
     }
   `
 }
-

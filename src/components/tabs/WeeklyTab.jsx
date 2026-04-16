@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PAIRS, BIASES } from "@/lib/constants";
 import { fmtDate, getWeeklyPlanImages, getWeeklyPairNotes, readDraft, writeDraft, clearDraft, normalizeImageList } from "@/lib/utils";
 import { Card, Btn, SectionLead, EmptyState, Badge, FL, Inp, Sel, Toggle, Textarea, ModalShell, MultiImageInput } from "@/components/ui";
@@ -83,6 +83,9 @@ function WeeklyModal({T,userId,initial,onSave,onClose,syncing}) {
     return {...blank,premiumDiscount:{},chartImages:[],...draft}
   })
   const skipDraftWriteRef = useRef(false)
+  const normalizedBaseline = JSON.stringify(initial ? {...initial,pairNotes:getWeeklyPairNotes(initial),chartImages:getWeeklyPlanImages(initial)} : {...blank,premiumDiscount:{},chartImages:[]})
+  const normalizedCurrent = JSON.stringify(f)
+  const isDirty = normalizedCurrent !== normalizedBaseline
   const upd=(k,v)=>setF(x=>({...x,[k]:v}))
   useEffect(()=>{
     if(initial) return
@@ -102,14 +105,26 @@ function WeeklyModal({T,userId,initial,onSave,onClose,syncing}) {
     else delete premiumDiscount.__pairNotes
     onSave({...rest,overallBias:"",marketStructure:"",targets:"",premiumDiscount})
   }
-  const cancelDraft = ()=>{
+  const closeModal = ()=>{
     skipDraftWriteRef.current = true
     if(!initial) clearDraft(userId, "weekly")
     onClose()
   }
 
+  const requestClose = ()=>{
+    if(syncing) return
+    if(isDirty && !window.confirm("Discard unsaved changes?")) return
+    closeModal()
+  }
+
+  useEffect(()=>{
+    const handleRequestClose = ()=>requestClose()
+    window.addEventListener("fxedge:request-modal-close", handleRequestClose)
+    return ()=>window.removeEventListener("fxedge:request-modal-close", handleRequestClose)
+  })
+
   return (
-    <ModalShell T={T} title={initial?"Edit Weekly Plan":"New Weekly Plan"} subtitle="Keep the week simple: one macro view, key events, and quick pair-by-pair notes." onClose={onClose} width={700} footer={<><Btn T={T} onClick={submit}>{syncing?"Saving...":initial?"Update":"Save Plan"}</Btn><Btn T={T} ghost onClick={cancelDraft}>Cancel</Btn></>}>
+    <ModalShell T={T} title={initial?"Edit Weekly Plan":"New Weekly Plan"} subtitle="Keep the week simple: one macro view, key events, and quick pair-by-pair notes." onClose={requestClose} width={700} footer={<><Btn T={T} onClick={submit}>{syncing?"Saving...":initial?"Update":"Save Plan"}</Btn><Btn T={T} ghost onClick={requestClose}>Cancel</Btn></>}>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
             <FL label="Week Start" T={T}><Inp T={T} type="date" value={f.weekStart} onChange={e=>upd("weekStart",e.target.value)}/></FL>
             <FL label="Week End" T={T}><Inp T={T} type="date" value={f.weekEnd} onChange={e=>upd("weekEnd",e.target.value)}/></FL>

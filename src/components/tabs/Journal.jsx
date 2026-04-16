@@ -4,7 +4,7 @@ import { PAIRS } from "@/lib/constants";
 import { fmtDate, fmtRR } from "@/lib/utils";
 import { SectionLead, Btn, Chip, EmptyState, Badge } from "@/components/ui";
 
-function Journal({T,filtered,filterPair,setFilterPair,filterResult,setFilterResult,onEdit,onDelete,onViewImg,onNew,viewportWidth}) {
+function Journal({T,filtered,filterPair,setFilterPair,filterResult,setFilterResult,onEdit,onDelete,onViewImg,onNew,onRepeatLast,viewportWidth}) {
   const isMobile = viewportWidth < 768
   const [filterTag, setFilterTag] = useState(null);
   const allTags = [...new Set(filtered.flatMap(t => t.tags || []))].filter(Boolean).sort();
@@ -18,7 +18,12 @@ function Journal({T,filtered,filterPair,setFilterPair,filterResult,setFilterResu
           eyebrow="Execution Archive"
           title="Trade Journal"
           copy="Filter by market, result, and screenshots to review what was clean, what drifted, and what deserves repeating."
-          action={<Btn T={T} onClick={onNew}>+ Log Trade</Btn>}
+          action={
+            <div style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:isMobile?"stretch":"flex-end"}}>
+              {onRepeatLast&&<Btn T={T} ghost onClick={onRepeatLast}>Repeat Last Trade</Btn>}
+              <Btn T={T} onClick={onNew}>+ Log Trade</Btn>
+            </div>
+          }
         />
         <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:10}}>
           <div style={{background:T.surface2,border:`1px solid ${T.border}`,borderRadius:14,padding:"12px 12px 10px"}}>

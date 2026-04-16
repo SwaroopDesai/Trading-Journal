@@ -1,10 +1,10 @@
 "use client"
-import { useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PAIRS, SESSIONS, SETUPS, EMOTIONS } from "@/lib/constants";
 import { readDraft, writeDraft, clearDraft, getAutoSession } from "@/lib/utils";
 import { ModalShell, Btn, FL, Section, Inp, Sel, Toggle, Textarea, PasteImageInput } from "@/components/ui";
 
-export default function TradeModal({T, userId, initial, onSave, onClose, syncing, initialMode}) {
+export default function TradeModal({T, userId, initial, defaults, onSave, onClose, syncing, initialMode}) {
   const blank = {
     pair:"EURUSD", date:new Date().toISOString().split("T")[0],
     direction:"LONG", session:"London", dailyBias:"Bullish",
@@ -16,10 +16,22 @@ export default function TradeModal({T, userId, initial, onSave, onClose, syncing
     killzone:"", weeklyBias:"", marketProfile:"",
     manipulation:"", poi:"", mistakes:"None",
   };
+  const baseBlank = useMemo(()=>({...blank,...(defaults||{})}),[defaults]);
+  const getInitialState = useMemo(
+    ()=>initial ? {...initial, tags:(initial.tags||[]).join(",")} : {...baseBlank, ...(readDraft(userId,"trade")||{})},
+    [baseBlank, initial, userId]
+  );
 
-  const [f, setF]         = useState(() => initial ? {...initial, tags:(initial.tags||[]).join(",")} : {...blank, ...(readDraft(userId,"trade")||{})});
+  const [f, setF]         = useState(() => getInitialState);
   const [quickLog, setQL] = useState(initialMode === "quick");
   const skipDraftRef      = useRef(false);
+  const normalizedBaseline = JSON.stringify(initial ? {...initial, tags:(initial.tags||[]).join(",")} : baseBlank);
+  const normalizedCurrent = JSON.stringify(f);
+  const isDirty = normalizedCurrent !== normalizedBaseline;
+
+  useEffect(()=>{
+    setF(getInitialState);
+  },[getInitialState]);
 
   const upd = (k, v) => setF(x => {
     const next = {...x, [k]:v};
@@ -48,16 +60,28 @@ export default function TradeModal({T, userId, initial, onSave, onClose, syncing
     });
   };
 
-  const cancelDraft = () => {
+  const closeModal = () => {
     skipDraftRef.current = true;
     if(!initial) clearDraft(userId, "trade");
     onClose();
   };
 
+  const requestClose = () => {
+    if(syncing) return;
+    if(isDirty && !window.confirm("Discard unsaved changes?")) return;
+    closeModal();
+  };
+
+  useEffect(()=>{
+    const handleRequestClose = ()=>requestClose();
+    window.addEventListener("fxedge:request-modal-close", handleRequestClose);
+    return ()=>window.removeEventListener("fxedge:request-modal-close", handleRequestClose);
+  });
+
   const footer = (
     <>
       <Btn T={T} onClick={submit}>{syncing ? "Saving..." : initial ? "Update Trade" : "Log Trade"}</Btn>
-      <Btn T={T} ghost onClick={cancelDraft}>Cancel</Btn>
+      <Btn T={T} ghost onClick={requestClose}>Cancel</Btn>
     </>
   );
 
@@ -65,7 +89,7 @@ export default function TradeModal({T, userId, initial, onSave, onClose, syncing
   if(quickLog) return (
     <ModalShell T={T} title={initial ? "Edit Trade" : "Log New Trade"}
       subtitle="Quick Log — minimal fields, fast entry."
-      onClose={onClose} width={580} footer={footer}>
+      onClose={requestClose} width={580} footer={footer}>
 
       <button onClick={() => setQL(false)} style={{
         background:`${T.accent}20`, border:`1px solid ${T.accentBright}`,
@@ -97,7 +121,7 @@ export default function TradeModal({T, userId, initial, onSave, onClose, syncing
   return (
     <ModalShell T={T} title={initial ? "Edit Trade" : "Log New Trade"}
       subtitle="Full log — capture everything."
-      onClose={onClose} width={620} footer={footer}>
+      onClose={requestClose} width={620} footer={footer}>
 
       <button onClick={() => { setQL(true); upd("session", getAutoSession()); }} style={{
         background:"none", border:`1px solid ${T.border}`,

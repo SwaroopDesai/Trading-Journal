@@ -16,6 +16,77 @@ export function Spinner({T,label}) {
   )
 }
 
+export function AppShellSkeleton({T}) {
+  const th = T||DARK
+  const pulse = {
+    background:`linear-gradient(90deg, ${th.surface2} 0%, ${th.border} 50%, ${th.surface2} 100%)`,
+    backgroundSize:"220% 100%",
+    animation:"skeletonPulse 1.4s ease-in-out infinite",
+  }
+  const block = (style={}) => <div style={{borderRadius:12,...pulse,...style}} />
+  return (
+    <div style={{display:"flex",minHeight:"100vh",background:th.bg,color:th.text}}>
+      <style>{`
+        @keyframes skeletonPulse {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+      `}</style>
+      <nav style={{width:200,background:th.surface,borderRight:`1px solid ${th.border}`,padding:"22px 16px",display:"flex",flexDirection:"column",gap:12}}>
+        {block({width:96,height:24,borderRadius:10})}
+        {block({width:52,height:10,borderRadius:999,opacity:.7,marginBottom:8})}
+        {[...Array(9)].map((_,i)=>(
+          <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 6px"}}>
+            {block({width:18,height:18,borderRadius:6})}
+            {block({width:i % 3 === 0 ? 92 : 76,height:12,borderRadius:999})}
+          </div>
+        ))}
+        <div style={{flex:1}} />
+        {block({width:"100%",height:34,borderRadius:10})}
+        {block({width:"100%",height:34,borderRadius:10})}
+      </nav>
+      <main style={{flex:1,display:"flex",flexDirection:"column"}}>
+        <div style={{padding:"14px 28px",borderBottom:`1px solid ${th.border}`,background:th.surface,display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:20}}>
+          <div style={{minWidth:0}}>
+            {block({width:110,height:10,borderRadius:999,marginBottom:14})}
+            {block({width:210,height:34,borderRadius:12,marginBottom:12})}
+            {block({width:190,height:14,borderRadius:999})}
+          </div>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:10}}>
+            {block({width:78,height:38,borderRadius:999})}
+            {block({width:220,height:66,borderRadius:18})}
+          </div>
+        </div>
+        <div style={{padding:"24px 28px",display:"flex",flexDirection:"column",gap:18}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",gap:14}}>
+            {[...Array(4)].map((_,i)=>(
+              <div key={i} style={{background:th.surface,border:`1px solid ${th.border}`,borderRadius:18,padding:"18px 18px 16px",boxShadow:`0 10px 28px ${th.cardGlow}`}}>
+                {block({width:92,height:22,borderRadius:999,marginBottom:16})}
+                {block({width:64,height:10,borderRadius:999,marginBottom:10})}
+                {block({width:i === 3 ? 88 : 98,height:30,borderRadius:12,marginBottom:12})}
+                {block({width:"72%",height:12,borderRadius:999,marginBottom:16})}
+                {block({width:"100%",height:4,borderRadius:999})}
+              </div>
+            ))}
+          </div>
+          <div style={{background:th.surface,border:`1px solid ${th.border}`,borderRadius:18,padding:"20px 22px"}}>
+            {block({width:120,height:12,borderRadius:999,marginBottom:18})}
+            {block({width:"100%",height:250,borderRadius:16})}
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:14}}>
+            {[...Array(2)].map((_,i)=>(
+              <div key={i} style={{background:th.surface,border:`1px solid ${th.border}`,borderRadius:18,padding:"20px 22px"}}>
+                {block({width:110,height:12,borderRadius:999,marginBottom:16})}
+                {block({width:"100%",height:i===0?180:220,borderRadius:16})}
+              </div>
+            ))}
+          </div>
+        </div>
+      </main>
+    </div>
+  )
+}
+
 // ─── Overlay / Modal backdrop ──────────────────────────────────────────────
 export function Overlay({onClose,children}){
   return (

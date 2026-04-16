@@ -1,5 +1,5 @@
 "use client"
-import { useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PAIRS, BIASES, HIGH_IMPACT } from "@/lib/constants";
 import { fmtDate, getDailyPlanImages, getDailyPairNotes, serializeDailyPairNotes, readDraft, writeDraft, clearDraft, normalizeImageList } from "@/lib/utils";
 import { Card, Btn, SectionLead, EmptyState, Badge, FL, Inp, Sel, Toggle, Textarea, ModalShell, MultiImageInput } from "@/components/ui";
@@ -82,6 +82,9 @@ function DailyModal({T,userId,initial,onSave,onClose,syncing}) {
     return {...blank,chartImages:[],...draft}
   })
   const skipDraftWriteRef = useRef(false)
+  const normalizedBaseline = JSON.stringify(initial ? {...initial,pairNotes:getDailyPairNotes(initial),chartImages:getDailyPlanImages(initial)} : {...blank,chartImages:[]})
+  const normalizedCurrent = JSON.stringify(f)
+  const isDirty = normalizedCurrent !== normalizedBaseline
   const upd=(k,v)=>setF(x=>({...x,[k]:v}))
   useEffect(()=>{
     if(initial) return
@@ -95,14 +98,26 @@ function DailyModal({T,userId,initial,onSave,onClose,syncing}) {
     const {chartImages,pairNotes,...rest}=f
     onSave({...rest,keyLevels:"",notes:"",watchlist:serializeDailyPairNotes(pairNotes),chartImage:serializeImageList(chartImages)})
   }
-  const cancelDraft = ()=>{
+  const closeModal = ()=>{
     skipDraftWriteRef.current = true
     if(!initial) clearDraft(userId, "daily")
     onClose()
   }
 
+  const requestClose = ()=>{
+    if(syncing) return
+    if(isDirty && !window.confirm("Discard unsaved changes?")) return
+    closeModal()
+  }
+
+  useEffect(()=>{
+    const handleRequestClose = ()=>requestClose()
+    window.addEventListener("fxedge:request-modal-close", handleRequestClose)
+    return ()=>window.removeEventListener("fxedge:request-modal-close", handleRequestClose)
+  })
+
   return (
-    <ModalShell T={T} title={initial?"Edit Daily Plan":"New Daily Plan"} subtitle="Keep the day simple: pair bias, pair notes, session expectation, and screenshots." onClose={onClose} width={700} footer={<><Btn T={T} onClick={submit}>{syncing?"Saving...":initial?"Update":"Save Plan"}</Btn><Btn T={T} ghost onClick={cancelDraft}>Cancel</Btn></>}>
+    <ModalShell T={T} title={initial?"Edit Daily Plan":"New Daily Plan"} subtitle="Keep the day simple: pair bias, pair notes, session expectation, and screenshots." onClose={requestClose} width={700} footer={<><Btn T={T} onClick={submit}>{syncing?"Saving...":initial?"Update":"Save Plan"}</Btn><Btn T={T} ghost onClick={requestClose}>Cancel</Btn></>}>
           <FL label="Date" T={T}><Inp T={T} type="date" value={f.date} onChange={e=>upd("date",e.target.value)}/></FL>
           <Section T={T} title="Pairs in Focus">
             <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{PAIRS.map(p=><Chip key={p} T={T} active={f.pairs?.includes(p)} onClick={()=>togglePair(p)}>{p}</Chip>)}</div>
