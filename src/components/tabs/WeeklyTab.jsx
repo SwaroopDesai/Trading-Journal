@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { PAIRS, BIASES } from "@/lib/constants";
 import { fmtDate, getWeeklyPlanImages, getWeeklyPairNotes, readDraft, writeDraft, clearDraft, normalizeImageList } from "@/lib/utils";
-import { Card, Btn, SectionLead, EmptyState, Badge, FL, Inp, Sel, Toggle, Textarea, ModalShell, MultiImageInput } from "@/components/ui";
+import { Card, Btn, SectionLead, EmptyState, Badge, FL, Inp, Sel, Toggle, Textarea, ModalShell, MultiImageInput, Section } from "@/components/ui";
 import WeeklyCalendar from "@/components/WeeklyCalendar";
 
 function WeeklyTab({T,plans,onEdit,onDelete,onViewImg,onNew}) {

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { PAIRS, BIASES, HIGH_IMPACT } from "@/lib/constants";
 import { fmtDate, getDailyPlanImages, getDailyPairNotes, serializeDailyPairNotes, readDraft, writeDraft, clearDraft, normalizeImageList } from "@/lib/utils";
-import { Card, Btn, SectionLead, EmptyState, Badge, FL, Inp, Sel, Toggle, Textarea, ModalShell, MultiImageInput } from "@/components/ui";
+import { Card, Btn, SectionLead, EmptyState, Badge, FL, Inp, Sel, Toggle, Textarea, ModalShell, MultiImageInput, Section, Chip } from "@/components/ui";
 
 function DailyTab({T,plans,onEdit,onDelete,onViewImg,onNew}) {
   const sorted=[...plans].sort((a,b)=>new Date(b.date)-new Date(a.date))

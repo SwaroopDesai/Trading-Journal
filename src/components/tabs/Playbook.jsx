@@ -2,7 +2,7 @@
 import { useState, useCallback } from "react";
 import { SETUPS, SESSIONS, PAIRS } from "@/lib/constants";
 import { fmtDate, fmtRR } from "@/lib/utils";
-import { Card, CardTitle, Btn, SectionLead, EmptyState, Chip, Badge, FL, Inp, Sel, Textarea, ModalShell, Toggle } from "@/components/ui";
+import { Card, CardTitle, Btn, SectionLead, EmptyState, Chip, Badge, FL, Inp, Sel, Textarea, ModalShell, Toggle, Overlay } from "@/components/ui";
 
 function Playbook({T, trades}) {
   const [playbooks, setPlaybooks] = useState(() => {

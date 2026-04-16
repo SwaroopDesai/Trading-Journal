@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { PAIRS } from "@/lib/constants";
 import { fmtDate, fmtRR, normalizeImageList } from "@/lib/utils";
-import { SectionLead, EmptyState, Btn, Chip, Overlay } from "@/components/ui";
+import { SectionLead, EmptyState, Btn, Chip, Overlay, Badge } from "@/components/ui";
 
 function ScreenshotGallery({T,trades,onViewImg,onNewTrade,viewportWidth}) {
   const [filterPair,setFilterPair]=useState("ALL")
