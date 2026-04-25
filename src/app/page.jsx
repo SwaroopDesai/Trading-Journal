@@ -22,7 +22,8 @@ import Playbook from "@/components/tabs/Playbook";
 import AIAnalysis from "@/components/tabs/AIAnalysis";
 import ExportTab from "@/components/tabs/ExportTab"
 import MissedTrades from "@/components/tabs/MissedTrades"
-import MissedTradeModal from "@/components/MissedTradeModal";
+import MissedTradeModal from "@/components/MissedTradeModal"
+import EconomicCalendar from "@/components/tabs/EconomicCalendar";
 
 export default function App() {
   const supabase = createClient()
@@ -407,6 +408,7 @@ export default function App() {
     {id:"review",icon:"✍️",label:"Review",mobile:false},
     {id:"ai",icon:"✨",label:"AI Analysis",mobile:false},
     {id:"missed",icon:"👁",label:"Missed",mobile:false},
+    {id:"calendar",icon:"📰",label:"Calendar",mobile:false},
     {id:"export",icon:"📤",label:"Export",mobile:false},
   ]
   const ALL_TABS=TABS.filter(t=>t.id!=="more")
@@ -549,6 +551,7 @@ export default function App() {
           {mountedTabs.includes("playbook")&&<TabPanel active={tab==="playbook"}><Playbook T={T} trades={dateFiltered}/></TabPanel>}
           {mountedTabs.includes("ai")&&<TabPanel active={tab==="ai"}><AIAnalysis T={T} trades={dateFiltered} dailyPlans={dailyPlans}/></TabPanel>}
           {mountedTabs.includes("missed")&&<TabPanel active={tab==="missed"}><MissedTrades T={T} trades={dateFiltered} missedTrades={missedTrades} onNew={()=>setMissedTradeModal("new")} onEdit={m=>setMissedTradeModal(m)} onDelete={m=>setDeleteTarget({type:"missed",dbid:m._dbid,name:`${m.pair} ${m.direction} – ${m.reason}`})} viewportWidth={viewportWidth}/></TabPanel>}
+          {mountedTabs.includes("calendar")&&<TabPanel active={tab==="calendar"}><EconomicCalendar T={T} viewportWidth={viewportWidth}/></TabPanel>}
           {mountedTabs.includes("export")&&<TabPanel active={tab==="export"}><ExportTab T={T} trades={dateFiltered} dailyPlans={dailyPlans} weeklyPlans={weeklyPlans}/></TabPanel>}
           {mountedTabs.includes("more")&&<TabPanel active={tab==="more"}><MoreMenu T={T} setTab={changeTab} ALL_TABS={ALL_TABS}/></TabPanel>}
         </div>

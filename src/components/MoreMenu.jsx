@@ -28,6 +28,7 @@ export default function MoreMenu({T, setTab, ALL_TABS}) {
                 {t.id==="daily"&&"Set your bias, levels, and session plan before the open."}
                 {t.id==="analytics"&&"Break down performance trends, sessions, and setups."}
                 {t.id==="missed"&&"Log setups you saw but didn't take — track your opportunity cost."}
+                {t.id==="calendar"&&"High-impact economic events with live countdown and Prev/Fcst/Actual."}
                 {t.id==="weekly"&&"Plan the week with clearer structure, bias, and focus."}
                 {t.id==="mind"&&"Track psychology, mistakes, and emotional consistency."}
                 {t.id==="playbook"&&"Turn your best setups into repeatable execution rules."}
