@@ -1,7 +1,7 @@
 "use client"
 import { createClient } from "@/lib/supabase";
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { THEMES, THEME_META, DARK, LIGHT, PAIRS, SESSIONS, TAB_STORAGE_KEY, TRADE_BOOT_FIELDS, DAILY_BOOT_FIELDS, WEEKLY_BOOT_FIELDS } from "@/lib/constants";
+import { THEMES, THEME_META, DARK, LIGHT, PAIRS, SESSIONS, TAB_STORAGE_KEY, TRADE_BOOT_FIELDS, DAILY_BOOT_FIELDS, WEEKLY_BOOT_FIELDS, MISSED_BOOT_FIELDS } from "@/lib/constants";
 import { getCurrentSessionInfo, uploadImageValue, uploadImageList, deleteStoredImages, getDailyPlanImages, getWeeklyPlanImages, clearDraft, serializeImageList, getAutoSession } from "@/lib/utils";
 import { Spinner, AppShellSkeleton, TabPanel, BottomNav, Overlay, HeaderMeta, SessionPill } from "@/components/ui";
 import DateRangeBar from "@/components/DateRangeBar";
@@ -20,7 +20,9 @@ import WeeklyReview from "@/components/tabs/WeeklyReview";
 import Heatmap from "@/components/tabs/Heatmap";
 import Playbook from "@/components/tabs/Playbook";
 import AIAnalysis from "@/components/tabs/AIAnalysis";
-import ExportTab from "@/components/tabs/ExportTab";
+import ExportTab from "@/components/tabs/ExportTab"
+import MissedTrades from "@/components/tabs/MissedTrades"
+import MissedTradeModal from "@/components/MissedTradeModal";
 
 export default function App() {
   const supabase = createClient()
@@ -41,6 +43,8 @@ export default function App() {
   const [tradeModal,setTradeModal] = useState(null)
   const [dailyModal,setDailyModal] = useState(null)
   const [weeklyModal,setWeeklyModal] = useState(null)
+  const [missedTrades,setMissedTrades] = useState([])
+  const [missedTradeModal,setMissedTradeModal] = useState(null)
   const [filterPair,setFilterPair] = useState("ALL")
   const [filterResult,setFilterResult] = useState("ALL")
   const [datePreset,setDatePreset] = useState("all")
@@ -109,15 +113,17 @@ export default function App() {
     if(!user) return
     setLoading(true); setError(null)
     try {
-      const [t,d,w] = await Promise.all([
+      const [t,d,w,m] = await Promise.all([
         supabase.from("trades").select(TRADE_BOOT_FIELDS).eq("user_id",user.id).order("created_at",{ascending:false}),
         supabase.from("daily_plans").select(DAILY_BOOT_FIELDS).eq("user_id",user.id).order("created_at",{ascending:false}),
         supabase.from("weekly_plans").select(WEEKLY_BOOT_FIELDS).eq("user_id",user.id).order("created_at",{ascending:false}),
+        supabase.from("missed_trades").select(MISSED_BOOT_FIELDS).eq("user_id",user.id).order("created_at",{ascending:false}),
       ])
       if(t.error)throw t.error; if(d.error)throw d.error; if(w.error)throw w.error
       setTrades((t.data||[]).map(r=>({...r,_dbid:r.id})))
       setDailyPlans((d.data||[]).map(r=>({...r,_dbid:r.id})))
       setWeeklyPlans((w.data||[]).map(r=>({...r,_dbid:r.id})))
+      setMissedTrades((m.data||[]).map(r=>({...r,_dbid:r.id})))
       hydrateMedia()
     } catch(e){ setError("Failed to load: "+e.message) }
     finally{ setLoading(false) }
@@ -249,10 +255,30 @@ export default function App() {
     finally{ setSyncing(false) }
   }
 
+  const saveMissedTrade = async(m)=>{
+    setSyncing(true)
+    try {
+      const payload = { ...m, user_id:user.id }
+      delete payload._dbid; delete payload.id; delete payload.created_at
+      const isEdit = !!m._dbid
+      if(m._dbid){
+        await supabase.from("missed_trades").update(payload).eq("id",m._dbid).eq("user_id",user.id)
+        setMissedTrades(ms=>ms.map(x=>x._dbid===m._dbid?{...payload,_dbid:m._dbid}:x))
+      } else {
+        const {data,error}=await supabase.from("missed_trades").insert([payload]).select()
+        if(error)throw error
+        setMissedTrades(ms=>[{...data[0],_dbid:data[0].id},...ms])
+      }
+      setMissedTradeModal(null)
+      showToast(isEdit?"Missed trade updated ✓":"Missed trade logged ✓")
+    } catch(e){ setError("Failed to save: "+e.message) }
+    finally{ setSyncing(false) }
+  }
+
   const confirmDelete = async()=>{
     setSyncing(true)
     try {
-      const tbl={trade:"trades",daily:"daily_plans",weekly:"weekly_plans"}[deleteTarget.type]
+      const tbl={trade:"trades",daily:"daily_plans",weekly:"weekly_plans",missed:"missed_trades"}[deleteTarget.type]
       const current =
         deleteTarget.type==="trade" ? trades.find(x=>x._dbid===deleteTarget.dbid) :
         deleteTarget.type==="daily" ? dailyPlans.find(x=>x._dbid===deleteTarget.dbid) :
@@ -264,9 +290,10 @@ export default function App() {
         if(deleteTarget.type==="daily") await deleteStoredImages(supabase, getDailyPlanImages(current))
         if(deleteTarget.type==="weekly") await deleteStoredImages(supabase, getWeeklyPlanImages(current))
       }
-      if(deleteTarget.type==="trade") setTrades(ts=>ts.filter(x=>x._dbid!==deleteTarget.dbid))
-      if(deleteTarget.type==="daily") setDailyPlans(ps=>ps.filter(x=>x._dbid!==deleteTarget.dbid))
-      if(deleteTarget.type==="weekly") setWeeklyPlans(ps=>ps.filter(x=>x._dbid!==deleteTarget.dbid))
+      if(deleteTarget.type==="trade")   setTrades(ts=>ts.filter(x=>x._dbid!==deleteTarget.dbid))
+      if(deleteTarget.type==="daily")   setDailyPlans(ps=>ps.filter(x=>x._dbid!==deleteTarget.dbid))
+      if(deleteTarget.type==="weekly")  setWeeklyPlans(ps=>ps.filter(x=>x._dbid!==deleteTarget.dbid))
+      if(deleteTarget.type==="missed")  setMissedTrades(ms=>ms.filter(x=>x._dbid!==deleteTarget.dbid))
       setDeleteTarget(null)
       showToast("Deleted")
     } catch(e){ setError("Failed to delete: "+e.message) }
@@ -379,6 +406,7 @@ export default function App() {
     {id:"gallery",icon:"🖼️",label:"Gallery",mobile:false},
     {id:"review",icon:"✍️",label:"Review",mobile:false},
     {id:"ai",icon:"✨",label:"AI Analysis",mobile:false},
+    {id:"missed",icon:"👁",label:"Missed",mobile:false},
     {id:"export",icon:"📤",label:"Export",mobile:false},
   ]
   const ALL_TABS=TABS.filter(t=>t.id!=="more")
@@ -520,6 +548,7 @@ export default function App() {
           {mountedTabs.includes("heatmap")&&<TabPanel active={tab==="heatmap"}><Heatmap T={T} trades={dateFiltered} viewportWidth={viewportWidth} onViewImg={setImgViewer}/></TabPanel>}
           {mountedTabs.includes("playbook")&&<TabPanel active={tab==="playbook"}><Playbook T={T} trades={dateFiltered}/></TabPanel>}
           {mountedTabs.includes("ai")&&<TabPanel active={tab==="ai"}><AIAnalysis T={T} trades={dateFiltered} dailyPlans={dailyPlans}/></TabPanel>}
+          {mountedTabs.includes("missed")&&<TabPanel active={tab==="missed"}><MissedTrades T={T} trades={dateFiltered} missedTrades={missedTrades} onNew={()=>setMissedTradeModal("new")} onEdit={m=>setMissedTradeModal(m)} onDelete={m=>setDeleteTarget({type:"missed",dbid:m._dbid,name:`${m.pair} ${m.direction} – ${m.reason}`})} viewportWidth={viewportWidth}/></TabPanel>}
           {mountedTabs.includes("export")&&<TabPanel active={tab==="export"}><ExportTab T={T} trades={dateFiltered} dailyPlans={dailyPlans} weeklyPlans={weeklyPlans}/></TabPanel>}
           {mountedTabs.includes("more")&&<TabPanel active={tab==="more"}><MoreMenu T={T} setTab={changeTab} ALL_TABS={ALL_TABS}/></TabPanel>}
         </div>
@@ -547,6 +576,7 @@ export default function App() {
       )}
 
       {tradeModal&&<TradeModal T={T} userId={user.id} initial={tradeModal==="new"||tradeModal==="quick"?null:tradeModal} defaults={newTradeDefaults} initialMode={tradeModal==="quick"?"quick":undefined} onSave={saveTrade} onClose={()=>setTradeModal(null)} syncing={syncing}/>}
+      {missedTradeModal&&<MissedTradeModal T={T} initial={missedTradeModal==="new"?null:missedTradeModal} onSave={saveMissedTrade} onClose={()=>setMissedTradeModal(null)} syncing={syncing}/>}
       {dailyModal&&<DailyModal T={T} userId={user.id} initial={dailyModal==="new"?null:dailyModal} onSave={saveDaily} onClose={()=>setDailyModal(null)} syncing={syncing}/>}
       {weeklyModal&&<WeeklyModal T={T} userId={user.id} initial={weeklyModal==="new"?null:weeklyModal} onSave={saveWeekly} onClose={()=>setWeeklyModal(null)} syncing={syncing}/>}
       {deleteTarget&&(

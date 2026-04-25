@@ -20,6 +20,9 @@ export const SESSION_WINDOWS = [
 export const TRADE_BOOT_FIELDS  = "id,created_at,pair,date,direction,session,killzone,dailyBias,weeklyBias,marketProfile,manipulation,poi,setup,entry,sl,tp,result,rr,pips,emotion,mistakes,notes,tags";
 export const DAILY_BOOT_FIELDS  = "id,created_at,date,pairs,biases,weeklyTheme,keyLevels,manipulation,watchlist,notes";
 export const WEEKLY_BOOT_FIELDS = "id,created_at,weekStart,weekEnd,pairs,keyEvents,notes,review,premiumDiscount";
+export const MISSED_BOOT_FIELDS = "id,created_at,date,pair,direction,setup,reason,entry,sl,tp,rr,outcome,notes";
+
+export const MISSED_REASONS = ["Hesitation","Fear","Too Late","No Confirmation","Not at Screen","News Event","Risk Too High","Already in Trade","Other"];
 
 // Storage / localStorage keys
 export const STORAGE_BUCKET         = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || "journal-images";
