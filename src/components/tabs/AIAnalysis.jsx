@@ -197,7 +197,7 @@ Be concise, direct and actionable.`
         )}
       </div>
 
-      {error&&<div style={{background:"#450a0a",border:"1px solid #991b1b",color:"#fca5a5",padding:"12px 16px",borderRadius:10,fontSize:13,marginBottom:14}}>{error}</div>}
+      {error&&<div style={{background:`${T.red}18`,border:`1px solid ${T.red}60`,color:T.red,padding:"12px 16px",borderRadius:10,fontSize:13,marginBottom:14}}>{error}</div>}
 
       {loading&&(
         <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:18,padding:"32px",textAlign:"center",boxShadow:`0 16px 40px ${T.cardGlow}`}}>

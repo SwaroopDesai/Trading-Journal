@@ -39,6 +39,7 @@ body {
   .pill-label { max-width: 80px !important; }
 }
 
+/* ── Animations ── */
 @keyframes tabFadeIn {
   from { opacity: 0; transform: translateY(5px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -47,4 +48,27 @@ body {
 @keyframes toastIn {
   from { opacity: 0; transform: translateY(10px) scale(0.95); }
   to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+/* ── Focus visible ring (keyboard nav) ── */
+.fx-btn:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.25);
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Image lazy load fade-in ── */
+img[loading="lazy"] {
+  transition: opacity 0.3s ease;
 }

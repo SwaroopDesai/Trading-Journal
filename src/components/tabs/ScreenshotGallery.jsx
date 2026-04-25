@@ -37,7 +37,7 @@ function ScreenshotGallery({T,trades,onViewImg,onNewTrade,viewportWidth}) {
             {images.map((img,i)=>(
               <div key={i} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,overflow:"hidden",cursor:"pointer",transition:"border-color .15s,transform .15s"}} onMouseEnter={e=>{e.currentTarget.style.borderColor=T.accentBright;e.currentTarget.style.transform="translateY(-2px)"}} onMouseLeave={e=>{e.currentTarget.style.borderColor=T.border;e.currentTarget.style.transform="none"}} onClick={()=>setSelected(img)}>
                 <div style={{position:"relative",paddingTop:"56%",background:T.surface2,overflow:"hidden"}}>
-                  <img loading="lazy" src={img.src} alt="chart" style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",objectFit:"cover"}}/>
+                  <img loading="lazy" src={img.src} alt={`${img.trade.pair} ${img.type} screenshot`} style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",objectFit:"cover"}}/>
                   <div style={{position:"absolute",top:6,left:6,background:"rgba(0,0,0,.75)",borderRadius:6,padding:"2px 8px",fontSize:10,fontWeight:700,color:"#fff"}}>{img.type}</div>
                   <div style={{position:"absolute",top:6,right:6,background:img.trade.result==="WIN"?T.green:img.trade.result==="LOSS"?T.red:T.amber,borderRadius:6,padding:"2px 8px",fontSize:10,fontWeight:700,color:"#fff"}}>{img.trade.result}</div>
                 </div>
