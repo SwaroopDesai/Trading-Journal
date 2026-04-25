@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { DARK, LIGHT, PAIRS, SESSIONS, TAB_STORAGE_KEY, TRADE_BOOT_FIELDS, DAILY_BOOT_FIELDS, WEEKLY_BOOT_FIELDS } from "@/lib/constants";
 import { getCurrentSessionInfo, uploadImageValue, uploadImageList, deleteStoredImages, getDailyPlanImages, getWeeklyPlanImages, clearDraft, serializeImageList, getAutoSession } from "@/lib/utils";
 import { Spinner, AppShellSkeleton, TabPanel, BottomNav, Overlay, HeaderMeta, SessionPill } from "@/components/ui";
+import DateRangeBar from "@/components/DateRangeBar";
 import TradeModal from "@/components/TradeModal";
 import Psychology from "@/components/Psychology";
 import Calculator from "@/components/Calculator";
@@ -42,6 +43,7 @@ export default function App() {
   const [weeklyModal,setWeeklyModal] = useState(null)
   const [filterPair,setFilterPair] = useState("ALL")
   const [filterResult,setFilterResult] = useState("ALL")
+  const [datePreset,setDatePreset] = useState("all")
   const [dismissedStreak,setDismissedStreak] = useState(null)
   const [deleteTarget,setDeleteTarget] = useState(null)
   const [imgViewer,setImgViewer] = useState(null)
@@ -258,8 +260,21 @@ export default function App() {
 
   const signOut = async()=>{ await supabase.auth.signOut(); setTrades([]); setDailyPlans([]); setWeeklyPlans([]) }
 
+  const dateFiltered = useMemo(()=>{
+    if(datePreset==="all") return trades
+    const now = new Date()
+    const cutoff = new Date(now)
+    if(datePreset==="7d")  cutoff.setDate(now.getDate()-7)
+    else if(datePreset==="30d") cutoff.setDate(now.getDate()-30)
+    else if(datePreset==="3m")  cutoff.setMonth(now.getMonth()-3)
+    else if(datePreset==="6m")  cutoff.setMonth(now.getMonth()-6)
+    else if(datePreset==="1y")  cutoff.setFullYear(now.getFullYear()-1)
+    const cutStr = cutoff.toISOString().split("T")[0]
+    return trades.filter(t=>t.date>=cutStr)
+  },[trades,datePreset])
+
   const stats = useMemo(()=>{
-    const t=trades, wins=t.filter(x=>x.result==="WIN"), losses=t.filter(x=>x.result==="LOSS"), be=t.filter(x=>x.result==="BREAKEVEN")
+    const t=dateFiltered, wins=t.filter(x=>x.result==="WIN"), losses=t.filter(x=>x.result==="LOSS"), be=t.filter(x=>x.result==="BREAKEVEN")
     const totalR=t.reduce((s,x)=>s+(x.rr||0),0), avgRR=wins.length?wins.reduce((s,x)=>s+x.rr,0)/wins.length:0, winRate=t.length?(wins.length/t.length)*100:0
     const byPair=PAIRS.map(p=>{ const pt=t.filter(x=>x.pair===p); return{pair:p,count:pt.length,wins:pt.filter(x=>x.result==="WIN").length,totalR:pt.reduce((s,x)=>s+(x.rr||0),0)} })
     const bySession=SESSIONS.map(s=>{ const st=t.filter(x=>x.session===s); return{session:s,count:st.length,wins:st.filter(x=>x.result==="WIN").length,totalR:st.reduce((s2,x)=>s2+(x.rr||0),0)} }).filter(x=>x.count>0)
@@ -268,7 +283,7 @@ export default function App() {
     const sortedT=[...t].sort((a,b)=>new Date(a.date)-new Date(b.date));
     sortedT.forEach(x=>{ cum+=(x.rr||0); equityCurve.push({r:cum,result:x.result,date:x.date,pair:x.pair,rr:x.rr||0}) });
     return {total:t.length,wins:wins.length,losses:losses.length,be:be.length,totalR,avgRR,winRate,byPair,bySession,equityCurve}
-  },[trades])
+  },[dateFiltered])
 
   const streakAlert = useMemo(() => {
     if (!trades.length) return null;
@@ -285,7 +300,7 @@ export default function App() {
     return null;
   }, [trades])
 
-  const filtered = useMemo(()=>trades.filter(t=>(filterPair==="ALL"||t.pair===filterPair)&&(filterResult==="ALL"||t.result===filterResult)).sort((a,b)=>new Date(b.date)-new Date(a.date)),[trades,filterPair,filterResult])
+  const filtered = useMemo(()=>dateFiltered.filter(t=>(filterPair==="ALL"||t.pair===filterPair)&&(filterResult==="ALL"||t.result===filterResult)).sort((a,b)=>new Date(b.date)-new Date(a.date)),[dateFiltered,filterPair,filterResult])
   const currentSession = useMemo(()=>getCurrentSessionInfo(new Date(sessionTick)),[sessionTick])
   const compactSession = viewportWidth < 1180
   const isMobileViewport = viewportWidth < 768
@@ -437,20 +452,24 @@ export default function App() {
           </div>
         )}
 
+        {!["daily","weekly","calculator","more"].includes(tab) && (
+          <DateRangeBar T={T} value={datePreset} onChange={setDatePreset} count={dateFiltered.length} total={trades.length}/>
+        )}
+
         <div className="tab-content" style={{flex:1}}>
-          {mountedTabs.includes("dashboard")&&<TabPanel active={tab==="dashboard"}><Dashboard T={T} stats={stats} trades={trades} dailyPlans={dailyPlans} weeklyPlans={weeklyPlans} onNewTrade={()=>setTradeModal("new")} onNewDaily={()=>setDailyModal("new")} onNewWeekly={()=>setWeeklyModal("new")} viewportWidth={viewportWidth}/></TabPanel>}
+          {mountedTabs.includes("dashboard")&&<TabPanel active={tab==="dashboard"}><Dashboard T={T} stats={stats} trades={dateFiltered} dailyPlans={dailyPlans} weeklyPlans={weeklyPlans} onNewTrade={()=>setTradeModal("new")} onNewDaily={()=>setDailyModal("new")} onNewWeekly={()=>setWeeklyModal("new")} viewportWidth={viewportWidth}/></TabPanel>}
           {mountedTabs.includes("journal")&&<TabPanel active={tab==="journal"}><Journal T={T} filtered={filtered} filterPair={filterPair} setFilterPair={setFilterPair} filterResult={filterResult} setFilterResult={setFilterResult} onEdit={t=>setTradeModal(t)} onDelete={t=>setDeleteTarget({type:"trade",dbid:t._dbid,name:`${t.pair} ${t.direction}`})} onViewImg={setImgViewer} onNew={()=>setTradeModal("new")} onRepeatLast={latestTrade?repeatLastTrade:null} viewportWidth={viewportWidth}/></TabPanel>}
           {mountedTabs.includes("daily")&&<TabPanel active={tab==="daily"}><DailyTab T={T} plans={dailyPlans} onEdit={p=>setDailyModal(p)} onDelete={p=>setDeleteTarget({type:"daily",dbid:p._dbid,name:`Daily ${p.date}`})} onViewImg={setImgViewer} onNew={()=>setDailyModal("new")}/></TabPanel>}
           {mountedTabs.includes("weekly")&&<TabPanel active={tab==="weekly"}><WeeklyTab T={T} plans={weeklyPlans} onEdit={p=>setWeeklyModal(p)} onDelete={p=>setDeleteTarget({type:"weekly",dbid:p._dbid,name:`Week ${p.weekStart}`})} onViewImg={setImgViewer} onNew={()=>setWeeklyModal("new")}/></TabPanel>}
-          {mountedTabs.includes("analytics")&&<TabPanel active={tab==="analytics"}><Analytics T={T} stats={stats} trades={trades} onNewTrade={()=>setTradeModal("new")} viewportWidth={viewportWidth}/></TabPanel>}
-          {mountedTabs.includes("psychology")&&<TabPanel active={tab==="psychology"}><Psychology T={T} stats={stats} trades={trades}/></TabPanel>}
+          {mountedTabs.includes("analytics")&&<TabPanel active={tab==="analytics"}><Analytics T={T} stats={stats} trades={dateFiltered} onNewTrade={()=>setTradeModal("new")} viewportWidth={viewportWidth}/></TabPanel>}
+          {mountedTabs.includes("psychology")&&<TabPanel active={tab==="psychology"}><Psychology T={T} stats={stats} trades={dateFiltered}/></TabPanel>}
           {mountedTabs.includes("calculator")&&<TabPanel active={tab==="calculator"}><Calculator T={T}/></TabPanel>}
-          {mountedTabs.includes("gallery")&&<TabPanel active={tab==="gallery"}><ScreenshotGallery T={T} trades={trades} onViewImg={setImgViewer} onNewTrade={()=>setTradeModal("new")} viewportWidth={viewportWidth}/></TabPanel>}
-          {mountedTabs.includes("review")&&<TabPanel active={tab==="review"}><WeeklyReview T={T} weeklyPlans={weeklyPlans} trades={trades} saveWeekly={saveWeekly} onNewWeekly={()=>setWeeklyModal("new")} viewportWidth={viewportWidth}/></TabPanel>}
-          {mountedTabs.includes("heatmap")&&<TabPanel active={tab==="heatmap"}><Heatmap T={T} trades={trades} viewportWidth={viewportWidth} onViewImg={setImgViewer}/></TabPanel>}
-          {mountedTabs.includes("playbook")&&<TabPanel active={tab==="playbook"}><Playbook T={T} trades={trades}/></TabPanel>}
-          {mountedTabs.includes("ai")&&<TabPanel active={tab==="ai"}><AIAnalysis T={T} trades={trades} dailyPlans={dailyPlans}/></TabPanel>}
-          {mountedTabs.includes("export")&&<TabPanel active={tab==="export"}><ExportTab T={T} trades={trades} dailyPlans={dailyPlans} weeklyPlans={weeklyPlans}/></TabPanel>}
+          {mountedTabs.includes("gallery")&&<TabPanel active={tab==="gallery"}><ScreenshotGallery T={T} trades={dateFiltered} onViewImg={setImgViewer} onNewTrade={()=>setTradeModal("new")} viewportWidth={viewportWidth}/></TabPanel>}
+          {mountedTabs.includes("review")&&<TabPanel active={tab==="review"}><WeeklyReview T={T} weeklyPlans={weeklyPlans} trades={dateFiltered} saveWeekly={saveWeekly} onNewWeekly={()=>setWeeklyModal("new")} viewportWidth={viewportWidth}/></TabPanel>}
+          {mountedTabs.includes("heatmap")&&<TabPanel active={tab==="heatmap"}><Heatmap T={T} trades={dateFiltered} viewportWidth={viewportWidth} onViewImg={setImgViewer}/></TabPanel>}
+          {mountedTabs.includes("playbook")&&<TabPanel active={tab==="playbook"}><Playbook T={T} trades={dateFiltered}/></TabPanel>}
+          {mountedTabs.includes("ai")&&<TabPanel active={tab==="ai"}><AIAnalysis T={T} trades={dateFiltered} dailyPlans={dailyPlans}/></TabPanel>}
+          {mountedTabs.includes("export")&&<TabPanel active={tab==="export"}><ExportTab T={T} trades={dateFiltered} dailyPlans={dailyPlans} weeklyPlans={weeklyPlans}/></TabPanel>}
           {mountedTabs.includes("more")&&<TabPanel active={tab==="more"}><MoreMenu T={T} setTab={changeTab} ALL_TABS={ALL_TABS}/></TabPanel>}
         </div>
       </main>
@@ -541,6 +560,7 @@ function buildCSS(T) {
       .topbar-right{min-width:132px !important;}
       .theme-btn{padding:8px 12px !important;font-size:12px !important;min-width:76px !important;}
       .pill-label{max-width:80px !important;}
+      .date-range-bar{padding:7px 14px !important;}
     }
   `
 }
