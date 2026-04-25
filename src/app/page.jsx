@@ -405,7 +405,7 @@ export default function App() {
         <div style={{padding:"8px 12px 0"}}>
           {SIDEBAR_PRIMARY.map(t=>(
             <button key={t.id} className={`nav-btn ${tab===t.id?"nav-active":""}`}
-              style={{color:tab===t.id?T.text:T.textDim,background:tab===t.id?`linear-gradient(135deg,${T.accent}22,${T.pink}10)`:"none",borderLeft:tab===t.id?`3px solid ${T.accentBright}`:"3px solid transparent",boxShadow:tab===t.id?`inset 0 0 0 1px ${T.accent}28`:"none"}}
+              style={{color:tab===t.id?T.text:T.textDim,background:tab===t.id?`linear-gradient(135deg,${T.accent}22,${T.pink}10)`:"none",borderLeft:tab===t.id?`3px solid ${T.accentBright}`:"3px solid transparent",boxShadow:tab===t.id?`inset 0 0 0 1px ${T.accent}35, 0 0 22px ${T.accentBright}20, inset 0 0 16px ${T.accent}12`:"none"}}
               onClick={()=>changeTab(t.id)}>
               <span className="nav-icon">{t.icon}</span>
               <span>{t.label}</span>
@@ -416,7 +416,7 @@ export default function App() {
         <div style={{padding:"0 12px"}}>
           {SIDEBAR_SECONDARY.map(t=>(
             <button key={t.id} className={`nav-btn ${tab===t.id?"nav-active":""}`}
-              style={{color:tab===t.id?T.text:T.textDim,background:tab===t.id?`linear-gradient(135deg,${T.accent}22,${T.pink}10)`:"none",borderLeft:tab===t.id?`3px solid ${T.accentBright}`:"3px solid transparent",boxShadow:tab===t.id?`inset 0 0 0 1px ${T.accent}28`:"none"}}
+              style={{color:tab===t.id?T.text:T.textDim,background:tab===t.id?`linear-gradient(135deg,${T.accent}22,${T.pink}10)`:"none",borderLeft:tab===t.id?`3px solid ${T.accentBright}`:"3px solid transparent",boxShadow:tab===t.id?`inset 0 0 0 1px ${T.accent}35, 0 0 22px ${T.accentBright}20, inset 0 0 16px ${T.accent}12`:"none"}}
               onClick={()=>changeTab(t.id)}>
               <span className="nav-icon">{t.icon}</span>
               <span>{t.label}</span>
@@ -587,7 +587,7 @@ export default function App() {
 
 function buildCSS(T) {
   return `
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap');
     * { box-sizing:border-box; margin:0; padding:0; }
     body { background:${T.bg}; font-family:Inter,sans-serif; }
     ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:${T.bg}}::-webkit-scrollbar-thumb{background:${T.border};border-radius:4px}
@@ -597,7 +597,7 @@ function buildCSS(T) {
     .nav-icon { font-size:15px; line-height:1; width:20px; text-align:center; flex-shrink:0; }
     .bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; z-index:50; }
     .topbar{padding:14px 28px;}
-    .tab-content{padding:24px 28px;}
+    .tab-content{padding:24px 28px;background-image:radial-gradient(circle,${T.muted}20 1px,transparent 1px);background-size:28px 28px;}
     .topbar-right{min-width:0;}
     .theme-btn{padding:7px 14px;font-size:13px;min-width:auto;}
     .pill-label{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -608,7 +608,7 @@ function buildCSS(T) {
       .kpi-grid{grid-template-columns:repeat(2,1fr) !important;}
       .hide-mobile{display:none !important;}
       .topbar{padding:12px 16px !important;}
-      .tab-content{padding:16px 14px !important;}
+      .tab-content{padding:16px 14px !important;background-size:22px 22px !important;}
       .topbar-right{min-width:132px !important;}
       .theme-btn{padding:8px 12px !important;font-size:12px !important;min-width:76px !important;}
       .pill-label{max-width:80px !important;}

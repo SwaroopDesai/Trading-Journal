@@ -293,12 +293,15 @@ export default function EquityCurve({ T, data = [] }) {
               <stop offset="0%"   stopColor={T.accentBright || "#8b5cf6"}/>
               <stop offset="100%" stopColor={lineColor}/>
             </linearGradient>
-            {/* Glow filter */}
-            <filter id="ec-glow" x="-30%" y="-30%" width="160%" height="160%">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+            {/* Glow filter — dramatic multi-layer bloom */}
+            <filter id="ec-glow" x="-40%" y="-80%" width="180%" height="260%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur1"/>
+              <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur2"/>
+              <feColorMatrix in="blur2" type="saturate" values="2.5" result="sat"/>
               <feMerge>
-                <feMergeNode in="blur"/>
-                <feMergeNode in="blur"/>
+                <feMergeNode in="sat"/>
+                <feMergeNode in="blur1"/>
+                <feMergeNode in="blur1"/>
                 <feMergeNode in="SourceGraphic"/>
               </feMerge>
             </filter>
@@ -336,7 +339,7 @@ export default function EquityCurve({ T, data = [] }) {
               d={line}
               fill="none"
               stroke="url(#ec-line)"
-              strokeWidth="2.5"
+              strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
               filter="url(#ec-glow)"

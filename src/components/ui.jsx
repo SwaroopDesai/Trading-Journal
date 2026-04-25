@@ -254,8 +254,11 @@ export function SessionPill({T,session,compact,mobile,open,onToggle}) {
         onClick={onToggle}
         aria-label={`${session?.label} session. ${open?"Close":"Open"} session details`}
         aria-expanded={open}
-        style={{minWidth:mobile?0:(compact?118:220),width:mobile?"100%":"auto",padding:mobile?"9px 10px":compact?"8px 10px":"10px 12px",borderRadius:18,background:tone.bg,border:`1px solid ${open?tone.dot:T.border}`,display:"flex",alignItems:"center",gap:mobile?8:10,boxShadow:open?`0 18px 36px ${tone.glow}`:`0 10px 30px ${T.cardGlow}`,cursor:"pointer",textAlign:"left"}}
+        style={{minWidth:mobile?0:(compact?118:220),width:mobile?"100%":"auto",padding:mobile?"9px 10px":compact?"8px 10px":"10px 12px",borderRadius:18,background:tone.bg,border:`1px solid ${open?tone.dot:T.border}`,display:"flex",alignItems:"center",gap:mobile?8:10,boxShadow:open?`0 18px 36px ${tone.glow}`:`0 10px 30px ${T.cardGlow}`,cursor:"pointer",textAlign:"left",position:"relative"}}
       >
+        {session?.tone !== "closed" && (
+          <span aria-label="Market open" style={{position:"absolute",top:-3,right:-3,width:9,height:9,borderRadius:"50%",background:tone.dot,border:`2px solid ${T.bg}`,animation:"livePulse 2s ease-in-out infinite",pointerEvents:"none"}}/>
+        )}
         <div style={{width:compact?28:34,height:compact?28:34,borderRadius:12,background:`linear-gradient(135deg,${tone.dot}30,${tone.dot}12)`,border:`1px solid ${tone.dot}55`,display:"grid",placeItems:"center",flexShrink:0}}>
           <span style={{fontSize:compact?10:11,fontWeight:800,color:tone.dot,letterSpacing:"0.08em"}}>{sessionCode}</span>
         </div>

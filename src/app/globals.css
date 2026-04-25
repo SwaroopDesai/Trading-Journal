@@ -72,3 +72,15 @@ body {
 img[loading="lazy"] {
   transition: opacity 0.3s ease;
 }
+
+/* ── Live session pulse dot ── */
+@keyframes livePulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.7); opacity: 0.3; }
+}
+
+/* ── Monospace numbers ── */
+.fx-num {
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}

@@ -25,6 +25,22 @@ function useCountUp(target, active, duration=1100) {
   return val
 }
 
+function HudCorners({color}) {
+  const path = "M 0 10 L 0 0 L 10 0"
+  const corners = [
+    {top:6,left:6,transform:"none"},
+    {top:6,right:6,transform:"rotate(90deg)"},
+    {bottom:6,right:6,transform:"rotate(180deg)"},
+    {bottom:6,left:6,transform:"rotate(270deg)"},
+  ]
+  return corners.map((s,i)=>(
+    <svg key={i} width="10" height="10" viewBox="0 0 10 10"
+      style={{position:"absolute",...s,pointerEvents:"none"}} aria-hidden="true">
+      <path d={path} stroke={color} strokeWidth="1.5" fill="none" strokeLinecap="square" opacity="0.55"/>
+    </svg>
+  ))
+}
+
 function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,onNewWeekly,viewportWidth,active}) {
   const today = new Date().toISOString().split("T")[0]
   const todayTrades = trades.filter(t=>t.date===today)
@@ -83,6 +99,7 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,
       <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:isMobile?10:14,marginBottom:20}}>
         {kpis.map(k=>(
           <div key={k.label} style={{background:k.gradient||T.surface,border:`1px solid ${T.border}`,borderRadius:isMobile?16:18,padding:isMobile?"14px 14px 13px":"18px 18px 16px",boxShadow:`0 10px 28px ${T.cardGlow}`,position:"relative",overflow:"hidden",minWidth:0}}>
+            <HudCorners color={k.color}/>
             <div style={{position:"absolute",inset:"0 auto auto 0",width:54,height:54,background:`radial-gradient(circle, ${k.color}18 0%, transparent 70%)`}} />
             <div style={{position:"relative"}}>
               <div style={{display:"inline-flex",alignItems:"center",gap:6,padding:isMobile?"4px 8px":"5px 10px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:999,fontSize:isMobile?9:10,fontWeight:700,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:isMobile?10:12,maxWidth:"100%"}}>
@@ -90,7 +107,7 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,
                 {k.eyebrow}
               </div>
               <div style={{fontSize:isMobile?10:11,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}}>{k.label}</div>
-              <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?22:28,fontWeight:800,color:k.color,lineHeight:1.02,letterSpacing:"-0.03em",wordBreak:"break-word"}}>{k.value}</div>
+              <div className="fx-num" style={{fontSize:isMobile?22:28,fontWeight:700,color:k.color,lineHeight:1.02,letterSpacing:"-0.02em",wordBreak:"break-word"}}>{k.value}</div>
               <div style={{fontSize:isMobile?10:11,color:T.textDim,marginTop:8,lineHeight:1.5}}>{k.sub}</div>
               <div style={{height:4,borderRadius:999,background:T.surface,marginTop:isMobile?12:14,overflow:"hidden"}}>
                 <div style={{width:k.barWidth,height:"100%",background:`linear-gradient(90deg,${k.color},${T.pink})`,borderRadius:999,transition:"width 0.9s cubic-bezier(0.16,1,0.3,1)"}} />
