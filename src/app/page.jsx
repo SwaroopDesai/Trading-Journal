@@ -1,7 +1,7 @@
 "use client"
 import { createClient } from "@/lib/supabase";
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { DARK, LIGHT, PAIRS, SESSIONS, TAB_STORAGE_KEY, TRADE_BOOT_FIELDS, DAILY_BOOT_FIELDS, WEEKLY_BOOT_FIELDS } from "@/lib/constants";
+import { THEMES, THEME_META, DARK, LIGHT, PAIRS, SESSIONS, TAB_STORAGE_KEY, TRADE_BOOT_FIELDS, DAILY_BOOT_FIELDS, WEEKLY_BOOT_FIELDS } from "@/lib/constants";
 import { getCurrentSessionInfo, uploadImageValue, uploadImageList, deleteStoredImages, getDailyPlanImages, getWeeklyPlanImages, clearDraft, serializeImageList, getAutoSession } from "@/lib/utils";
 import { Spinner, AppShellSkeleton, TabPanel, BottomNav, Overlay, HeaderMeta, SessionPill } from "@/components/ui";
 import DateRangeBar from "@/components/DateRangeBar";
@@ -26,8 +26,8 @@ export default function App() {
   const supabase = createClient()
   const [user,setUser] = useState(null)
   const [authLoading,setAuthLoading] = useState(true)
-  const [dark,setDark] = useState(true)
-  const T = dark ? DARK : LIGHT
+  const [themeKey,setThemeKey] = useState("dark-green")
+  const T = THEMES[themeKey] || DARK
   const [trades,setTrades] = useState([])
   const [dailyPlans,setDailyPlans] = useState([])
   const [weeklyPlans,setWeeklyPlans] = useState([])
@@ -54,8 +54,17 @@ export default function App() {
   const toastDedupRef = useRef(new Map())
 
   useEffect(()=>{
-    supabase.auth.getSession().then(({data:{session}})=>{ setUser(session?.user??null); setAuthLoading(false) })
-    const {data:{subscription}} = supabase.auth.onAuthStateChange((_,session)=>setUser(session?.user??null))
+    supabase.auth.getSession().then(({data:{session}})=>{
+      setUser(session?.user??null)
+      const saved = session?.user?.user_metadata?.theme
+      if(saved && THEMES[saved]) setThemeKey(saved)
+      setAuthLoading(false)
+    })
+    const {data:{subscription}} = supabase.auth.onAuthStateChange((_,session)=>{
+      setUser(session?.user??null)
+      const saved = session?.user?.user_metadata?.theme
+      if(saved && THEMES[saved]) setThemeKey(saved)
+    })
     return ()=>subscription.unsubscribe()
   },[])
 
@@ -135,6 +144,12 @@ export default function App() {
       if(restoreFrameRef.current) cancelAnimationFrame(restoreFrameRef.current)
     }
   },[tab])
+
+  const changeTheme = useCallback(async(key)=>{
+    if(!THEMES[key]) return
+    setThemeKey(key)
+    try { await supabase.auth.updateUser({ data:{ theme:key } }) } catch {}
+  },[supabase])
 
   const changeTab = useCallback((nextTab)=>{
     if(nextTab===tab) return
@@ -409,9 +424,29 @@ export default function App() {
         <div style={{flex:1}}/>
         <div style={{padding:"8px 20px",fontSize:11,color:T.muted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.email}</div>
         <div style={{padding:"4px 20px 4px",fontSize:11,color:syncing?T.amber:T.green,cursor:"pointer"}} onClick={loadAll}>{syncing?"Saving...":"Synced"}</div>
-        <button onClick={()=>setDark(!dark)} style={{margin:"6px 12px",padding:"8px 14px",background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,borderRadius:8,cursor:"pointer",fontSize:12,fontFamily:"Inter,sans-serif",textAlign:"left"}}>
-          {dark?"Light Mode":"Dark Mode"}
-        </button>
+        <div style={{margin:"6px 16px 2px"}}>
+          <div style={{fontSize:9,color:T.muted,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:8}}>Theme</div>
+          <div style={{display:"flex",gap:8,alignItems:"center"}}>
+            {THEME_META.map(tm=>(
+              <button
+                key={tm.id}
+                onClick={()=>changeTheme(tm.id)}
+                aria-label={`${tm.label} theme`}
+                title={tm.label}
+                style={{
+                  width:22,height:22,borderRadius:"50%",padding:0,cursor:"pointer",
+                  background:tm.swatch,
+                  border:themeKey===tm.id?`2px solid ${T.text}`:`2px solid ${tm.border?"#94a3b8":"transparent"}`,
+                  boxShadow:themeKey===tm.id?`0 0 0 2px ${T.accentBright}80`:"none",
+                  transition:"all .15s",flexShrink:0,
+                }}
+              />
+            ))}
+          </div>
+          <div style={{fontSize:10,color:T.textDim,marginTop:6}}>
+            {THEME_META.find(tm=>tm.id===themeKey)?.label}
+          </div>
+        </div>
         <button onClick={signOut} style={{margin:"4px 12px 16px",padding:"8px 14px",background:"none",border:`1px solid ${T.border}`,color:T.muted,borderRadius:8,cursor:"pointer",fontSize:12,fontFamily:"Inter,sans-serif",textAlign:"left"}}>Sign Out</button>
       </nav>
 
@@ -428,9 +463,23 @@ export default function App() {
             />
           </div>
           <div className="topbar-right" style={{flexShrink:0,alignSelf:"flex-start",display:"flex",flexDirection:"column",alignItems:"flex-end",gap:10}}>
-            <button onClick={()=>setDark(!dark)} aria-label="Toggle theme" className="theme-btn" style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,borderRadius:20,cursor:"pointer"}}>
-              {dark?"Light":"Dark"}
-            </button>
+            <div style={{display:"flex",gap:5,alignItems:"center"}}>
+              {THEME_META.map(tm=>(
+                <button
+                  key={tm.id}
+                  onClick={()=>changeTheme(tm.id)}
+                  aria-label={`${tm.label} theme`}
+                  title={tm.label}
+                  style={{
+                    width:18,height:18,borderRadius:"50%",padding:0,cursor:"pointer",
+                    background:tm.swatch,
+                    border:themeKey===tm.id?`2px solid ${T.text}`:`2px solid ${tm.border?"#94a3b8":"transparent"}`,
+                    boxShadow:themeKey===tm.id?`0 0 0 1px ${T.accentBright}`:"none",
+                    transition:"all .15s",flexShrink:0,
+                  }}
+                />
+              ))}
+            </div>
             <SessionPill T={T} session={currentSession} compact={compactSession||isMobileViewport} mobile={isMobileViewport} open={sessionOpen} onToggle={()=>setSessionOpen(v=>!v)}/>
           </div>
         </div>

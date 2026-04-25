@@ -27,20 +27,51 @@ export const TAB_STORAGE_KEY        = "fxedge_active_tab";
 export const DAILY_PAIR_NOTES_MARKER = "__FXEDGE_PAIR_NOTES__::";
 
 // Color themes
-export const DARK = {
+export const DARK_GREEN = {
   bg:"#0b0f0e", surface:"#131a18", surface2:"#1a2420", border:"#243330",
   text:"#e8f5f0", textDim:"#7aa898", muted:"#4a6b60",
   accent:"#059669", accentBright:"#10b981", green:"#22c55e", red:"#ef4444", amber:"#f59e0b",
   blue:"#3b82f6", pink:"#06b6d4",
-  cardGlow:"rgba(16,185,129,0.07)", isDark: true
+  cardGlow:"rgba(16,185,129,0.07)", isDark:true,
+};
+export const DARK_BLUE = {
+  bg:"#080c14", surface:"#0f1623", surface2:"#151e30", border:"#1e2d47",
+  text:"#e8f0ff", textDim:"#7090b8", muted:"#3d5070",
+  accent:"#0369a1", accentBright:"#0ea5e9", green:"#22c55e", red:"#ef4444", amber:"#f59e0b",
+  blue:"#38bdf8", pink:"#818cf8",
+  cardGlow:"rgba(14,165,233,0.07)", isDark:true,
+};
+export const DARK_AMBER = {
+  bg:"#0f0d07", surface:"#1a1608", surface2:"#231f0d", border:"#352e10",
+  text:"#fdf8e8", textDim:"#b89860", muted:"#7a6438",
+  accent:"#b45309", accentBright:"#f59e0b", green:"#22c55e", red:"#ef4444", amber:"#fbbf24",
+  blue:"#38bdf8", pink:"#fb923c",
+  cardGlow:"rgba(245,158,11,0.07)", isDark:true,
 };
 export const LIGHT = {
-  bg:"#f0f7f5", surface:"#ffffff", surface2:"#e8f5f0", border:"#c8e6dc",
-  text:"#0a1f1a", textDim:"#3d6b5e", muted:"#7aaa98",
-  accent:"#047857", accentBright:"#059669", green:"#16a34a", red:"#dc2626", amber:"#d97706",
-  blue:"#2563eb", pink:"#0891b2",
-  cardGlow:"rgba(5,150,105,0.05)", isDark: false
+  bg:"#f8fafc", surface:"#ffffff", surface2:"#f1f5f9", border:"#e2e8f0",
+  text:"#0f172a", textDim:"#64748b", muted:"#94a3b8",
+  accent:"#0369a1", accentBright:"#0ea5e9", green:"#16a34a", red:"#dc2626", amber:"#d97706",
+  blue:"#2563eb", pink:"#7c3aed",
+  cardGlow:"rgba(14,165,233,0.04)", isDark:false,
 };
+
+// Keep DARK as alias so any existing imports still work
+export const DARK = DARK_GREEN;
+
+export const THEMES = {
+  "dark-green": DARK_GREEN,
+  "dark-blue":  DARK_BLUE,
+  "dark-amber": DARK_AMBER,
+  "light":      LIGHT,
+};
+
+export const THEME_META = [
+  { id:"dark-green", label:"Forest", swatch:"#10b981", border:false },
+  { id:"dark-blue",  label:"Ocean",  swatch:"#0ea5e9", border:false },
+  { id:"dark-amber", label:"Ember",  swatch:"#f59e0b", border:false },
+  { id:"light",      label:"Light",  swatch:"#f8fafc", border:true  },
+];
 
 // Pre-trade checklist rules
 export const CHECKLIST_RULES = [
