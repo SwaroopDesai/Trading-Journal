@@ -28,18 +28,18 @@ export const DAILY_PAIR_NOTES_MARKER = "__FXEDGE_PAIR_NOTES__::";
 
 // Color themes
 export const DARK = {
-  bg:"#0f0f13", surface:"#18181f", surface2:"#22222c", border:"#2d2d3d",
-  text:"#f0f0ff", textDim:"#8888aa", muted:"#55556a",
-  accent:"#7c3aed", accentBright:"#a855f7", green:"#22c55e", red:"#ef4444", amber:"#f59e0b",
-  blue:"#3b82f6", pink:"#ec4899",
-  cardGlow:"rgba(124,58,237,0.08)", isDark: true
+  bg:"#0b0f0e", surface:"#131a18", surface2:"#1a2420", border:"#243330",
+  text:"#e8f5f0", textDim:"#7aa898", muted:"#4a6b60",
+  accent:"#059669", accentBright:"#10b981", green:"#22c55e", red:"#ef4444", amber:"#f59e0b",
+  blue:"#3b82f6", pink:"#06b6d4",
+  cardGlow:"rgba(16,185,129,0.07)", isDark: true
 };
 export const LIGHT = {
-  bg:"#f4f4f8", surface:"#ffffff", surface2:"#f0f0f5", border:"#e0e0ea",
-  text:"#12121e", textDim:"#55556a", muted:"#9090a8",
-  accent:"#7c3aed", accentBright:"#6d28d9", green:"#16a34a", red:"#dc2626", amber:"#d97706",
-  blue:"#2563eb", pink:"#db2777",
-  cardGlow:"rgba(124,58,237,0.04)", isDark: false
+  bg:"#f0f7f5", surface:"#ffffff", surface2:"#e8f5f0", border:"#c8e6dc",
+  text:"#0a1f1a", textDim:"#3d6b5e", muted:"#7aaa98",
+  accent:"#047857", accentBright:"#059669", green:"#16a34a", red:"#dc2626", amber:"#d97706",
+  blue:"#2563eb", pink:"#0891b2",
+  cardGlow:"rgba(5,150,105,0.05)", isDark: false
 };
 
 // Pre-trade checklist rules
