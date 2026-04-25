@@ -2,7 +2,7 @@
 import { HeaderMeta } from "@/components/ui";
 
 export default function MoreMenu({T, setTab, ALL_TABS}) {
-  const extra = ALL_TABS.filter(t=>!["home","journal","daily","heatmap"].includes(t.id))
+  const extra = ALL_TABS.filter(t=>!["dashboard","journal","heatmap"].includes(t.id))
   return (
     <div style={{display:"flex",flexDirection:"column",gap:18}}>
       <HeaderMeta
@@ -25,7 +25,9 @@ export default function MoreMenu({T, setTab, ALL_TABS}) {
             <div style={{display:"flex",flexDirection:"column",gap:4}}>
               <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:14,fontWeight:700,color:T.text}}>{t.label}</div>
               <div style={{fontSize:12,color:T.textDim,lineHeight:1.5}}>
+                {t.id==="daily"&&"Set your bias, levels, and session plan before the open."}
                 {t.id==="analytics"&&"Break down performance trends, sessions, and setups."}
+                {t.id==="missed"&&"Log setups you saw but didn't take — track your opportunity cost."}
                 {t.id==="weekly"&&"Plan the week with clearer structure, bias, and focus."}
                 {t.id==="mind"&&"Track psychology, mistakes, and emotional consistency."}
                 {t.id==="playbook"&&"Turn your best setups into repeatable execution rules."}

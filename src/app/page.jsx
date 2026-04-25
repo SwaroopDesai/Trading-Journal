@@ -394,11 +394,11 @@ export default function App() {
   const TABS=[
     {id:"dashboard",icon:"⊞",label:"Home",mobile:true},
     {id:"journal",icon:"📓",label:"Journal",mobile:true},
-    {id:"analytics",icon:"📊",label:"Analytics",mobile:true},
+    {id:"daily",icon:"📅",label:"Daily",mobile:true},
     {id:"heatmap",icon:"🔥",label:"Heatmap",mobile:true},
     {id:"more",icon:"···",label:"More",mobile:true},
-    // Desktop only (accessible via sidebar + More on mobile)
-    {id:"daily",icon:"📅",label:"Daily",mobile:false},
+    // Desktop sidebar + accessible via More on mobile
+    {id:"analytics",icon:"📊",label:"Analytics",mobile:false},
     {id:"weekly",icon:"🗓",label:"Weekly",mobile:false},
     {id:"psychology",icon:"🧠",label:"Mind",mobile:false},
     {id:"playbook",icon:"📋",label:"Playbook",mobile:false},
