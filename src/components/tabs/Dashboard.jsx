@@ -1,6 +1,7 @@
 "use client"
 import { Card, CardTitle, EmptyState, Btn, Badge } from "@/components/ui";
 import EquityCurve from "@/components/EquityCurve";
+import InsightCards from "@/components/InsightCards";
 import { fmtDate, fmtRR, getWeeklyPairNotes } from "@/lib/utils";
 
 function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,onNewWeekly,viewportWidth}) {
@@ -19,6 +20,7 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,
 
   return (
     <div>
+      <InsightCards T={T} trades={trades} />
       <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:isMobile?10:14,marginBottom:20}}>
         {kpis.map(k=>(
           <div key={k.label} style={{background:k.gradient||T.surface,border:`1px solid ${T.border}`,borderRadius:isMobile?16:18,padding:isMobile?"14px 14px 13px":"18px 18px 16px",boxShadow:`0 10px 28px ${T.cardGlow}`,position:"relative",overflow:"hidden",minWidth:0}}>
