@@ -261,6 +261,8 @@ export default function App() {
     try {
       const payload = { ...m, user_id:user.id }
       delete payload._dbid; delete payload.id; delete payload.created_at
+      // Coerce empty strings to null for numeric columns
+      ;["entry","sl","tp","rr"].forEach(k=>{ if(payload[k]==="") payload[k]=null })
       const isEdit = !!m._dbid
       if(m._dbid){
         await supabase.from("missed_trades").update(payload).eq("id",m._dbid).eq("user_id",user.id)
