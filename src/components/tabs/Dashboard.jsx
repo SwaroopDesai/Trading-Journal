@@ -1,30 +1,27 @@
 "use client"
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardTitle, EmptyState, Btn, Badge } from "@/components/ui";
 import EquityCurve from "@/components/EquityCurve";
 import InsightCards from "@/components/InsightCards";
 import { fmtDate, fmtRR, getWeeklyPairNotes } from "@/lib/utils";
 
-function useCountUp(target, trigger=0, duration=850) {
-  const reduced = typeof window!=="undefined" && window.matchMedia("(prefers-reduced-motion:reduce)").matches
-  const [val, setVal] = useState(reduced ? target : 0)
-  const rafRef = useRef(null)
+function useCountUp(target, active, duration=1100) {
+  const [val, setVal] = useState(0)
   useEffect(()=>{
-    if(reduced){ setVal(target); return }
-    if(rafRef.current) cancelAnimationFrame(rafRef.current)
+    if(!active) return
     setVal(0)
-    const start = performance.now()
-    const tick = (now)=>{
-      const p = Math.min((now-start)/duration, 1)
-      const e = 1 - Math.pow(1-p, 3)
-      setVal(target*e)
-      if(p<1) rafRef.current = requestAnimationFrame(tick)
-      else setVal(target)
-    }
-    rafRef.current = requestAnimationFrame(tick)
-    return ()=>{ if(rafRef.current) cancelAnimationFrame(rafRef.current) }
+    if(target === 0) return
+    let step = 0
+    const steps = 55
+    const id = setInterval(()=>{
+      step++
+      const e = 1 - Math.pow(1 - step/steps, 3)
+      setVal(target * e)
+      if(step >= steps){ clearInterval(id); setVal(target) }
+    }, duration / steps)
+    return ()=>clearInterval(id)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[target, trigger])
+  },[active, target])
   return val
 }
 
@@ -36,14 +33,10 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,
   const bestPair = [...stats.byPair].sort((a,b)=>b.totalR-a.totalR)[0]
   const isMobile = viewportWidth < 768
 
-  // Increment trigger each time the tab becomes active → restarts count-up
-  const [animTrigger, setAnimTrigger] = useState(0)
-  useEffect(()=>{ if(active) setAnimTrigger(n=>n+1) },[active])
-
-  const animTotalR   = useCountUp(stats.totalR,       animTrigger)
-  const animWinRate  = useCountUp(stats.winRate,       animTrigger)
-  const animAvgRR    = useCountUp(stats.avgRR,         animTrigger)
-  const animBestR    = useCountUp(bestPair?.totalR||0, animTrigger)
+  const animTotalR   = useCountUp(stats.totalR,       active)
+  const animWinRate  = useCountUp(stats.winRate,       active)
+  const animAvgRR    = useCountUp(stats.avgRR,         active)
+  const animBestR    = useCountUp(bestPair?.totalR||0, active)
 
   const kpis = [
     {
