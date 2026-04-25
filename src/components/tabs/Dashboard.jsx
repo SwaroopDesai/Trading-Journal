@@ -5,13 +5,14 @@ import EquityCurve from "@/components/EquityCurve";
 import InsightCards from "@/components/InsightCards";
 import { fmtDate, fmtRR, getWeeklyPairNotes } from "@/lib/utils";
 
-function useCountUp(target, duration=850) {
+function useCountUp(target, trigger=0, duration=850) {
   const reduced = typeof window!=="undefined" && window.matchMedia("(prefers-reduced-motion:reduce)").matches
   const [val, setVal] = useState(reduced ? target : 0)
   const rafRef = useRef(null)
   useEffect(()=>{
     if(reduced){ setVal(target); return }
     if(rafRef.current) cancelAnimationFrame(rafRef.current)
+    setVal(0)
     const start = performance.now()
     const tick = (now)=>{
       const p = Math.min((now-start)/duration, 1)
@@ -23,11 +24,11 @@ function useCountUp(target, duration=850) {
     rafRef.current = requestAnimationFrame(tick)
     return ()=>{ if(rafRef.current) cancelAnimationFrame(rafRef.current) }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[target])
+  },[target, trigger])
   return val
 }
 
-function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,onNewWeekly,viewportWidth}) {
+function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,onNewWeekly,viewportWidth,active}) {
   const today = new Date().toISOString().split("T")[0]
   const todayTrades = trades.filter(t=>t.date===today)
   const latestDaily = [...dailyPlans].sort((a,b)=>new Date(b.date)-new Date(a.date))[0]
@@ -35,10 +36,14 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,
   const bestPair = [...stats.byPair].sort((a,b)=>b.totalR-a.totalR)[0]
   const isMobile = viewportWidth < 768
 
-  const animTotalR   = useCountUp(stats.totalR)
-  const animWinRate  = useCountUp(stats.winRate)
-  const animAvgRR    = useCountUp(stats.avgRR)
-  const animBestR    = useCountUp(bestPair?.totalR||0)
+  // Increment trigger each time the tab becomes active → restarts count-up
+  const [animTrigger, setAnimTrigger] = useState(0)
+  useEffect(()=>{ if(active) setAnimTrigger(n=>n+1) },[active])
+
+  const animTotalR   = useCountUp(stats.totalR,       animTrigger)
+  const animWinRate  = useCountUp(stats.winRate,       animTrigger)
+  const animAvgRR    = useCountUp(stats.avgRR,         animTrigger)
+  const animBestR    = useCountUp(bestPair?.totalR||0, animTrigger)
 
   const kpis = [
     {
