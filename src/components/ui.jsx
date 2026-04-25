@@ -187,8 +187,15 @@ export function Btn({T,onClick,children,ghost,danger,disabled,ariaLabel}){
 }
 
 // ─── Card / Card title ─────────────────────────────────────────────────────
+const NOISE_URL = "data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"
+
 export function Card({T,children,style={},glow}){
-  return <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"18px 20px",boxShadow:glow?`0 4px 30px ${T.cardGlow}`:"none",...style}}>{children}</div>
+  return (
+    <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"18px 20px",boxShadow:glow?`0 4px 30px ${T.cardGlow}`:"none",position:"relative",overflow:"hidden",...style}}>
+      <div aria-hidden="true" style={{position:"absolute",inset:0,backgroundImage:`url("${NOISE_URL}")`,opacity:T.isDark?0.035:0.02,pointerEvents:"none",borderRadius:"inherit"}}/>
+      <div style={{position:"relative"}}>{children}</div>
+    </div>
+  )
 }
 
 export function CardTitle({T,children,meta}) {
@@ -346,7 +353,14 @@ export function Chip({T,active,onClick,children,ariaLabel}){
   )
 }
 
-export function Badge({color,children}){return <span style={{display:"inline-block",padding:"2px 8px",borderRadius:6,fontSize:11,fontWeight:700,background:`${color}20`,color,border:`1px solid ${color}40`}}>{children}</span>}
+export function Badge({color,children}){
+  return (
+    <span style={{display:"inline-flex",alignItems:"center",gap:5,padding:"3px 9px",borderRadius:7,fontSize:11,fontWeight:700,letterSpacing:"0.04em",background:`${color}18`,color,border:`1px solid ${color}45`,boxShadow:`inset 0 1px 0 ${color}20`,whiteSpace:"nowrap"}}>
+      <span style={{width:5,height:5,borderRadius:"50%",background:color,flexShrink:0}} aria-hidden="true"/>
+      {children}
+    </span>
+  )
+}
 
 export function Toggle({T,value,opts,onChange}){
   return (

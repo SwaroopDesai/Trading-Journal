@@ -365,7 +365,7 @@ export default function App() {
 
   // Mobile shows only 5 primary tabs; rest accessible via More
   const TABS=[
-    {id:"dashboard",icon:"🏠",label:"Home",mobile:true},
+    {id:"dashboard",icon:"⊞",label:"Home",mobile:true},
     {id:"journal",icon:"📓",label:"Journal",mobile:true},
     {id:"analytics",icon:"📊",label:"Analytics",mobile:true},
     {id:"heatmap",icon:"🔥",label:"Heatmap",mobile:true},
@@ -374,12 +374,12 @@ export default function App() {
     {id:"daily",icon:"📅",label:"Daily",mobile:false},
     {id:"weekly",icon:"🗓",label:"Weekly",mobile:false},
     {id:"psychology",icon:"🧠",label:"Mind",mobile:false},
-    {id:"playbook",icon:"PB",label:"Playbook",mobile:false},
-    {id:"calculator",icon:"CL",label:"Calculator",mobile:false},
-    {id:"gallery",icon:"GL",label:"Gallery",mobile:false},
-    {id:"review",icon:"RV",label:"Review",mobile:false},
-    {id:"ai",icon:"AI",label:"AI Analysis",mobile:false},
-    {id:"export",icon:"EX",label:"Export",mobile:false},
+    {id:"playbook",icon:"📋",label:"Playbook",mobile:false},
+    {id:"calculator",icon:"🧮",label:"Calculator",mobile:false},
+    {id:"gallery",icon:"🖼️",label:"Gallery",mobile:false},
+    {id:"review",icon:"✍️",label:"Review",mobile:false},
+    {id:"ai",icon:"✨",label:"AI Analysis",mobile:false},
+    {id:"export",icon:"📤",label:"Export",mobile:false},
   ]
   const ALL_TABS=TABS.filter(t=>t.id!=="more")
   const MOBILE_PRIMARY=TABS.filter(t=>t.mobile)
@@ -407,7 +407,8 @@ export default function App() {
             <button key={t.id} className={`nav-btn ${tab===t.id?"nav-active":""}`}
               style={{color:tab===t.id?T.text:T.textDim,background:tab===t.id?`linear-gradient(135deg,${T.accent}22,${T.pink}10)`:"none",borderLeft:tab===t.id?`3px solid ${T.accentBright}`:"3px solid transparent",boxShadow:tab===t.id?`inset 0 0 0 1px ${T.accent}28`:"none"}}
               onClick={()=>changeTab(t.id)}>
-              {t.label}
+              <span className="nav-icon">{t.icon}</span>
+              <span>{t.label}</span>
             </button>
           ))}
         </div>
@@ -417,7 +418,8 @@ export default function App() {
             <button key={t.id} className={`nav-btn ${tab===t.id?"nav-active":""}`}
               style={{color:tab===t.id?T.text:T.textDim,background:tab===t.id?`linear-gradient(135deg,${T.accent}22,${T.pink}10)`:"none",borderLeft:tab===t.id?`3px solid ${T.accentBright}`:"3px solid transparent",boxShadow:tab===t.id?`inset 0 0 0 1px ${T.accent}28`:"none"}}
               onClick={()=>changeTab(t.id)}>
-              {t.label}
+              <span className="nav-icon">{t.icon}</span>
+              <span>{t.label}</span>
             </button>
           ))}
         </div>
@@ -453,7 +455,7 @@ export default function App() {
       {/* Main */}
       <main className="app-main" style={{flex:1,display:"flex",flexDirection:"column"}}>
         {/* Topbar */}
-        <div className="topbar" style={{borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,background:T.surface,position:"sticky",top:0,zIndex:40}}>
+        <div className="topbar" style={{borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,background:`${T.surface}dd`,backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",position:"sticky",top:0,zIndex:40}}>
           <div style={{flex:1,minWidth:0}}>
             <HeaderMeta
               T={T}
@@ -590,8 +592,9 @@ function buildCSS(T) {
     body { background:${T.bg}; font-family:Inter,sans-serif; }
     ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:${T.bg}}::-webkit-scrollbar-thumb{background:${T.border};border-radius:4px}
     .sidebar { width:200px; position:fixed; top:0; left:0; height:100vh; z-index:50; overflow-y:auto; display:flex; flex-direction:column; }
-    .nav-btn { display:block; width:100%; padding:10px 20px; background:none; border:none; border-left:3px solid transparent; cursor:pointer; font-family:Inter,sans-serif; font-size:13px; font-weight:500; text-align:left; transition:all .15s; }
+    .nav-btn { display:flex; align-items:center; gap:9px; width:100%; padding:9px 16px 9px 17px; background:none; border:none; border-left:3px solid transparent; cursor:pointer; font-family:Inter,sans-serif; font-size:13px; font-weight:500; text-align:left; transition:all .15s; border-radius:0 8px 8px 0; }
     .nav-btn:hover { background:${T.surface2}; color:${T.text} !important; }
+    .nav-icon { font-size:15px; line-height:1; width:20px; text-align:center; flex-shrink:0; }
     .bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; z-index:50; }
     .topbar{padding:14px 28px;}
     .tab-content{padding:24px 28px;}

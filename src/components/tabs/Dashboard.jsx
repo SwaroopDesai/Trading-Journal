@@ -1,8 +1,31 @@
 "use client"
+import { useState, useEffect, useRef } from "react";
 import { Card, CardTitle, EmptyState, Btn, Badge } from "@/components/ui";
 import EquityCurve from "@/components/EquityCurve";
 import InsightCards from "@/components/InsightCards";
 import { fmtDate, fmtRR, getWeeklyPairNotes } from "@/lib/utils";
+
+function useCountUp(target, duration=850) {
+  const reduced = typeof window!=="undefined" && window.matchMedia("(prefers-reduced-motion:reduce)").matches
+  const [val, setVal] = useState(reduced ? target : 0)
+  const rafRef = useRef(null)
+  useEffect(()=>{
+    if(reduced){ setVal(target); return }
+    if(rafRef.current) cancelAnimationFrame(rafRef.current)
+    const start = performance.now()
+    const tick = (now)=>{
+      const p = Math.min((now-start)/duration, 1)
+      const e = 1 - Math.pow(1-p, 3)
+      setVal(target*e)
+      if(p<1) rafRef.current = requestAnimationFrame(tick)
+      else setVal(target)
+    }
+    rafRef.current = requestAnimationFrame(tick)
+    return ()=>{ if(rafRef.current) cancelAnimationFrame(rafRef.current) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[target])
+  return val
+}
 
 function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,onNewWeekly,viewportWidth}) {
   const today = new Date().toISOString().split("T")[0]
@@ -11,11 +34,49 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,
   const latestWeekly = [...weeklyPlans].sort((a,b)=>new Date(b.weekStart)-new Date(a.weekStart))[0]
   const bestPair = [...stats.byPair].sort((a,b)=>b.totalR-a.totalR)[0]
   const isMobile = viewportWidth < 768
+
+  const animTotalR   = useCountUp(stats.totalR)
+  const animWinRate  = useCountUp(stats.winRate)
+  const animAvgRR    = useCountUp(stats.avgRR)
+  const animBestR    = useCountUp(bestPair?.totalR||0)
+
   const kpis = [
-    {label:"Total R",value:`${stats.totalR>=0?"+":""}${stats.totalR.toFixed(2)}R`,color:stats.totalR>=0?T.green:T.red,sub:`${stats.total} trades logged`,gradient:stats.totalR>=0?`linear-gradient(135deg,${T.green}18,${T.green}05)`:`linear-gradient(135deg,${T.red}18,${T.red}05)`,eyebrow:"Performance"},
-    {label:"Win Rate",value:`${stats.winRate.toFixed(1)}%`,color:stats.winRate>=55?T.green:stats.winRate>=45?T.amber:T.red,sub:`${stats.wins}W / ${stats.losses}L / ${stats.be}BE`,gradient:`linear-gradient(135deg,${T.blue}18,${T.blue}05)`,eyebrow:"Consistency"},
-    {label:"Avg RR",value:`${stats.avgRR.toFixed(2)}R`,color:stats.avgRR>=2?T.green:stats.avgRR>=1?T.amber:T.red,sub:"Average on winning trades",gradient:`linear-gradient(135deg,${T.accent}18,${T.accent}05)`,eyebrow:"Execution"},
-    {label:"Best Pair",value:bestPair?.pair||"-",color:T.accentBright,sub:`${(bestPair?.totalR||0)>=0?"+":""}${(bestPair?.totalR||0).toFixed(1)}R total`,gradient:`linear-gradient(135deg,${T.pink}18,${T.pink}05)`,eyebrow:"Edge"},
+    {
+      label:"Total R",
+      value:`${animTotalR>=0?"+":""}${animTotalR.toFixed(2)}R`,
+      color:stats.totalR>=0?T.green:T.red,
+      sub:`${stats.total} trades logged`,
+      gradient:stats.totalR>=0?`linear-gradient(135deg,${T.green}18,${T.green}05)`:`linear-gradient(135deg,${T.red}18,${T.red}05)`,
+      eyebrow:"Performance",
+      barWidth:`${Math.min(Math.abs(stats.totalR)/20*100,100)}%`,
+    },
+    {
+      label:"Win Rate",
+      value:`${animWinRate.toFixed(1)}%`,
+      color:stats.winRate>=55?T.green:stats.winRate>=45?T.amber:T.red,
+      sub:`${stats.wins}W / ${stats.losses}L / ${stats.be}BE`,
+      gradient:`linear-gradient(135deg,${T.blue}18,${T.blue}05)`,
+      eyebrow:"Consistency",
+      barWidth:`${Math.min(stats.winRate,100)}%`,
+    },
+    {
+      label:"Avg RR",
+      value:`${animAvgRR.toFixed(2)}R`,
+      color:stats.avgRR>=2?T.green:stats.avgRR>=1?T.amber:T.red,
+      sub:"Average on winning trades",
+      gradient:`linear-gradient(135deg,${T.accent}18,${T.accent}05)`,
+      eyebrow:"Execution",
+      barWidth:`${Math.min(stats.avgRR/3*100,100)}%`,
+    },
+    {
+      label:"Best Pair",
+      value:bestPair?.pair||"-",
+      color:T.accentBright,
+      sub:`${animBestR>=0?"+":""}${animBestR.toFixed(1)}R total`,
+      gradient:`linear-gradient(135deg,${T.pink}18,${T.pink}05)`,
+      eyebrow:"Edge",
+      barWidth:`${Math.min(Math.abs(bestPair?.totalR||0)/20*100,100)}%`,
+    },
   ]
 
   return (
@@ -34,7 +95,7 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,
               <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?22:28,fontWeight:800,color:k.color,lineHeight:1.02,letterSpacing:"-0.03em",wordBreak:"break-word"}}>{k.value}</div>
               <div style={{fontSize:isMobile?10:11,color:T.textDim,marginTop:8,lineHeight:1.5}}>{k.sub}</div>
               <div style={{height:4,borderRadius:999,background:T.surface,marginTop:isMobile?12:14,overflow:"hidden"}}>
-                <div style={{width:"62%",height:"100%",background:`linear-gradient(90deg,${k.color},${T.pink})`,borderRadius:999}} />
+                <div style={{width:k.barWidth,height:"100%",background:`linear-gradient(90deg,${k.color},${T.pink})`,borderRadius:999,transition:"width 0.9s cubic-bezier(0.16,1,0.3,1)"}} />
               </div>
             </div>
           </div>
