@@ -406,6 +406,30 @@ export function Textarea({T,...props}){
 export function FL({label,T,children,full}){return <div style={{gridColumn:full?"1/-1":"auto"}}><div style={{fontSize:12,fontWeight:600,color:T.textDim,marginBottom:6}}>{label}</div>{children}</div>}
 export function Section({T,title,children}){return <div><div style={{fontSize:11,fontWeight:700,color:T.accentBright,letterSpacing:"0.12em",textTransform:"uppercase",paddingBottom:8,borderBottom:`1px solid ${T.border}`,marginBottom:12}}>{title}</div>{children}</div>}
 
+// ─── Image compression (canvas → WebP, ~20-40x smaller, stays base64) ────
+function compressImage(file, { maxW = 1280, maxH = 960, quality = 0.82 } = {}) {
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = ev => {
+      const img = new Image()
+      img.onload = () => {
+        const scale = Math.min(1, maxW / img.width, maxH / img.height)
+        const w = Math.round(img.width * scale)
+        const h = Math.round(img.height * scale)
+        const canvas = document.createElement("canvas")
+        canvas.width = w
+        canvas.height = h
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h)
+        // Fall back to jpeg if WebP not supported
+        const out = canvas.toDataURL("image/webp", quality)
+        resolve(out.startsWith("data:image/webp") ? out : canvas.toDataURL("image/jpeg", quality))
+      }
+      img.src = ev.target.result
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
 // ─── Image input components ────────────────────────────────────────────────
 export function PasteImageInput({T, value, onChange, label, disabled}) {
   const [pasting, setPasting] = useState(false)
@@ -418,11 +442,9 @@ export function PasteImageInput({T, value, onChange, label, disabled}) {
     for(const item of items) {
       if(item.type.startsWith("image/")) {
         const file = item.getAsFile()
-        const reader = new FileReader()
-        reader.onload = ev => { onChange(ev.target.result); setPasting(false) }
-        reader.readAsDataURL(file)
         e.preventDefault()
         setPasting(true)
+        compressImage(file).then(src => { onChange(src); setPasting(false) })
         break
       }
     }
@@ -432,9 +454,8 @@ export function PasteImageInput({T, value, onChange, label, disabled}) {
     if(disabled) return
     const file = e.target.files[0]
     if(!file) return
-    const reader = new FileReader()
-    reader.onload = ev => onChange(ev.target.result)
-    reader.readAsDataURL(file)
+    setPasting(true)
+    compressImage(file).then(src => { onChange(src); setPasting(false) })
   }
 
   const isLoading = disabled || pasting
@@ -500,11 +521,9 @@ export function MultiImageInput({T, values, onChange, label, max=6}) {
     for(const item of items) {
       if(item.type.startsWith("image/")) {
         const file = item.getAsFile()
-        const reader = new FileReader()
-        reader.onload = ev => { addImage(ev.target.result); setPasting(false) }
-        reader.readAsDataURL(file)
         e.preventDefault()
         setPasting(true)
+        compressImage(file).then(src => { addImage(src); setPasting(false) })
         break
       }
     }
@@ -512,11 +531,7 @@ export function MultiImageInput({T, values, onChange, label, max=6}) {
 
   const handleFiles = (e) => {
     const files = Array.from(e.target.files||[])
-    files.forEach(file => {
-      const reader = new FileReader()
-      reader.onload = ev => addImage(ev.target.result)
-      reader.readAsDataURL(file)
-    })
+    files.forEach(file => compressImage(file).then(addImage))
     e.target.value = ""
   }
 
