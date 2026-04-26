@@ -126,7 +126,7 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,
         <Card T={T} style={{borderRadius:18,padding:"20px 22px"}}>
           <CardTitle T={T}>Today&apos;s Trades</CardTitle>
           {todayTrades.length===0
-            ?<EmptyState T={T} compact title="No trades logged today" copy="Capture the first execution, keep the notes sharp, and the day starts to tell a story." action={<Btn T={T} onClick={onNewTrade}>+ Log Trade</Btn>}/>
+            ?<EmptyState T={T} icon="🎯" compact title="No trades logged today" copy="Capture the first execution, keep the notes sharp, and the day starts to tell a story." action={<Btn T={T} onClick={onNewTrade}>+ Log Trade</Btn>}/>
             :todayTrades.map(t=>(
               <div key={t._dbid} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderBottom:`1px solid ${T.border}`}}>
                 <span style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:800,color:T.accentBright,minWidth:65}}>{t.pair}</span>
@@ -148,7 +148,7 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,
                 </div>
               ))}<div style={{fontSize:12,color:T.textDim,marginTop:10,lineHeight:1.5}}>{latestDaily.notes}</div>
             </div>
-            :<EmptyState T={T} compact title="No daily plan yet" copy="Set the bias, levels, and expected manipulation before the session opens." action={<Btn T={T} onClick={onNewDaily}>+ Add Plan</Btn>}/>
+            :<EmptyState T={T} icon="📅" compact title="No daily plan yet" copy="Set the bias, levels, and expected manipulation before the session opens." action={<Btn T={T} onClick={onNewDaily}>+ Add Plan</Btn>}/>
           }
         </Card>
 
@@ -169,7 +169,7 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,
                 </>}
                 {latestWeekly.notes&&<div style={{fontSize:12,color:T.textDim,lineHeight:1.6}}>{latestWeekly.notes}</div>}
               </div>
-            :<EmptyState T={T} compact title="No weekly plan yet" copy="Map the week before the sessions open so your daily plans have real context behind them." action={<Btn T={T} onClick={onNewWeekly}>+ Weekly Plan</Btn>} />
+            :<EmptyState T={T} icon="🗓" compact title="No weekly plan yet" copy="Map the week before the sessions open so your daily plans have real context behind them." action={<Btn T={T} onClick={onNewWeekly}>+ Weekly Plan</Btn>} />
           }
         </Card>
 

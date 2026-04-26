@@ -45,7 +45,7 @@ function Playbook({T, trades}) {
       </div>
 
       {playbooks.length===0&&(
-        <EmptyState T={T} title="No playbooks yet" copy="Turn your best setups into repeatable rules so you can review them, track them, and execute them with less noise." action={<Btn T={T} onClick={()=>setModal("new")}>+ Create First Playbook</Btn>}/>
+        <EmptyState T={T} icon="📋" title="No playbooks yet" copy="Turn your best setups into repeatable rules so you can review them, track them, and execute them with less noise." action={<Btn T={T} onClick={()=>setModal("new")}>+ Create First Playbook</Btn>}/>
       )}
 
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14}}>

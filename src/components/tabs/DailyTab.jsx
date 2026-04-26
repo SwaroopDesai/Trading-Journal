@@ -19,7 +19,7 @@ function DailyTab({T,plans,onEdit,onDelete,onViewImg,onNew}) {
       </div>
       {sorted.length===0&&(
         <div style={{marginBottom:16}}>
-          <EmptyState T={T} title="Build the day before the market does" copy="Keep the plan short, clear, and visible before you start executing." action={<Btn T={T} onClick={onNew}>Create Daily Plan</Btn>}/>
+          <EmptyState T={T} icon="📅" title="Build the day before the market does" copy="Keep the plan short, clear, and visible before you start executing." action={<Btn T={T} onClick={onNew}>Create Daily Plan</Btn>}/>
         </div>
       )}
       <div style={{display:"flex",flexDirection:"column",gap:14}}>

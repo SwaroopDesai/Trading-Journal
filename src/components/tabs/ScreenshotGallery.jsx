@@ -30,7 +30,7 @@ function ScreenshotGallery({T,trades,onViewImg,onNewTrade,viewportWidth}) {
         <div style={{width:1,background:T.border,margin:"0 4px"}}/>
         {["ALL","PRE","POST"].map(t=><Chip key={t} T={T} active={filterType===t} onClick={()=>setFilterType(t)}>{t}</Chip>)}
       </div>
-      {images.length===0?<EmptyState T={T} title="No screenshots yet" copy="Add pre and post charts when you log trades so the gallery can become your visual replay board." action={<Btn T={T} onClick={onNewTrade}>+ Log Trade</Btn>} />:(
+      {images.length===0?<EmptyState T={T} icon="🖼️" title="No screenshots yet" copy="Add pre and post charts when you log trades so the gallery can become your visual replay board." action={<Btn T={T} onClick={onNewTrade}>+ Log Trade</Btn>} />:(
         <>
           <div style={{fontSize:12,color:T.muted,marginBottom:12}}>{images.length} screenshot{images.length!==1?"s":""}</div>
           <div style={{display:"grid",gridTemplateColumns:`repeat(auto-fill,minmax(${isMobile?160:200}px,1fr))`,gap:12}}>

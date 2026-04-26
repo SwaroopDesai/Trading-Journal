@@ -305,15 +305,58 @@ export function SessionPill({T,session,compact,mobile,open,onToggle}) {
 }
 
 // ─── Empty state ───────────────────────────────────────────────────────────
-export function EmptyState({T,title,copy,action,compact}) {
+export function EmptyState({T, title, copy, action, compact, icon}) {
+  const iconEl = icon ?? "✦"
+  const pad    = compact ? "32px 24px" : "56px 32px"
   return (
-    <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px dashed ${T.border}`,borderRadius:compact?18:22,padding:compact?"28px 20px":"44px 28px",textAlign:"center",boxShadow:`inset 0 18px 40px ${T.bg}40`,position:"relative",overflow:"hidden"}}>
-      <div style={{position:"absolute",top:-36,left:"50%",transform:"translateX(-50%)",width:compact?120:160,height:compact?120:160,borderRadius:"50%",background:`radial-gradient(circle, ${T.accent}18 0%, transparent 70%)`,pointerEvents:"none"}} aria-hidden="true" />
+    <div style={{
+      background: `linear-gradient(160deg,${T.surface} 0%,${T.surface2} 100%)`,
+      border: `1px dashed ${T.border}`,
+      borderRadius: compact ? 18 : 24,
+      padding: pad,
+      textAlign: "center",
+      position: "relative",
+      overflow: "hidden",
+      animation: "fadeUp .38s cubic-bezier(.16,1,.3,1) both",
+    }}>
+      {/* Dot-grid overlay */}
+      <div aria-hidden="true" style={{
+        position:"absolute", inset:0,
+        backgroundImage:`radial-gradient(circle,${T.muted}22 1px,transparent 1px)`,
+        backgroundSize:"22px 22px", opacity:.5, pointerEvents:"none",
+      }}/>
+      {/* Radial glow behind icon */}
+      <div aria-hidden="true" style={{
+        position:"absolute", top:compact?-40:-60, left:"50%", transform:"translateX(-50%)",
+        width:compact?160:220, height:compact?160:220, borderRadius:"50%",
+        background:`radial-gradient(circle, ${T.accent}22 0%, transparent 70%)`,
+        pointerEvents:"none", animation:"glowPulse 3s ease-in-out infinite",
+      }}/>
+
       <div style={{position:"relative"}}>
-        <div aria-hidden="true" style={{width:compact?42:50,height:compact?42:50,borderRadius:16,margin:"0 auto 14px",display:"flex",alignItems:"center",justifyContent:"center",background:`linear-gradient(135deg,${T.accent}18,${T.pink}14)`,border:`1px solid ${T.accent}26`,fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:800,color:T.accentBright,fontSize:compact?13:15,boxShadow:`0 12px 28px ${T.cardGlow}`}}>FX</div>
-        <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:compact?20:24,fontWeight:800,color:T.text,marginBottom:10,letterSpacing:"-0.03em"}}>{title}</div>
-        <div style={{maxWidth:compact?420:520,margin:"0 auto",fontSize:13,color:T.textDim,lineHeight:1.7}}>{copy}</div>
-        {action&&<div style={{marginTop:20}}>{action}</div>}
+        {/* Icon */}
+        <div aria-hidden="true" style={{
+          fontSize: compact ? 38 : 52, lineHeight:1,
+          marginBottom: compact ? 14 : 18,
+          display:"inline-block",
+          filter:`drop-shadow(0 0 18px ${T.accentBright}55)`,
+          animation:"iconFloat 3.5s ease-in-out infinite",
+        }}>{iconEl}</div>
+
+        <div style={{
+          fontFamily:"'Plus Jakarta Sans',sans-serif",
+          fontSize: compact ? 18 : 22,
+          fontWeight: 800, color: T.text,
+          marginBottom: 10, letterSpacing:"-0.02em",
+        }}>{title}</div>
+
+        <div style={{
+          maxWidth: compact ? 400 : 500,
+          margin:"0 auto", fontSize:13,
+          color:T.textDim, lineHeight:1.75,
+        }}>{copy}</div>
+
+        {action && <div style={{marginTop:22}}>{action}</div>}
       </div>
     </div>
   )

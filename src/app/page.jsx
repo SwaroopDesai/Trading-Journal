@@ -629,16 +629,72 @@ function buildCSS(T) {
     * { box-sizing:border-box; margin:0; padding:0; }
     body { background:${T.bg}; font-family:Inter,sans-serif; }
     ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:${T.bg}}::-webkit-scrollbar-thumb{background:${T.border};border-radius:4px}
+
+    /* ── Keyframes ─────────────────────────────────────────── */
+    @keyframes tabFadeIn {
+      from { opacity:0; transform:translateY(14px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes toastIn {
+      from { opacity:0; transform:translateY(10px) scale(.94); }
+      to   { opacity:1; transform:translateY(0)    scale(1); }
+    }
+    @keyframes livePulse {
+      0%,100% { transform:scale(1);   opacity:1; }
+      50%     { transform:scale(1.6); opacity:.55; }
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(20px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes popIn {
+      from { opacity:0; transform:scale(.9); }
+      to   { opacity:1; transform:scale(1); }
+    }
+    @keyframes cardStagger {
+      from { opacity:0; transform:translateY(22px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes iconFloat {
+      0%,100% { transform:translateY(0); }
+      50%     { transform:translateY(-6px); }
+    }
+    @keyframes glowPulse {
+      0%,100% { opacity:.4; }
+      50%     { opacity:.9; }
+    }
+    @prefers-reduced-motion: reduce {
+      *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
+    }
+
+    /* ── Layout ────────────────────────────────────────────── */
     .sidebar { width:200px; position:fixed; top:0; left:0; height:100vh; z-index:50; overflow-y:auto; display:flex; flex-direction:column; }
-    .nav-btn { display:flex; align-items:center; gap:9px; width:100%; padding:9px 16px 9px 17px; background:none; border:none; border-left:3px solid transparent; cursor:pointer; font-family:Inter,sans-serif; font-size:13px; font-weight:500; text-align:left; transition:all .15s; border-radius:0 8px 8px 0; }
-    .nav-btn:hover { background:${T.surface2}; color:${T.text} !important; }
-    .nav-icon { font-size:15px; line-height:1; width:20px; text-align:center; flex-shrink:0; }
+    .nav-btn { display:flex; align-items:center; gap:9px; width:100%; padding:9px 16px 9px 17px; background:none; border:none; border-left:3px solid transparent; cursor:pointer; font-family:Inter,sans-serif; font-size:13px; font-weight:500; text-align:left; transition:background .18s, color .18s, transform .18s; border-radius:0 8px 8px 0; }
+    .nav-btn:hover { background:${T.surface2}; color:${T.text} !important; transform:translateX(2px); }
+    .nav-icon { font-size:15px; line-height:1; width:20px; text-align:center; flex-shrink:0; transition:transform .2s; }
+    .nav-btn:hover .nav-icon { transform:scale(1.15); }
     .bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; z-index:50; }
     .topbar{padding:14px 28px;}
     .tab-content{padding:24px 28px;background-image:radial-gradient(circle,${T.muted}20 1px,transparent 1px);background-size:28px 28px;}
     .topbar-right{min-width:0;}
     .theme-btn{padding:7px 14px;font-size:13px;min-width:auto;}
     .pill-label{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+    /* ── Micro-interaction utilities ───────────────────────── */
+    .hover-lift { transition:transform .18s cubic-bezier(.16,1,.3,1), box-shadow .18s !important; }
+    .hover-lift:hover { transform:translateY(-3px) !important; }
+    .press-scale { transition:transform .1s !important; }
+    .press-scale:active { transform:scale(.96) !important; }
+    .card-anim { animation:cardStagger .4s cubic-bezier(.16,1,.3,1) both; }
+    .card-anim:nth-child(1){animation-delay:.04s}
+    .card-anim:nth-child(2){animation-delay:.08s}
+    .card-anim:nth-child(3){animation-delay:.12s}
+    .card-anim:nth-child(4){animation-delay:.16s}
+    .card-anim:nth-child(5){animation-delay:.20s}
+    .card-anim:nth-child(6){animation-delay:.24s}
+    .fade-up { animation:fadeUp .35s cubic-bezier(.16,1,.3,1) both; }
+    .pop-in  { animation:popIn  .25s cubic-bezier(.16,1,.3,1) both; }
+
     @media(max-width:768px){
       .sidebar{display:none;}
       main{margin-left:0 !important;padding-bottom:76px;}

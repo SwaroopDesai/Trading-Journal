@@ -53,7 +53,7 @@ function WeeklyReview({T,weeklyPlans,trades,saveWeekly,onNewWeekly,viewportWidth
   return (
     <div>
       <SectionLead T={T} compact={isMobile} eyebrow="Performance Review" title="Weekly Debrief" copy="Every review should end with one clear lesson, one clear leak, and one clear focus for the next week." />
-      {sorted.length===0&&<EmptyState T={T} title="No weekly reviews yet" copy="Start with one weekly plan and your end-of-week debriefs will build themselves from there." action={<Btn T={T} onClick={onNewWeekly}>+ Weekly Plan</Btn>} />}
+      {sorted.length===0&&<EmptyState T={T} icon="✍️" title="No weekly reviews yet" copy="Start with one weekly plan and your end-of-week debriefs will build themselves from there." action={<Btn T={T} onClick={onNewWeekly}>+ Weekly Plan</Btn>} />}
       <div style={{display:"grid",gridTemplateColumns:`repeat(auto-fill,minmax(${isMobile?280:320}px,1fr))`,gap:14}}>
         {sorted.map(plan=>{
           const wt=getWeekTrades(plan)

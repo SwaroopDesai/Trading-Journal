@@ -48,7 +48,7 @@ function Journal({T,filtered,filterPair,setFilterPair,filterResult,setFilterResu
           </div>
         )}
       </div>
-      {displayTrades.length===0&&<EmptyState T={T} title="Your journal is still clean" copy="Start with one high-quality trade log and let the stats, screenshots, and reviews build from there." action={<Btn T={T} onClick={onNew}>+ Log Your First Trade</Btn>}/>}
+      {displayTrades.length===0&&<EmptyState T={T} icon="📓" title="Your journal is still clean" copy="Start with one high-quality trade log and let the stats, screenshots, and reviews build from there." action={<Btn T={T} onClick={onNew}>+ Log Your First Trade</Btn>}/>}
       {/* ── Date-grouped trade list ── */}
       {(() => {
         // group by date descending

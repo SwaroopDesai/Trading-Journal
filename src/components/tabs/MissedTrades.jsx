@@ -74,6 +74,7 @@ export default function MissedTrades({ T, trades, missedTrades, onNew, onEdit, o
     return (
       <div style={{ padding:isMobile?16:28 }}>
         <EmptyState T={T}
+          icon="👁"
           title="No missed trades logged yet"
           copy="Start tracking setups you saw but didn't take. After a few weeks the data will tell you whether you're skipping good trades out of fear — or saving yourself from bad ones."
           action={<Btn T={T} onClick={onNew}>+ Log Missed Trade</Btn>}

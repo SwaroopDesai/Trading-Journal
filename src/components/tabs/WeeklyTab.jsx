@@ -20,7 +20,7 @@ function WeeklyTab({T,plans,onEdit,onDelete,onViewImg,onNew}) {
       </div>
       {sorted.length===0&&(
         <div style={{marginBottom:16}}>
-          <EmptyState T={T} title="Frame the week before the sessions get noisy" copy="Set the bias, key events, and your pair notes once so the rest of the week stays focused." action={<Btn T={T} onClick={onNew}>Create Weekly Plan</Btn>}/>
+          <EmptyState T={T} icon="🗓" title="Frame the week before the sessions get noisy" copy="Set the bias, key events, and your pair notes once so the rest of the week stays focused." action={<Btn T={T} onClick={onNew}>Create Weekly Plan</Btn>}/>
         </div>
       )}
       <div style={{display:"flex",flexDirection:"column",gap:14}}>

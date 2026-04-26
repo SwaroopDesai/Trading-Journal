@@ -27,7 +27,7 @@ function Analytics({T,stats,trades,onNewTrade,viewportWidth}) {
   const bestSession = [...bySession].sort((a,b)=>b.totalR-a.totalR)[0]
   const bestSetup = [...bySetup].sort((a,b)=>b.totalR-a.totalR)[0]
   const cleanestManip = [...byManip].sort((a,b)=>(b.wins/b.count)-(a.wins/a.count))[0]
-  const E=<EmptyState T={T} compact title="Analytics wakes up after a few trades" copy="A few clean logs are enough to surface where your edge is strongest and where your leaks keep showing up." action={<Btn T={T} onClick={onNewTrade}>+ Log Trade</Btn>} />
+  const E=<EmptyState T={T} icon="📊" compact title="Analytics wakes up after a few trades" copy="A few clean logs are enough to surface where your edge is strongest and where your leaks keep showing up." action={<Btn T={T} onClick={onNewTrade}>+ Log Trade</Btn>} />
 
   const BarRow=({label,wins,count,totalR,color})=>(
     <div style={{display:"flex",alignItems:"center",gap:10,padding:"6px 0",borderBottom:`1px solid ${T.border}`}}>
