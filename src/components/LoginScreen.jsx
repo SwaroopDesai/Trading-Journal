@@ -23,6 +23,42 @@ function Icon({ name, size = 32, color = "%233b82f6" }) {
   )
 }
 
+/* ── Split-text letter animation ──────────────────────────────────── */
+function SplitText({ lines, baseDelay = 100, stagger = 42 }) {
+  let idx = 0
+  return (
+    <>
+      {lines.map((line, li) => (
+        <span key={li} style={{ display:"block" }}>
+          {line.split("").map((char) => {
+            const delay = baseDelay + idx++ * stagger
+            return (
+              <span
+                key={delay}
+                style={{ display:"inline-block", overflow:"hidden", verticalAlign:"bottom", lineHeight:1.08 }}
+              >
+                <span
+                  className="sd-letter-char"
+                  style={{
+                    display:"inline-block",
+                    animationName:"sd-letter-drop",
+                    animationDuration:"0.75s",
+                    animationTimingFunction:"cubic-bezier(0.16,1,0.3,1)",
+                    animationFillMode:"both",
+                    animationDelay:`${delay}ms`,
+                  }}
+                >
+                  {char === " " ? " " : char}
+                </span>
+              </span>
+            )
+          })}
+        </span>
+      ))}
+    </>
+  )
+}
+
 /* ── Counter hook ──────────────────────────────────────────────────── */
 function useCounter(target, triggered) {
   const [val, setVal] = useState(0)
@@ -105,6 +141,15 @@ export default function LoginScreen({ supabase }) {
         .sd-root * { border-radius: 0px !important; box-sizing: border-box; }
         .sd-root { font-family: 'Inter', sans-serif; background: #000; color: #fff; margin: 0; overflow-x: hidden; }
         .sd-serif { font-family: 'Playfair Display', serif; }
+
+        /* Letter slide-down */
+        @keyframes sd-letter-drop {
+          from { transform: translateY(-115%); opacity: 0; }
+          to   { transform: translateY(0);     opacity: 1; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .sd-letter-char { animation: none !important; opacity: 1 !important; transform: none !important; }
+        }
 
         /* Gradient shift background */
         @keyframes sd-gradient-shift {
@@ -270,9 +315,11 @@ export default function LoginScreen({ supabase }) {
           </div>
 
           {/* Headline */}
-          <h1 className="sd-serif sd-reveal sd-d1 sd-breathe sd-hero-h1"
-            style={{ fontSize:96, fontWeight:900, letterSpacing:"-0.03em", lineHeight:1, margin:"40px 0 32px", color:"#fff" }}>
-            Master Your<br />Edge.
+          <h1 className="sd-serif sd-breathe sd-hero-h1"
+            style={{ fontSize:96, fontWeight:900, letterSpacing:"-0.03em", lineHeight:1.05, margin:"40px 0 32px", color:"#fff" }}
+            aria-label="Master Your Edge."
+          >
+            <SplitText lines={["Master Your", "Edge."]} baseDelay={120} stagger={42} />
           </h1>
 
           {/* Subtitle */}
