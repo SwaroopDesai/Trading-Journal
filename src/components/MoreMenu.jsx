@@ -36,6 +36,7 @@ export default function MoreMenu({T, setTab, ALL_TABS}) {
                 {t.id==="gallery"&&"Review your screenshot library in one clean place."}
                 {t.id==="review"&&"Wrap the week with lessons, stats, and next focus."}
                 {t.id==="ai"&&"Get journal feedback and coaching from your AI analyst."}
+                {t.id==="patterns"&&"Auto-detect edges and leaks hidden in your trade history."}
                 {t.id==="export"&&"Download clean CSV snapshots of your trading data."}
               </div>
             </div>
