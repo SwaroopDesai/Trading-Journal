@@ -162,7 +162,15 @@ export function BottomNav({T,tab,setTab,TABS,MOBILE_PRIMARY}){
 
 // ─── Button ────────────────────────────────────────────────────────────────
 export function Btn({T,onClick,children,ghost,danger,disabled,ariaLabel}){
-  const bg = danger?T.red:ghost?"none":`linear-gradient(135deg,${T.accentBright},${T.pink})`
+  const brutal = !!T.hardShadow
+  const bg = brutal
+    ? (danger ? T.red : ghost ? T.surface : (T.accentFill || "#ffe17c"))
+    : (danger ? T.red : ghost ? "none" : `linear-gradient(135deg,${T.accentBright},${T.pink})`)
+  const border = brutal
+    ? `2px solid ${T.border}`
+    : (ghost ? `1px solid ${T.border}` : "none")
+  const color = brutal ? T.text : (ghost ? T.textDim : "#fff")
+  const shadow = brutal ? T.hardShadow : undefined
   return (
     <button
       disabled={disabled}
@@ -171,14 +179,19 @@ export function Btn({T,onClick,children,ghost,danger,disabled,ariaLabel}){
       className="fx-btn"
       style={{
         background:bg,
-        color:ghost?T.textDim:"#fff",
-        border:ghost?`1px solid ${T.border}`:"none",
+        color,
+        border,
         padding:"9px 18px",
-        fontFamily:"'Plus Jakarta Sans',sans-serif",
-        fontWeight:700,fontSize:13,borderRadius:10,
+        fontFamily: brutal ? "'Cabinet Grotesk','Plus Jakarta Sans',sans-serif" : "'Plus Jakarta Sans',sans-serif",
+        fontWeight:700,
+        fontSize:13,
+        borderRadius: brutal ? 3 : 10,
         cursor:disabled?"not-allowed":"pointer",
-        whiteSpace:"nowrap",opacity:disabled?0.6:1,
-        minHeight:36,transition:"opacity .15s, box-shadow .15s",
+        whiteSpace:"nowrap",
+        opacity:disabled?0.6:1,
+        minHeight:36,
+        transition: brutal ? "transform .08s ease, box-shadow .08s ease" : "opacity .15s, box-shadow .15s",
+        boxShadow: shadow,
       }}
     >
       {children}
@@ -190,9 +203,22 @@ export function Btn({T,onClick,children,ghost,danger,disabled,ariaLabel}){
 const NOISE_URL = "data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"
 
 export function Card({T,children,style={},glow}){
+  const brutal = !!T.hardShadow
+  // For brutalist: caller's borderRadius/shadow are overridden so all cards stay consistent
+  const brutalOverrides = brutal ? { borderRadius:3, border:`2px solid ${T.border}`, boxShadow:T.hardShadow } : {}
   return (
-    <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"18px 20px",boxShadow:glow?`0 4px 30px ${T.cardGlow}`:"none",position:"relative",overflow:"hidden",...style}}>
-      <div aria-hidden="true" style={{position:"absolute",inset:0,backgroundImage:`url("${NOISE_URL}")`,opacity:T.isDark?0.035:0.02,pointerEvents:"none",borderRadius:"inherit"}}/>
+    <div style={{
+      background:T.surface,
+      border:`1px solid ${T.border}`,
+      borderRadius:14,
+      padding:"18px 20px",
+      boxShadow:glow?`0 4px 30px ${T.cardGlow}`:"none",
+      position:"relative",
+      overflow:"hidden",
+      ...style,
+      ...brutalOverrides,
+    }}>
+      {!brutal && <div aria-hidden="true" style={{position:"absolute",inset:0,backgroundImage:`url("${NOISE_URL}")`,opacity:T.isDark?0.035:0.02,pointerEvents:"none",borderRadius:"inherit"}}/>}
       <div style={{position:"relative"}}>{children}</div>
     </div>
   )

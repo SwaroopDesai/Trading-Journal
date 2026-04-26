@@ -1,679 +1,418 @@
 "use client"
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
-/* ── Data ─────────────────────────────────────────────────────────── */
-const BRANDS = [
-  "TRADINGVIEW","MYFXBOOK","FTMO","THE5ERS","APEX","TRADEDAY",
-  "IC MARKETS","PEPPERSTONE","FUNDED TRADER","CTRADER","FOREXLIVE","DXTRADE",
-]
-
+/* ── Feature cards data ────────────────────────────────────────────── */
 const FEATURES = [
-  { icon:"🔍", title:"Pattern Detection",    desc:"Auto-surfaces your statistical edges and leaks from your trade history after just 10 executions." },
-  { icon:"📅", title:"Session Planning",     desc:"Set daily bias, key levels, and expected manipulation zones before the open. Build the day first." },
-  { icon:"📰", title:"Economic Calendar",    desc:"High-impact events with live countdown timers, Supabase cache fallback, and bank holiday warnings." },
-  { icon:"✨", title:"AI Trade Coach",       desc:"Reads your actual journal entries — not generic advice. Personalised coaching from your own data." },
-  { icon:"👁",  title:"Missed Trade Tracker",desc:"Log setups you saw but skipped. Quantify the real cost of hesitation and over-filtering over time." },
-  { icon:"🔥", title:"Heatmap & Analytics", desc:"Day-of-week grid, session breakdown, streak tape, drawdown chart — all inside one clean view." },
+  { icon:"cpu",         title:"Core Systems",   desc:"Automated structure tracking and market flow analysis delivered through a clean, noise-free interface." },
+  { icon:"bar-chart-3", title:"Visual Data",     desc:"Real-time visualisation of high-speed data. Filter noise and see exactly what matters to your performance." },
+  { icon:"layout",      title:"Session Design",  desc:"Architect your day before the open. A clean canvas for mapping your objectives and key levels." },
+  { icon:"brain",       title:"Smart Review",    desc:"A layer that monitors your execution habits. Quantify your progress to help maintain discipline." },
+  { icon:"shield-check",title:"Secure Access",   desc:"Proprietary encryption protocols ensuring your data and performance metrics remain private." },
+  { icon:"zap",         title:"Fast Sync",       desc:"Multi-node infrastructure designed for millisecond synchronisation across all your devices." },
 ]
 
-const STEPS = [
-  { n:"01", title:"Log Every Trade",       desc:"Capture pair, direction, RR, session, setup type, and screenshots. Under 30 seconds per trade.", dot:"#b7c6c2" },
-  { n:"02", title:"Discover Your Edge",    desc:"After 10 trades, the pattern engine fires — surfacing exactly what wins for you and what doesn't.", dot:"#ffe17c" },
-  { n:"03", title:"Refine & Compound",     desc:"Let the AI coach act on your patterns. Fix the leaks. Double down on what the data confirms.", dot:"#ffffff" },
-]
-
-const PERSONAS = [
-  {
-    badge:"Part-Time Trader", bg:"#b7c6c2", color:"#000",
-    title:"Journal around your day job",
-    desc:"Log fast. Review on weekends. The pattern engine keeps working even on 20 trades a month.",
-    points:["30-second trade entry","Weekend review digest","Mobile-first layout"],
-  },
-  {
-    badge:"Full-Time Trader", bg:"#ffe17c", color:"#000", featured:true,
-    title:"Build a professional edge",
-    desc:"Session planning, missed-trade tracking, and AI coaching — every tool a serious trader needs.",
-    points:["Daily bias planner","Pattern detector","AI Trade Coach"],
-  },
-  {
-    badge:"Funded Trader", bg:"#272727", color:"#fff",
-    title:"Stay funded. Stay consistent.",
-    desc:"Drawdown alerts, streak monitoring, and psychology tracking to protect your funded account.",
-    points:["Max drawdown tracker","Streak tape & alerts","Psychology journal"],
-  },
-]
-
-const TESTIMONIALS = [
-  { stars:5, quote:"The pattern detector found that I'm profitable on Gold during London but losing during NY. Completely restructured my schedule.", name:"Marcus T.", role:"Full-Time Trader · XAUUSD" },
-  { stars:5, quote:"I was over-filtering. Missed Trades showed me I was skipping 60% win-rate setups out of fear. That data hit different.", name:"Priya S.", role:"Funded Trader · NAS100" },
-  { stars:5, quote:"Every other journal made me feel like I was filling out a tax form. FXEDGE actually gives me something back from my data.", name:"Jordan K.", role:"Part-Time Trader · GBPUSD" },
-]
-
-/* ── Fake browser-mockup dashboard ────────────────────────────────── */
-function BrowserMockup() {
-  const bars = [40, 65, 30, 80, 55, 90, 45, 70, 85, 60]
+/* ── Iconify helper ────────────────────────────────────────────────── */
+function Icon({ name, size = 32, color = "%233b82f6" }) {
   return (
-    <div style={{ background:"#fff", border:"2px solid #000", borderRadius:16, boxShadow:"12px 12px 0px 0px #000", overflow:"hidden", width:"100%", maxWidth:520 }}>
-      {/* Browser chrome */}
-      <div style={{ background:"#000", padding:"10px 16px", display:"flex", alignItems:"center", gap:6 }}>
-        <span style={{ width:12,height:12,borderRadius:"50%",background:"#ff5f57",display:"inline-block" }}/>
-        <span style={{ width:12,height:12,borderRadius:"50%",background:"#febc2e",display:"inline-block" }}/>
-        <span style={{ width:12,height:12,borderRadius:"50%",background:"#28c840",display:"inline-block" }}/>
-        <div style={{ flex:1, background:"#1a1a1a", borderRadius:4, height:22, marginLeft:12, display:"flex", alignItems:"center", paddingLeft:10 }}>
-          <span style={{ fontSize:11, color:"#555", fontFamily:"monospace" }}>fxedge.app/dashboard</span>
-        </div>
-      </div>
-      {/* Dashboard */}
-      <div style={{ padding:16, background:"#f9f9f9" }}>
-        {/* KPI row */}
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8, marginBottom:12 }}>
-          {[
-            { label:"Total R", val:"+42.5R", color:"#000" },
-            { label:"Win Rate", val:"67%", color:"#000" },
-            { label:"Best Pair", val:"XAUUSD", color:"#000" },
-          ].map(k => (
-            <div key={k.label} style={{ background:"#fff", border:"2px solid #000", padding:"10px 10px 8px", borderRadius:8 }}>
-              <div style={{ fontSize:9, fontWeight:700, color:"#666", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:4 }}>{k.label}</div>
-              <div style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontSize:16, fontWeight:800, color:k.color }}>{k.val}</div>
-            </div>
-          ))}
-        </div>
-        {/* Mini equity chart */}
-        <div style={{ background:"#fff", border:"2px solid #000", borderRadius:8, padding:"10px 12px", marginBottom:12 }}>
-          <div style={{ fontSize:10, fontWeight:700, color:"#000", marginBottom:8, fontFamily:"'Cabinet Grotesk',sans-serif" }}>Equity Curve</div>
-          <div style={{ display:"flex", alignItems:"flex-end", gap:4, height:48 }}>
-            {bars.map((h,i) => (
-              <div key={i} style={{ flex:1, height:`${h}%`, background: i === bars.length-1 ? "#ffe17c" : "#b7c6c2", border:"1px solid #000", borderRadius:2 }}/>
-            ))}
-          </div>
-        </div>
-        {/* Trades list */}
-        <div style={{ background:"#fff", border:"2px solid #000", borderRadius:8, overflow:"hidden" }}>
-          <div style={{ borderBottom:"2px solid #000", padding:"6px 10px", display:"flex", justifyContent:"space-between" }}>
-            <span style={{ fontSize:9, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"#000" }}>Recent Trades</span>
-          </div>
-          {[
-            { pair:"XAUUSD", dir:"LONG",  rr:"+3.2R", win:true },
-            { pair:"NAS100", dir:"SHORT", rr:"+1.8R", win:true },
-            { pair:"GBPUSD", dir:"LONG",  rr:"-1.0R", win:false },
-          ].map((t,i) => (
-            <div key={i} style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 10px", borderBottom: i<2 ? "1px solid #e5e5e5":"none" }}>
-              <span style={{ fontSize:10, fontWeight:700, color:"#000", minWidth:52, fontFamily:"monospace" }}>{t.pair}</span>
-              <span style={{ fontSize:9, fontWeight:700, padding:"2px 6px", border:"1px solid #000", borderRadius:3, background: t.dir==="LONG" ? "#b7c6c2":"#ffe17c", color:"#000" }}>{t.dir}</span>
-              <span style={{ marginLeft:"auto", fontSize:11, fontWeight:700, fontFamily:"monospace", color: t.win?"#000":"#cc0000" }}>{t.rr}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+    <img
+      src={`https://api.iconify.design/lucide/${name}.svg?color=${color}`}
+      width={size} height={size}
+      alt={name}
+      style={{ display:"block" }}
+    />
   )
+}
+
+/* ── Counter hook ──────────────────────────────────────────────────── */
+function useCounter(target, triggered) {
+  const [val, setVal] = useState(0)
+  const started = useRef(false)
+  useEffect(() => {
+    if (!triggered || started.current) return
+    started.current = true
+    let current = 0
+    const speed = target / 50
+    const update = () => {
+      current += speed
+      if (current < target) {
+        setVal(Math.floor(current))
+        requestAnimationFrame(update)
+      } else {
+        setVal(target)
+      }
+    }
+    requestAnimationFrame(update)
+  }, [triggered, target])
+  return val
 }
 
 /* ── Main component ────────────────────────────────────────────────── */
 export default function LoginScreen({ supabase }) {
-  const [email,   setEmail]   = useState("")
-  const [sent,    setSent]    = useState(false)
+  const [email, setEmail]   = useState("")
+  const [sent, setSent]     = useState(false)
+  const [err, setErr]       = useState(null)
   const [loading, setLoading] = useState(false)
-  const [error,   setError]   = useState(null)
+  const [heroVisible, setHeroVisible] = useState(false)
+  const heroRef = useRef(null)
+  const counterVal = useCounter(25, heroVisible)
 
-  const send = async () => {
-    if (!email) return
-    setLoading(true); setError(null)
-    const { error } = await supabase.auth.signInWithOtp({
-      email, options:{ emailRedirectTo: window.location.origin }
-    })
-    if (error) { setError(error.message); setLoading(false); return }
-    setSent(true); setLoading(false)
+  /* ── Scroll-reveal observer ── */
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("sd-visible")
+          }
+        })
+      },
+      { threshold: 0.08 }
+    )
+    const heroObs = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) setHeroVisible(true) },
+      { threshold: 0.3 }
+    )
+    document.querySelectorAll(".sd-reveal").forEach((el) => observer.observe(el))
+    if (heroRef.current) heroObs.observe(heroRef.current)
+    return () => { observer.disconnect(); heroObs.disconnect() }
+  }, [])
+
+  /* ── Auth ── */
+  const handleSubmit = async () => {
+    if (!email.trim()) return
+    setLoading(true)
+    setErr(null)
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: { emailRedirectTo: window.location.origin },
+      })
+      if (error) throw error
+      setSent(true)
+    } catch (e) {
+      setErr(e.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const scrollTo = id => document.getElementById(id)?.scrollIntoView({ behavior:"smooth" })
-
-  const css = `
-    @import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800&f[]=satoshi@400,500,700&display=swap');
-    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-
-    body { font-family:'Satoshi',sans-serif; }
-
-    /* ── Dot pattern overlay on yellow sections ── */
-    .dot-bg {
-      position:relative;
-    }
-    .dot-bg::before {
-      content:'';
-      position:absolute; inset:0; pointer-events:none; z-index:0;
-      background-image: radial-gradient(circle, rgba(0,0,0,0.12) 1.5px, transparent 1.5px);
-      background-size: 32px 32px;
-    }
-    .dot-bg > * { position:relative; z-index:1; }
-
-    /* ── Push buttons ── */
-    .neo-btn-primary {
-      display:inline-flex; align-items:center; justify-content:center; gap:8px;
-      background:#000; color:#fff; border:2px solid #000; border-radius:8px;
-      padding:14px 28px; font-family:'Satoshi',sans-serif; font-size:15px; font-weight:700;
-      box-shadow:8px 8px 0px 0px #000;
-      transition:transform .15s cubic-bezier(.175,.885,.32,1.275), box-shadow .15s;
-      cursor:pointer; text-decoration:none; white-space:nowrap;
-    }
-    .neo-btn-primary:hover { transform:translate(4px,4px); box-shadow:4px 4px 0px 0px #000; }
-    .neo-btn-primary:active { transform:translate(8px,8px); box-shadow:none; }
-
-    .neo-btn-secondary {
-      display:inline-flex; align-items:center; justify-content:center; gap:8px;
-      background:#fff; color:#000; border:2px solid #000; border-radius:8px;
-      padding:14px 28px; font-family:'Satoshi',sans-serif; font-size:15px; font-weight:700;
-      box-shadow:4px 4px 0px 0px #000;
-      transition:transform .15s cubic-bezier(.175,.885,.32,1.275), box-shadow .15s;
-      cursor:pointer; text-decoration:none; white-space:nowrap;
-    }
-    .neo-btn-secondary:hover { transform:translate(4px,4px); box-shadow:none; }
-
-    .neo-btn-yellow {
-      display:inline-flex; align-items:center; justify-content:center; gap:8px;
-      background:#ffe17c; color:#000; border:2px solid #ffe17c; border-radius:8px;
-      padding:14px 28px; font-family:'Satoshi',sans-serif; font-size:15px; font-weight:700;
-      box-shadow:4px 4px 0px 0px #ffe17c;
-      transition:transform .15s cubic-bezier(.175,.885,.32,1.275), box-shadow .15s;
-      cursor:pointer; text-decoration:none; white-space:nowrap;
-    }
-    .neo-btn-yellow:hover { transform:translate(4px,4px); box-shadow:none; }
-
-    /* ── Marquee ── */
-    @keyframes marquee {
-      from { transform:translateX(0); }
-      to   { transform:translateX(-50%); }
-    }
-    .marquee-track { display:flex; animation:marquee 28s linear infinite; width:max-content; }
-    .marquee-track:hover { animation-play-state:paused; }
-
-    /* ── Feature cards ── */
-    .feat-card {
-      background:#fff; border:2px solid #000; padding:28px 24px;
-      box-shadow:4px 4px 0px 0px #000;
-      transition:transform .15s, box-shadow .15s;
-    }
-    .feat-card:hover { transform:translate(-2px,-2px); box-shadow:6px 6px 0px 0px #000; }
-    .feat-card .feat-icon {
-      width:52px; height:52px; background:#b7c6c2; border:2px solid #000;
-      display:flex; align-items:center; justify-content:center; font-size:22px;
-      transition:background .15s; margin-bottom:18px; border-radius:4px;
-    }
-    .feat-card:hover .feat-icon { background:#ffe17c; }
-
-    /* ── Persona cards ── */
-    .persona-card {
-      border:2px solid #000; padding:32px 28px;
-      transition:transform .15s, box-shadow .15s;
-    }
-    .persona-card.featured { box-shadow:8px 8px 0px 0px #000; }
-    .persona-card.featured:hover { transform:translate(-4px,-4px); box-shadow:12px 12px 0px 0px #000; }
-
-    /* ── Testimonial cards — asymmetric corners ── */
-    .testi-card {
-      background:#fff; border:2px solid #000; padding:28px 24px;
-      border-radius:2px 48px 2px 48px;
-      box-shadow:4px 4px 0px 0px #000;
-      transition:transform .15s, box-shadow .15s;
-    }
-    .testi-card:hover { transform:translate(-2px,-2px); box-shadow:6px 6px 0px 0px #000; }
-
-    /* ── Sign-in input ── */
-    .neo-input {
-      width:100%; padding:14px 16px; border:2px solid #000; border-radius:8px;
-      font-family:'Satoshi',sans-serif; font-size:15px; font-weight:500;
-      background:#fff; color:#000; outline:none;
-      transition:box-shadow .15s;
-    }
-    .neo-input:focus { box-shadow:4px 4px 0px 0px #000; }
-    .neo-input::placeholder { color:#aaa; }
-
-    /* ── Nav link ── */
-    .nav-link {
-      font-family:'Satoshi',sans-serif; font-weight:700; font-size:14px;
-      color:#000; text-decoration:none; letter-spacing:0.01em;
-      padding:6px 2px; border-bottom:2px solid transparent;
-      transition:border-color .15s;
-    }
-    .nav-link:hover { border-bottom-color:#000; }
-
-    /* ── Social icons ── */
-    .social-icon {
-      width:40px; height:40px; background:#272727; border:1px solid #3a3a3a;
-      display:flex; align-items:center; justify-content:center;
-      transition:background .15s, border-color .15s; cursor:pointer;
-      text-decoration:none;
-    }
-    .social-icon:hover { background:#ffe17c; border-color:#000; }
-    .social-icon:hover svg { stroke:#000; }
-
-    /* ── Responsive ── */
-    @media(max-width:1024px){
-      .hero-grid { grid-template-columns:1fr !important; }
-      .mockup-col { display:none !important; }
-      .feat-grid { grid-template-columns:1fr 1fr !important; }
-      .persona-grid { grid-template-columns:1fr !important; }
-    }
-    @media(max-width:640px){
-      .hero-h1 { font-size:52px !important; }
-      .section-px { padding-left:20px !important; padding-right:20px !important; }
-      .feat-grid { grid-template-columns:1fr !important; }
-      .testi-grid { grid-template-columns:1fr !important; }
-      .footer-grid { grid-template-columns:1fr 1fr !important; }
-      .step-line { display:none !important; }
-      .steps-row { flex-direction:column !important; gap:32px !important; }
-    }
-  `
-
   return (
-    <div style={{ fontFamily:"'Satoshi',sans-serif", background:"#fff", color:"#000" }}>
-      <style>{css}</style>
+    <>
+      {/* ── Global styles ── */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,700&display=swap');
 
-      {/* ══════════════════════════════ NAV ══════════════════════════════ */}
-      <nav style={{
-        position:"fixed", top:0, left:0, right:0, zIndex:100,
-        background:"#ffe17c", borderBottom:"2px solid #000",
-        height:72, padding:"0 40px",
-        display:"flex", alignItems:"center", justifyContent:"space-between",
-      }}>
-        {/* Logo */}
-        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-          <div style={{
-            width:36, height:36, background:"#000", border:"2px solid #000",
-            display:"flex", alignItems:"center", justifyContent:"center", borderRadius:4,
-          }}>
-            <span style={{ fontSize:18, lineHeight:1 }}>⚡</span>
-          </div>
-          <span style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:800, fontSize:20, letterSpacing:"-0.04em" }}>
-            FXEDGE
-          </span>
-        </div>
+        .sd-root * { border-radius: 0px !important; box-sizing: border-box; }
+        .sd-root { font-family: 'Inter', sans-serif; background: #000; color: #fff; margin: 0; overflow-x: hidden; }
+        .sd-serif { font-family: 'Playfair Display', serif; }
 
-        {/* Center links */}
-        <div style={{ display:"flex", gap:32 }}>
-          {["Features","How It Works","Testimonials"].map(l => (
-            <a key={l} href={`#${l.toLowerCase().replace(/ /g,"-")}`} className="nav-link"
-              onClick={e => { e.preventDefault(); scrollTo(l.toLowerCase().replace(/ /g,"-")) }}>{l}</a>
-          ))}
-        </div>
+        /* Gradient shift background */
+        @keyframes sd-gradient-shift {
+          0%   { background-position: 0%   50%; }
+          50%  { background-position: 100% 50%; }
+          100% { background-position: 0%   50%; }
+        }
+        .sd-bg {
+          background: linear-gradient(-45deg, #000000, #050505, #080808, #000000);
+          background-size: 400% 400%;
+          animation: sd-gradient-shift 18s ease infinite;
+          min-height: 100vh;
+        }
 
-        {/* CTA */}
-        <button className="neo-btn-primary" style={{ padding:"10px 20px", fontSize:13, boxShadow:"4px 4px 0px 0px #000" }}
-          onClick={() => scrollTo("signin")}>
-          Start Free →
-        </button>
-      </nav>
+        /* Breathing float */
+        @keyframes sd-breathing {
+          0%, 100% { transform: translateY(0px);  }
+          50%       { transform: translateY(-6px); }
+        }
+        .sd-breathe { animation: sd-breathing 5s ease-in-out infinite; }
 
-      {/* ══════════════════════════════ HERO ══════════════════════════════ */}
-      <section className="dot-bg section-px" style={{
-        background:"#ffe17c", paddingTop:120, paddingBottom:80,
-        paddingLeft:40, paddingRight:40, borderBottom:"2px solid #000",
-      }}>
-        <div className="hero-grid" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:64, alignItems:"center", maxWidth:1280, margin:"0 auto" }}>
+        /* Scroll reveal */
+        .sd-reveal {
+          opacity: 0;
+          transform: translateY(28px);
+          transition: opacity 1s cubic-bezier(0.25, 0.46, 0.45, 1),
+                      transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 1);
+          will-change: transform, opacity;
+        }
+        .sd-reveal.sd-visible { opacity: 1; transform: translateY(0); }
+        .sd-d1 { transition-delay: 150ms; }
+        .sd-d2 { transition-delay: 300ms; }
+        .sd-d3 { transition-delay: 450ms; }
+        .sd-d4 { transition-delay: 600ms; }
+        .sd-d5 { transition-delay: 750ms; }
+        .sd-d6 { transition-delay: 900ms; }
 
-          {/* Left column */}
-          <div>
-            {/* Badge */}
-            <div style={{
-              display:"inline-flex", alignItems:"center", gap:8,
-              background:"#fff", border:"2px solid #000", borderRadius:999,
-              padding:"6px 16px", marginBottom:32,
-              fontSize:12, fontWeight:700, letterSpacing:"0.04em",
-            }}>
-              <span style={{ width:6, height:6, borderRadius:"50%", background:"#000", display:"inline-block" }}/>
-              NEW: Pattern Detector 2.0
-            </div>
+        /* Line expand */
+        @keyframes sd-line-expand {
+          from { transform: scaleX(0); }
+          to   { transform: scaleX(1); }
+        }
+        .sd-line-trigger.sd-visible .sd-line {
+          animation: sd-line-expand 1.5s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+        }
+        .sd-line {
+          transform: scaleX(0);
+          transform-origin: left center;
+        }
 
-            {/* Headline */}
-            <h1 className="hero-h1" style={{
-              fontFamily:"'Cabinet Grotesk',sans-serif",
-              fontSize:72, fontWeight:800, lineHeight:0.92,
-              letterSpacing:"-0.04em", marginBottom:24, color:"#000",
-            }}>
-              The journal<br/>
-              built around<br/>
-              your{" "}
-              <span style={{ WebkitTextStroke:"2px #000", color:"transparent" }}>edge.</span>
-            </h1>
+        /* Feature cards */
+        .sd-card {
+          border: 1px solid #1a1a1a;
+          background: #050505;
+          padding: 48px;
+          transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 1),
+                      border-color 0.4s ease,
+                      background 0.4s ease,
+                      box-shadow 0.4s ease;
+        }
+        .sd-card:hover {
+          border-color: #3b82f6;
+          background: #080808;
+          transform: translateY(-8px);
+          box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 20px rgba(59,130,246,0.06);
+        }
 
-            <p style={{ fontSize:17, color:"#171e19", lineHeight:1.7, maxWidth:440, marginBottom:36, fontWeight:500 }}>
-              Log trades, detect patterns, plan sessions, and get AI coaching — all in one app
-              built specifically for ICT and SMC traders.
-            </p>
+        /* Button */
+        .sd-btn {
+          background: #fff;
+          color: #000;
+          border: none;
+          padding: 16px 40px;
+          font-family: 'Inter', sans-serif;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+          cursor: pointer;
+          transition: background 0.3s ease, color 0.3s ease, transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 1);
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+        .sd-btn:hover  { background: #3b82f6; color: #fff; transform: scale(1.04); }
+        .sd-btn:active { transform: scale(0.96); }
+        .sd-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-            {/* CTA group */}
-            <div style={{ display:"flex", gap:14, flexWrap:"wrap" }}>
-              <button className="neo-btn-primary" onClick={() => scrollTo("signin")}>
-                Start Free — No card required
-              </button>
-              <button className="neo-btn-secondary" onClick={() => scrollTo("features")}>
-                See Features ↓
-              </button>
-            </div>
+        /* Input */
+        .sd-input {
+          background: transparent;
+          border: 1px solid #222;
+          color: #fff;
+          padding: 16px 24px;
+          font-family: 'Playfair Display', serif;
+          font-style: italic;
+          font-size: 15px;
+          outline: none;
+          width: 100%;
+          transition: border-color 0.3s ease;
+        }
+        .sd-input::placeholder { color: #444; }
+        .sd-input:focus { border-color: #3b82f6; }
 
-            {/* Social proof micro */}
-            <div style={{ marginTop:28, display:"flex", alignItems:"center", gap:10 }}>
-              <div style={{ display:"flex" }}>
-                {["🧑","👩","🧑‍💼","👨‍💻"].map((e,i) => (
-                  <div key={i} style={{ width:28,height:28,borderRadius:"50%",background:"#171e19",border:"2px solid #ffe17c",marginLeft:i?-8:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13 }}>{e}</div>
-                ))}
-              </div>
-              <span style={{ fontSize:13, fontWeight:500, color:"#171e19" }}>
-                Trusted by <strong>2,400+</strong> active traders
-              </span>
-            </div>
-          </div>
+        /* Nav */
+        .sd-nav {
+          position: fixed;
+          top: 0; left: 0; right: 0;
+          z-index: 100;
+          border-bottom: 1px solid #1a1a1a;
+          background: rgba(0,0,0,0.92);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 20px 48px;
+        }
 
-          {/* Right column — browser mockup */}
-          <div className="mockup-col" style={{ display:"flex", justifyContent:"flex-end" }}>
-            <BrowserMockup/>
-          </div>
-        </div>
-      </section>
+        /* Mobile */
+        @media (max-width: 768px) {
+          .sd-nav { padding: 16px 20px; }
+          .sd-hero-h1 { font-size: 64px !important; }
+          .sd-stats-grid { grid-template-columns: 1fr !important; gap: 24px !important; border-left: none !important; border-right: none !important; }
+          .sd-stats-mid { border-left: none !important; border-right: none !important; }
+          .sd-cta-row { flex-direction: column !important; }
+          .sd-features-grid { grid-template-columns: 1fr !important; border-left: none !important; }
+          .sd-section { padding: 80px 20px !important; }
+          .sd-hero-inner { padding: 160px 20px 80px !important; }
+          .sd-nav-links { display: none !important; }
+        }
+      `}</style>
 
-      {/* ══════════════════════════════ MARQUEE ══════════════════════════ */}
-      <div style={{ background:"#171e19", borderBottom:"2px solid #000", padding:"18px 0", overflow:"hidden" }}>
-        <div className="marquee-track">
-          {[...BRANDS, ...BRANDS].map((b, i) => (
-            <span key={i} style={{
-              fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:700, fontSize:15,
-              color:"#b7c6c2", opacity:0.55, letterSpacing:"0.12em", textTransform:"uppercase",
-              marginRight:64, whiteSpace:"nowrap",
-            }}>
-              {b}
-              <span style={{ marginLeft:64, color:"#b7c6c2", opacity:.3 }}>✦</span>
+      <div className="sd-root sd-bg">
+
+        {/* ── Navigation ── */}
+        <nav className="sd-nav">
+          <div style={{ display:"flex", alignItems:"baseline", gap:10 }}>
+            <span style={{ fontFamily:"'Inter',sans-serif", fontSize:16, fontWeight:800, letterSpacing:"0.18em", textTransform:"uppercase", color:"#fff" }}>
+              FXEDGE
             </span>
-          ))}
-        </div>
-      </div>
-
-      {/* ══════════════════════════════ PROBLEM / SOLUTION ═══════════════ */}
-      <section className="section-px" style={{ background:"#fff", padding:"80px 40px", borderBottom:"2px solid #000" }}>
-        <div style={{ maxWidth:1280, margin:"0 auto" }}>
-          <p style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:700, fontSize:12, letterSpacing:"0.2em", textTransform:"uppercase", color:"#999", marginBottom:12 }}>The problem</p>
-          <h2 style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:800, fontSize:42, letterSpacing:"-0.04em", marginBottom:48, lineHeight:1.05 }}>
-            Most journals take. FXEDGE gives back.
-          </h2>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24 }}>
-            {/* Problem card */}
-            <div style={{
-              background:"#f4f4f5", border:"2px dashed #ccc", padding:"36px 32px",
-              opacity:.75, borderRadius:4,
-            }}>
-              <div style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:800, fontSize:22, marginBottom:24, color:"#000" }}>❌ Before FXEDGE</div>
-              {[
-                "Spreadsheet of doom — no insight, just data",
-                "No idea why you win or lose on specific pairs",
-                "Journaling feels like a chore with zero return",
-                "You know you over-filter but have no proof",
-                "Generic AI advice that ignores your actual trades",
-              ].map(t => (
-                <div key={t} style={{ display:"flex", alignItems:"flex-start", gap:10, marginBottom:14, fontSize:14, fontWeight:500, color:"#444" }}>
-                  <span style={{ flexShrink:0, marginTop:1, color:"#cc0000", fontWeight:700 }}>✕</span>
-                  {t}
-                </div>
-              ))}
-            </div>
-
-            {/* Solution card */}
-            <div style={{
-              background:"#ffe17c", border:"2px solid #000", padding:"36px 32px",
-              boxShadow:"8px 8px 0px 0px #000", borderRadius:4,
-            }}>
-              <div style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:800, fontSize:22, marginBottom:24, color:"#000" }}>✅ With FXEDGE</div>
-              {[
-                "Pattern engine surfaces your real edge automatically",
-                "Know your win rate by pair, session, and day of week",
-                "30-second entries that generate actionable data",
-                "Missed Trade Tracker proves (or disproves) hesitation",
-                "AI coach reads your journal — actual personalised advice",
-              ].map(t => (
-                <div key={t} style={{ display:"flex", alignItems:"flex-start", gap:10, marginBottom:14, fontSize:14, fontWeight:500, color:"#000" }}>
-                  <span style={{ flexShrink:0, marginTop:1, color:"#000", fontWeight:700 }}>✓</span>
-                  {t}
-                </div>
-              ))}
-            </div>
+            <span style={{ fontSize:9, color:"#444", letterSpacing:"0.14em", textTransform:"uppercase" }}>/ SMC</span>
           </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════ FEATURES ══════════════════════════ */}
-      <section id="features" className="dot-bg section-px" style={{ background:"#ffe17c", padding:"80px 40px", borderBottom:"2px solid #000" }}>
-        <div style={{ maxWidth:1280, margin:"0 auto" }}>
-          <p style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:700, fontSize:12, letterSpacing:"0.2em", textTransform:"uppercase", color:"#000", opacity:.5, marginBottom:12 }}>Everything you need</p>
-          <h2 style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:800, fontSize:42, letterSpacing:"-0.04em", marginBottom:48, lineHeight:1.05 }}>
-            Not just a trade logger.
-          </h2>
-          <div className="feat-grid" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16 }}>
-            {FEATURES.map(f => (
-              <div key={f.title} className="feat-card">
-                <div className="feat-icon">{f.icon}</div>
-                <h3 style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:800, fontSize:20, letterSpacing:"-0.03em", marginBottom:10 }}>{f.title}</h3>
-                <p style={{ fontSize:14, color:"#444", lineHeight:1.65, fontWeight:500 }}>{f.desc}</p>
-              </div>
-            ))}
+          <div className="sd-nav-links" style={{ display:"flex", alignItems:"center", gap:40 }}>
+            <a href="#features" style={{ fontSize:11, fontWeight:600, letterSpacing:"0.16em", textTransform:"uppercase", color:"#666", textDecoration:"none", transition:"color 0.2s" }}
+              onMouseEnter={e=>e.target.style.color="#fff"} onMouseLeave={e=>e.target.style.color="#666"}>
+              Features
+            </a>
+            <button className="sd-btn" onClick={()=>document.getElementById("sd-email")?.focus()}>
+              Enter
+            </button>
           </div>
-        </div>
-      </section>
+        </nav>
 
-      {/* ══════════════════════════════ HOW IT WORKS ══════════════════════ */}
-      <section id="how-it-works" style={{ background:"#171e19", padding:"80px 40px", borderBottom:"2px solid #000" }}>
-        <div style={{ maxWidth:1280, margin:"0 auto" }}>
-          <p style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:700, fontSize:12, letterSpacing:"0.2em", textTransform:"uppercase", color:"#b7c6c2", opacity:.6, marginBottom:12 }}>Simple process</p>
-          <h2 style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:800, fontSize:42, letterSpacing:"-0.04em", color:"#fff", marginBottom:64, lineHeight:1.05 }}>
-            Your edge in 3 steps.
-          </h2>
+        {/* ── Hero ── */}
+        <main className="sd-hero-inner" ref={heroRef}
+          style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", textAlign:"center", padding:"192px 48px 128px", maxWidth:900, margin:"0 auto" }}>
 
-          <div className="steps-row" style={{ display:"flex", alignItems:"flex-start", gap:0 }}>
-            {STEPS.map((s, i) => (
-              <div key={s.n} style={{ display:"flex", alignItems:"flex-start", flex:1 }}>
-                <div style={{ flex:1 }}>
-                  {/* Step circle */}
-                  <div style={{
-                    width:60, height:60, borderRadius:"50%",
-                    border:`4px solid ${s.dot}`,
-                    display:"flex", alignItems:"center", justifyContent:"center",
-                    fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:800, fontSize:18, color:s.dot,
-                    marginBottom:24, background:"#171e19",
-                  }}>
-                    {s.n}
-                  </div>
-                  <h3 style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:800, fontSize:22, color:"#fff", marginBottom:12, letterSpacing:"-0.02em" }}>{s.title}</h3>
-                  <p style={{ fontSize:14, color:"#b7c6c2", lineHeight:1.65, fontWeight:500, maxWidth:280 }}>{s.desc}</p>
-                </div>
-                {/* Connector line */}
-                {i < STEPS.length - 1 && (
-                  <div className="step-line" style={{ flex:"0 0 40px", height:4, background:"#272727", marginTop:28, borderRadius:2 }}/>
-                )}
-              </div>
-            ))}
+          {/* Eyebrow */}
+          <div className="sd-reveal">
+            <span style={{ fontSize:10, fontWeight:700, letterSpacing:"0.5em", textTransform:"uppercase", color:"#3b82f6" }}>
+              Master Your Performance
+            </span>
           </div>
-        </div>
-      </section>
 
-      {/* ══════════════════════════════ PERSONAS ══════════════════════════ */}
-      <section style={{ background:"#fff", padding:"80px 40px", borderBottom:"2px solid #000" }}>
-        <div style={{ maxWidth:1280, margin:"0 auto" }}>
-          <p style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:700, fontSize:12, letterSpacing:"0.2em", textTransform:"uppercase", color:"#999", marginBottom:12 }}>Built for you</p>
-          <h2 style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:800, fontSize:42, letterSpacing:"-0.04em", marginBottom:48, lineHeight:1.05 }}>
-            Whatever your setup.
-          </h2>
-          <div className="persona-grid" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16 }}>
-            {PERSONAS.map(p => (
-              <div key={p.badge} className={`persona-card${p.featured?" featured":""}`} style={{ background:p.bg, color:p.color }}>
-                {/* Badge */}
-                <div style={{
-                  display:"inline-flex", background:"#fff", color:"#000",
-                  border:"2px solid #000", borderRadius:999,
-                  padding:"4px 14px", fontSize:11, fontWeight:700,
-                  letterSpacing:"0.06em", textTransform:"uppercase", marginBottom:24,
-                }}>
-                  {p.badge}
-                </div>
-                <h3 style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:800, fontSize:22, letterSpacing:"-0.03em", marginBottom:14, lineHeight:1.1 }}>{p.title}</h3>
-                <p style={{ fontSize:14, opacity:.75, lineHeight:1.65, fontWeight:500, marginBottom:24 }}>{p.desc}</p>
-                <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                  {p.points.map(pt => (
-                    <div key={pt} style={{ display:"flex", alignItems:"center", gap:8, fontSize:13, fontWeight:700 }}>
-                      <span style={{
-                        width:22, height:22, borderRadius:"50%",
-                        background: p.color==="#fff" ? "rgba(255,255,255,.15)" : "rgba(0,0,0,.08)",
-                        display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, flexShrink:0,
-                      }}>✓</span>
-                      {pt}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+          {/* Headline */}
+          <h1 className="sd-serif sd-reveal sd-d1 sd-breathe sd-hero-h1"
+            style={{ fontSize:96, fontWeight:900, letterSpacing:"-0.03em", lineHeight:1, margin:"40px 0 32px", color:"#fff" }}>
+            Master Your<br />Edge.
+          </h1>
 
-      {/* ══════════════════════════════ TESTIMONIALS ══════════════════════ */}
-      <section id="testimonials" style={{ background:"#b7c6c2", padding:"80px 40px", borderBottom:"2px solid #000" }}>
-        <div style={{ maxWidth:1280, margin:"0 auto" }}>
-          <p style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:700, fontSize:12, letterSpacing:"0.2em", textTransform:"uppercase", color:"#000", opacity:.5, marginBottom:12 }}>Social proof</p>
-          <h2 style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:800, fontSize:42, letterSpacing:"-0.04em", marginBottom:48, lineHeight:1.05 }}>
-            Traders love the data.
-          </h2>
-          <div className="testi-grid" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:20 }}>
-            {TESTIMONIALS.map(t => (
-              <div key={t.name} className="testi-card">
-                {/* Stars */}
-                <div style={{ display:"flex", gap:3, marginBottom:16 }}>
-                  {Array(t.stars).fill(0).map((_,i) => (
-                    <span key={i} style={{ color:"#ffbc2e", fontSize:18, lineHeight:1 }}>★</span>
-                  ))}
-                </div>
-                <p style={{ fontSize:14, lineHeight:1.7, fontWeight:500, color:"#000", marginBottom:20, fontStyle:"italic" }}>
-                  &ldquo;{t.quote}&rdquo;
-                </p>
-                <div>
-                  <div style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:800, fontSize:15, color:"#000" }}>{t.name}</div>
-                  <div style={{ fontSize:12, color:"#444", fontWeight:500, marginTop:2 }}>{t.role}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════ FINAL CTA / SIGN IN ═══════════════ */}
-      <section id="signin" className="dot-bg section-px" style={{ background:"#ffe17c", padding:"96px 40px", borderBottom:"2px solid #000" }}>
-        <div style={{ maxWidth:640, margin:"0 auto", textAlign:"center" }}>
-          <h2 style={{
-            fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:800,
-            fontSize:52, letterSpacing:"-0.04em", lineHeight:0.95, marginBottom:16, color:"#000",
-          }}>
-            Start tracking your edge today.
-          </h2>
-          <p style={{ fontSize:16, color:"#171e19", lineHeight:1.7, fontWeight:500, marginBottom:40 }}>
-            No credit card. No setup. Just your email — you&apos;ll get a magic link and you&apos;re in.
+          {/* Subtitle */}
+          <p className="sd-serif sd-reveal sd-d2"
+            style={{ fontSize:20, color:"#555", lineHeight:1.7, maxWidth:600, fontStyle:"italic", margin:"0 0 64px" }}>
+            A refined environment for maintaining discipline, finding clarity, and refining your unique trading edge.
           </p>
 
-          {!sent ? (
-            <div style={{ background:"#fff", border:"2px solid #000", padding:"32px", boxShadow:"8px 8px 0px 0px #000" }}>
-              <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-                <input
-                  className="neo-input"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && send()}
-                  style={{ flex:1, minWidth:200 }}
-                />
-                <button
-                  className="neo-btn-primary"
-                  onClick={send}
-                  disabled={loading}
-                  style={{ opacity: loading ? .6 : 1 }}
-                >
-                  {loading ? "Sending…" : "Get Magic Link →"}
-                </button>
+          {/* Stats row */}
+          <div className="sd-reveal sd-d3 sd-breathe sd-stats-grid"
+            style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", width:"100%", maxWidth:720,
+              borderTop:"1px solid #1a1a1a", borderBottom:"1px solid #1a1a1a", padding:"40px 0", marginBottom:64, gap:0 }}>
+            <div style={{ textAlign:"center" }}>
+              <div className="sd-serif" style={{ fontSize:40, fontWeight:900, color:"#fff" }}>
+                {counterVal}+
               </div>
-              {error && <p style={{ fontSize:12, color:"#cc0000", marginTop:12, textAlign:"left" }}>{error}</p>}
-              <p style={{ fontSize:11, color:"#666", marginTop:16, textAlign:"center", letterSpacing:"0.03em" }}>
-                Free forever · Your data stays yours · No password needed
+              <div style={{ fontSize:9, fontWeight:700, letterSpacing:"0.2em", textTransform:"uppercase", color:"#444", marginTop:8 }}>
+                Analysis Tools
+              </div>
+            </div>
+            <div className="sd-stats-mid" style={{ textAlign:"center", borderLeft:"1px solid #1a1a1a", borderRight:"1px solid #1a1a1a" }}>
+              <div className="sd-serif" style={{ fontSize:40, fontWeight:900, color:"#fff" }}>99.9%</div>
+              <div style={{ fontSize:9, fontWeight:700, letterSpacing:"0.2em", textTransform:"uppercase", color:"#444", marginTop:8 }}>
+                Reliability
+              </div>
+            </div>
+            <div style={{ textAlign:"center" }}>
+              <div className="sd-serif" style={{ fontSize:40, fontWeight:900, fontStyle:"italic", color:"#fff" }}>Real-time</div>
+              <div style={{ fontSize:9, fontWeight:700, letterSpacing:"0.2em", textTransform:"uppercase", color:"#444", marginTop:8 }}>
+                Sync Speed
+              </div>
+            </div>
+          </div>
+
+          {/* CTA */}
+          <div className="sd-reveal sd-d4" style={{ width:"100%", maxWidth:480 }}>
+            {sent ? (
+              <div style={{ border:"1px solid #1a1a1a", padding:"24px 32px", textAlign:"center" }}>
+                <div style={{ fontSize:11, fontWeight:700, letterSpacing:"0.3em", textTransform:"uppercase", color:"#3b82f6", marginBottom:8 }}>
+                  Check Your Inbox
+                </div>
+                <div className="sd-serif" style={{ fontSize:15, color:"#555", fontStyle:"italic" }}>
+                  Magic link sent to <span style={{ color:"#fff" }}>{email}</span>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="sd-cta-row" style={{ display:"flex", gap:0 }}>
+                  <input
+                    id="sd-email"
+                    className="sd-input"
+                    type="email"
+                    placeholder="Email Address"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && handleSubmit()}
+                  />
+                  <button className="sd-btn" onClick={handleSubmit} disabled={loading}>
+                    {loading ? "..." : "Enter"}
+                  </button>
+                </div>
+                {err && (
+                  <div style={{ marginTop:12, fontSize:12, color:"#ef4444", letterSpacing:"0.04em" }}>{err}</div>
+                )}
+                <p style={{ marginTop:16, fontSize:9, color:"#333", letterSpacing:"0.25em", textTransform:"uppercase" }}>
+                  One-click access to your terminal
+                </p>
+              </>
+            )}
+          </div>
+        </main>
+
+        {/* ── Features ── */}
+        <section id="features" className="sd-section"
+          style={{ borderTop:"1px solid #111", padding:"128px 48px" }}>
+          <div style={{ maxWidth:1280, margin:"0 auto" }}>
+
+            {/* Section heading */}
+            <div className="sd-reveal sd-line-trigger" style={{ textAlign:"center", marginBottom:80 }}>
+              <h2 className="sd-serif" style={{ fontSize:48, fontWeight:700, textTransform:"uppercase", letterSpacing:"-0.02em", marginBottom:16, color:"#fff" }}>
+                The Core
+              </h2>
+              <div className="sd-line" style={{ width:96, height:1, background:"#3b82f6", margin:"0 auto 16px" }} />
+              <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.3em", textTransform:"uppercase", color:"#444" }}>
+                Simple tools for complex markets
               </p>
             </div>
-          ) : (
-            <div style={{ background:"#fff", border:"2px solid #000", padding:"40px 32px", boxShadow:"8px 8px 0px 0px #000", textAlign:"center" }}>
-              <div style={{ fontSize:48, marginBottom:16 }}>📬</div>
-              <h3 style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:800, fontSize:24, letterSpacing:"-0.03em", marginBottom:8 }}>Check your inbox</h3>
-              <p style={{ fontSize:14, color:"#444", lineHeight:1.7 }}>
-                Magic link sent to <strong>{email}</strong>. Click it to open your journal.
-              </p>
-              <button onClick={() => setSent(false)} style={{ marginTop:20, background:"none", border:"2px solid #000", padding:"8px 20px", cursor:"pointer", fontSize:13, fontFamily:"'Satoshi',sans-serif", fontWeight:700, borderRadius:6 }}>
-                Use different email
+
+            {/* 6-card grid */}
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", borderLeft:"1px solid #1a1a1a", borderTop:"1px solid #1a1a1a" }}
+              className="sd-features-grid">
+              {FEATURES.map((f, i) => (
+                <div key={f.title}
+                  className={`sd-card sd-reveal sd-d${(i % 6) + 1}`}
+                  style={{ borderRight:"1px solid #1a1a1a", borderBottom:"1px solid #1a1a1a" }}>
+                  <div style={{ marginBottom:32 }}>
+                    <Icon name={f.icon} size={36} />
+                  </div>
+                  <h4 className="sd-serif" style={{ fontSize:22, fontWeight:900, color:"#fff", marginBottom:16 }}>
+                    {f.title}
+                  </h4>
+                  <p style={{ fontSize:13, color:"#555", lineHeight:1.8 }}>
+                    {f.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Footer ── */}
+        <footer style={{ borderTop:"1px solid #1a1a1a", padding:"48px 48px 40px" }}>
+          <div style={{ maxWidth:1280, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:24 }}>
+            <div>
+              <div style={{ fontSize:14, fontWeight:800, letterSpacing:"0.18em", textTransform:"uppercase", color:"#fff", marginBottom:6 }}>
+                FXEDGE
+              </div>
+              <div className="sd-serif" style={{ fontSize:12, color:"#333", fontStyle:"italic" }}>
+                Master Your Edge.
+              </div>
+            </div>
+            <div style={{ display:"flex", gap:32, alignItems:"center" }}>
+              <a href="#features" style={{ fontSize:10, fontWeight:600, letterSpacing:"0.16em", textTransform:"uppercase", color:"#444", textDecoration:"none", transition:"color 0.2s" }}
+                onMouseEnter={e=>e.target.style.color="#fff"} onMouseLeave={e=>e.target.style.color="#444"}>
+                Features
+              </a>
+              <button className="sd-btn" style={{ padding:"12px 28px", fontSize:10 }}
+                onClick={()=>document.getElementById("sd-email")?.focus()}>
+                Sign In
               </button>
             </div>
-          )}
-        </div>
-      </section>
-
-      {/* ══════════════════════════════ FOOTER ════════════════════════════ */}
-      <footer style={{ background:"#171e19", padding:"64px 40px 32px", borderTop:"2px solid #000" }}>
-        <div style={{ maxWidth:1280, margin:"0 auto" }}>
-          <div className="footer-grid" style={{ display:"grid", gridTemplateColumns:"2fr 1fr 1fr 1fr", gap:48, marginBottom:56 }}>
-
-            {/* Brand col */}
-            <div>
-              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:20 }}>
-                <div style={{ width:36,height:36,background:"#ffe17c",border:"2px solid #ffe17c",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:4 }}>
-                  <span style={{ fontSize:18 }}>⚡</span>
-                </div>
-                <span style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:800, fontSize:20, letterSpacing:"-0.04em", color:"#fff" }}>FXEDGE</span>
-              </div>
-              <p style={{ fontSize:13, color:"#b7c6c2", lineHeight:1.75, fontWeight:500, maxWidth:260, marginBottom:28 }}>
-                The trading journal built for ICT and SMC traders. Your data stays yours, always.
-              </p>
-              {/* Social icons */}
-              <div style={{ display:"flex", gap:10 }}>
-                {[
-                  { label:"X", path:"M4 4l16 16M4 20L20 4" },
-                  { label:"Discord", path:"M9 12h6M9 16h6M7 20h10a2 2 0 002-2V6a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z" },
-                  { label:"YouTube", path:"M22.54 6.42a2.78 2.78 0 00-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 00-1.95 1.96A29 29 0 001 12a29 29 0 00.46 5.58A2.78 2.78 0 003.41 19.54C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 001.95-1.96A29 29 0 0023 12a29 29 0 00-.46-5.58zM10 15.5l5.19-3L10 9.5z" },
-                ].map(s => (
-                  <a key={s.label} href="#" className="social-icon" aria-label={s.label}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b7c6c2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d={s.path}/>
-                    </svg>
-                  </a>
-                ))}
-              </div>
-            </div>
-
-            {/* Link cols */}
-            {[
-              { heading:"Platform",  links:["Dashboard","Journal","Analytics","AI Coach","Pattern Detector"] },
-              { heading:"Features",  links:["Daily Planning","Weekly Review","Missed Trades","Economic Calendar","Heatmap"] },
-              { heading:"Company",   links:["Privacy Policy","Terms of Use","Data Ownership","Contact"] },
-            ].map(col => (
-              <div key={col.heading}>
-                <h5 style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:700, fontSize:11, letterSpacing:"0.2em", textTransform:"uppercase", color:"#b7c6c2", opacity:.5, marginBottom:20 }}>{col.heading}</h5>
-                <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-                  {col.links.map(l => (
-                    <a key={l} href="#" style={{ fontSize:13, color:"#b7c6c2", textDecoration:"none", fontWeight:500, transition:"color .15s" }}
-                      onMouseEnter={e => e.currentTarget.style.color = "#ffe17c"}
-                      onMouseLeave={e => e.currentTarget.style.color = "#b7c6c2"}>{l}</a>
-                  ))}
-                </div>
-              </div>
-            ))}
           </div>
-
-          {/* Bottom bar */}
-          <div style={{ borderTop:"1px solid #272727", paddingTop:28, display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12 }}>
-            <p style={{ fontSize:12, color:"#4b5563", fontWeight:500 }}>© 2025 FXEDGE. All rights reserved.</p>
-            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-              <span style={{ width:6,height:6,background:"#22c55e",display:"inline-block",borderRadius:"50%" }}/>
-              <span style={{ fontSize:12, color:"#4b5563", fontWeight:500 }}>All systems operational</span>
-            </div>
+          <div style={{ maxWidth:1280, margin:"32px auto 0", borderTop:"1px solid #0f0f0f", paddingTop:24 }}>
+            <span style={{ fontSize:10, color:"#2a2a2a", letterSpacing:"0.12em" }}>
+              © 2026 FXEDGE · All rights reserved
+            </span>
           </div>
-        </div>
-      </footer>
-    </div>
+        </footer>
+
+      </div>
+    </>
   )
 }

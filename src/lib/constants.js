@@ -58,6 +58,17 @@ export const LIGHT = {
   blue:"#2563eb", pink:"#7c3aed",
   cardGlow:"rgba(14,165,233,0.04)", isDark:false,
 };
+export const BRUTALIST = {
+  bg:"#f7f5ef", surface:"#ffffff", surface2:"#efece3", border:"#000000",
+  text:"#171e19", textDim:"#4a5048", muted:"#7a8a82",
+  accent:"#cc9900", accentBright:"#171e19", green:"#059669", red:"#dc2626", amber:"#d97706",
+  blue:"#2563eb", pink:"#b7c6c2",
+  cardGlow:"transparent", isDark:false,
+  // Brutalist-specific tokens
+  hardShadow:"4px 4px 0px 0px #000000",
+  sidebarBg:"#ffe17c",
+  accentFill:"#ffe17c",
+};
 
 // Keep DARK as alias so any existing imports still work
 export const DARK = DARK_GREEN;
@@ -67,13 +78,15 @@ export const THEMES = {
   "dark-blue":  DARK_BLUE,
   "dark-amber": DARK_AMBER,
   "light":      LIGHT,
+  "brutalist":  BRUTALIST,
 };
 
 export const THEME_META = [
-  { id:"dark-green", label:"Forest", swatch:"#10b981", border:false },
-  { id:"dark-blue",  label:"Ocean",  swatch:"#0ea5e9", border:false },
-  { id:"dark-amber", label:"Ember",  swatch:"#f59e0b", border:false },
-  { id:"light",      label:"Light",  swatch:"#f8fafc", border:true  },
+  { id:"dark-green", label:"Forest",  swatch:"#10b981", border:false },
+  { id:"dark-blue",  label:"Ocean",   swatch:"#0ea5e9", border:false },
+  { id:"dark-amber", label:"Ember",   swatch:"#f59e0b", border:false },
+  { id:"light",      label:"Light",   swatch:"#f8fafc", border:true  },
+  { id:"brutalist",  label:"Brutal",  swatch:"#ffe17c", border:true  },
 ];
 
 // Pre-trade checklist rules

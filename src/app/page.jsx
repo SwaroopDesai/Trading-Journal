@@ -579,16 +579,25 @@ export default function App() {
           style={{
             position:"fixed", right:20,
             bottom: isMobileViewport ? 80 : 24,
-            width:56, height:56, borderRadius:"50%",
-            background:T.accentBright, border:"none",
-            color:"#fff", fontSize:28, cursor:"pointer",
+            width:56, height:56,
+            borderRadius: T.hardShadow ? "3px" : "50%",
+            background: T.hardShadow ? (T.accentFill||"#ffe17c") : T.accentBright,
+            border: T.hardShadow ? "2px solid #000" : "none",
+            color: T.hardShadow ? T.text : "#fff",
+            fontSize:28, cursor:"pointer",
             display:"flex", alignItems:"center", justifyContent:"center",
-            boxShadow:`0 4px 24px ${T.accentBright}70`,
-            zIndex:90, transition:"transform .15s, box-shadow .15s",
+            boxShadow: T.hardShadow ? T.hardShadow : `0 4px 24px ${T.accentBright}70`,
+            zIndex:90, transition:"transform .1s ease, box-shadow .1s ease",
             fontFamily:"Inter,sans-serif", lineHeight:1,
           }}
-          onMouseEnter={e=>{e.currentTarget.style.transform="scale(1.08)"; e.currentTarget.style.boxShadow=`0 6px 32px ${T.accentBright}90`}}
-          onMouseLeave={e=>{e.currentTarget.style.transform="scale(1)";   e.currentTarget.style.boxShadow=`0 4px 24px ${T.accentBright}70`}}
+          onMouseEnter={e=>{
+            if(T.hardShadow){ e.currentTarget.style.transform="translate(4px,4px)"; e.currentTarget.style.boxShadow="none" }
+            else { e.currentTarget.style.transform="scale(1.08)"; e.currentTarget.style.boxShadow=`0 6px 32px ${T.accentBright}90` }
+          }}
+          onMouseLeave={e=>{
+            if(T.hardShadow){ e.currentTarget.style.transform="none"; e.currentTarget.style.boxShadow=T.hardShadow }
+            else { e.currentTarget.style.transform="scale(1)"; e.currentTarget.style.boxShadow=`0 4px 24px ${T.accentBright}70` }
+          }}
         >+</button>
       )}
 
@@ -642,11 +651,13 @@ export default function App() {
 }
 
 function buildCSS(T) {
+  const brutal = !!T.hardShadow
   return `
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap');
+    ${brutal ? `@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800&display=swap');` : ""}
     * { box-sizing:border-box; margin:0; padding:0; }
     body { background:${T.bg}; font-family:Inter,sans-serif; }
-    ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:${T.bg}}::-webkit-scrollbar-thumb{background:${T.border};border-radius:4px}
+    ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:${T.bg}}::-webkit-scrollbar-thumb{background:${T.border};border-radius:${brutal?"0":"4px"}}
 
     /* ── Keyframes ─────────────────────────────────────────── */
     @keyframes tabFadeIn {
@@ -726,5 +737,69 @@ function buildCSS(T) {
       .pill-label{max-width:80px !important;}
       .date-range-bar{padding:7px 14px !important;}
     }
+
+    ${brutal ? `
+    /* ── Neo-Brutalist Theme Overrides ──────────────────────── */
+    /* Sidebar: yellow, hard black border */
+    nav.sidebar {
+      background: ${T.sidebarBg} !important;
+      border-right: 2px solid ${T.border} !important;
+    }
+    nav.sidebar * { color: ${T.text} !important; }
+    /* Nav buttons */
+    .nav-btn {
+      font-family: 'Cabinet Grotesk', 'Plus Jakarta Sans', sans-serif !important;
+      font-weight: 600 !important;
+      font-size: 13.5px !important;
+      letter-spacing: -0.01em !important;
+      border-radius: 3px !important;
+      color: ${T.text} !important;
+    }
+    .nav-btn:hover {
+      background: rgba(0,0,0,0.1) !important;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    .nav-btn.nav-active {
+      background: rgba(0,0,0,0.12) !important;
+      border-left: 3px solid ${T.border} !important;
+      box-shadow: none !important;
+    }
+    /* Tab content area: plain cream, no dot grid */
+    .tab-content {
+      background-image: none !important;
+      background-color: ${T.bg} !important;
+    }
+    /* Buttons: yellow fill, hard shadow, translate on press */
+    .fx-btn {
+      background: ${T.accentFill} !important;
+      border: 2px solid ${T.border} !important;
+      color: ${T.text} !important;
+      box-shadow: ${T.hardShadow} !important;
+      border-radius: 3px !important;
+      transition: transform 0.08s ease, box-shadow 0.08s ease !important;
+    }
+    .fx-btn:hover:not(:disabled) {
+      transform: translate(4px, 4px) !important;
+      box-shadow: none !important;
+    }
+    .fx-btn:active:not(:disabled) {
+      transform: translate(4px, 4px) !important;
+      box-shadow: none !important;
+    }
+    /* Topbar: white bg, black border-bottom */
+    .topbar {
+      background: ${T.surface} !important;
+      border-bottom: 2px solid ${T.border} !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+    /* Headings use Cabinet Grotesk */
+    h1, h2, h3 { font-family: 'Cabinet Grotesk', 'Plus Jakarta Sans', sans-serif !important; letter-spacing: -0.02em !important; }
+    /* Scrollbar: square, black */
+    ::-webkit-scrollbar-thumb { border-radius: 0 !important; }
+    /* Hover lift: disable for brutalist */
+    .hover-lift:hover { transform: none !important; }
+    ` : ""}
   `
 }
