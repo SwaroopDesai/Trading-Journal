@@ -340,7 +340,9 @@ export default function EconomicCalendar({ T, viewportWidth }) {
     currencies.includes(e.country) && impacts.includes(e.impact)
   )
 
-  // Group by ET day
+  const todayKey = todayLocalKey()
+
+  // Group by local day
   const grouped = {}
   filtered.forEach(e => {
     if (!e._dayKey || e._dayKey === "unknown") return
@@ -363,8 +365,6 @@ export default function EconomicCalendar({ T, viewportWidth }) {
   const toggleImpact = i => setImpacts(p =>
     p.includes(i) ? (p.length > 1 ? p.filter(x => x !== i) : p) : [...p, i]
   )
-
-  const todayKey = todayLocalKey()
 
   return (
     <div style={{ padding:isMobile?14:24, display:"flex", flexDirection:"column", gap:20 }}>
