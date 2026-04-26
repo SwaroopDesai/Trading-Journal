@@ -60,6 +60,15 @@ export default function LoginScreen({ supabase }) {
         @keyframes heroIn { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
         @keyframes shimmer { from{left:-100%} to{left:100%} }
 
+        /* Gradient text — must live in a CSS class, NOT inline styles, for -webkit-background-clip to work cross-browser */
+        .grad-text {
+          -webkit-background-clip: text !important;
+          background-clip: text !important;
+          -webkit-text-fill-color: transparent !important;
+          color: transparent;
+          display: inline;
+        }
+
         .feat-item:hover { background:${dark?"rgba(255,255,255,.025)":"rgba(0,0,0,.03)"} !important; }
         .feat-item:hover .feat-icon-box { border-color:${accent} !important; }
         .feat-item { transition:background .25s; }
@@ -113,7 +122,7 @@ export default function LoginScreen({ supabase }) {
         padding:"0 48px", height:72,
         display:"flex", alignItems:"center", justifyContent:"space-between",
       }}>
-        <div style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:900, letterSpacing:"-0.03em", background:`linear-gradient(135deg,${accent},${pink})`, WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>
+        <div className="grad-text" style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:900, letterSpacing:"-0.03em", background:`linear-gradient(135deg,${accent},${pink})` }}>
           FXEDGE
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:24 }}>
@@ -156,7 +165,7 @@ export default function LoginScreen({ supabase }) {
                 color:text,
               }}>
                 The journal<br/>
-                <span style={{ background:`linear-gradient(135deg,${accent},${pink})`, WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>
+                <span className="grad-text" style={{ background:`linear-gradient(135deg,${accent},${pink})` }}>
                   around your edge.
                 </span>
               </h1>
@@ -291,7 +300,7 @@ export default function LoginScreen({ supabase }) {
       <footer style={{ position:"relative", zIndex:1, borderTop:`1px solid ${border}`, padding:"48px 64px 32px" }}>
         <div style={{ maxWidth:1280, margin:"0 auto", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:20 }}>
           <div>
-            <div style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:900, background:`linear-gradient(135deg,${accent},${pink})`, WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", marginBottom:6 }}>FXEDGE</div>
+            <div className="grad-text" style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:900, background:`linear-gradient(135deg,${accent},${pink})`, marginBottom:6 }}>FXEDGE</div>
             <div style={{ fontSize:10, color:muted, letterSpacing:"0.2em", textTransform:"uppercase" }}>Trading Journal · ICT / SMC · Data sovereignty</div>
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
