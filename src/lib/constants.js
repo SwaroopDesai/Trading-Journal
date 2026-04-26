@@ -36,6 +36,7 @@ export const DARK_GREEN = {
   accent:"#059669", accentBright:"#10b981", green:"#22c55e", red:"#ef4444", amber:"#f59e0b",
   blue:"#3b82f6", pink:"#06b6d4",
   cardGlow:"rgba(16,185,129,0.07)", isDark:true,
+  glowRgb:"16,185,129",
 };
 export const DARK_BLUE = {
   bg:"#080c14", surface:"#0f1623", surface2:"#151e30", border:"#1e2d47",
@@ -43,6 +44,7 @@ export const DARK_BLUE = {
   accent:"#0369a1", accentBright:"#0ea5e9", green:"#22c55e", red:"#ef4444", amber:"#f59e0b",
   blue:"#38bdf8", pink:"#818cf8",
   cardGlow:"rgba(14,165,233,0.07)", isDark:true,
+  glowRgb:"14,165,233",
 };
 export const DARK_AMBER = {
   bg:"#0f0d07", surface:"#1a1608", surface2:"#231f0d", border:"#352e10",
@@ -50,6 +52,7 @@ export const DARK_AMBER = {
   accent:"#b45309", accentBright:"#f59e0b", green:"#22c55e", red:"#ef4444", amber:"#fbbf24",
   blue:"#38bdf8", pink:"#fb923c",
   cardGlow:"rgba(245,158,11,0.07)", isDark:true,
+  glowRgb:"245,158,11",
 };
 export const LIGHT = {
   bg:"#f8fafc", surface:"#ffffff", surface2:"#f1f5f9", border:"#e2e8f0",
@@ -57,6 +60,7 @@ export const LIGHT = {
   accent:"#0369a1", accentBright:"#0ea5e9", green:"#16a34a", red:"#dc2626", amber:"#d97706",
   blue:"#2563eb", pink:"#7c3aed",
   cardGlow:"rgba(14,165,233,0.04)", isDark:false,
+  glowRgb:"14,165,233",
 };
 export const BRUTALIST = {
   bg:"#f7f5ef", surface:"#ffffff", surface2:"#efece3", border:"#000000",

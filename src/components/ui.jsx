@@ -1,5 +1,6 @@
 "use client"
 import { useState, useRef, useCallback, useEffect } from "react";
+import GlowBtn from "@/components/GlowBtn";
 import { normalizeImageList } from "@/lib/utils";
 import { DARK } from "@/lib/constants";
 
@@ -171,28 +172,45 @@ export function Btn({T,onClick,children,ghost,danger,disabled,ariaLabel}){
     : (ghost ? `1px solid ${T.border}` : "none")
   const color = brutal ? T.text : (ghost ? T.textDim : "#fff")
   const shadow = brutal ? T.hardShadow : undefined
+
+  // Non-ghost primary buttons on non-brutalist themes get the cursor glow
+  const useGlow = !brutal && !ghost && !danger && T.glowRgb
+
+  const baseStyle = {
+    background:bg, color, border,
+    padding:"9px 18px",
+    fontFamily: brutal ? "'Cabinet Grotesk','Plus Jakarta Sans',sans-serif" : "'Plus Jakarta Sans',sans-serif",
+    fontWeight:700, fontSize:13,
+    borderRadius: brutal ? 3 : 10,
+    cursor:disabled?"not-allowed":"pointer",
+    whiteSpace:"nowrap", opacity:disabled?0.6:1,
+    minHeight:36,
+    transition: brutal ? "transform .08s ease, box-shadow .08s ease" : "opacity .15s, box-shadow .15s",
+    boxShadow: shadow,
+  }
+
+  if (useGlow) {
+    return (
+      <GlowBtn
+        onClick={onClick}
+        disabled={disabled}
+        ariaLabel={ariaLabel}
+        glowColor={T.glowRgb}
+        showArrow={false}
+        style={baseStyle}
+      >
+        {children}
+      </GlowBtn>
+    )
+  }
+
   return (
     <button
       disabled={disabled}
       onClick={onClick}
       aria-label={ariaLabel}
       className="fx-btn"
-      style={{
-        background:bg,
-        color,
-        border,
-        padding:"9px 18px",
-        fontFamily: brutal ? "'Cabinet Grotesk','Plus Jakarta Sans',sans-serif" : "'Plus Jakarta Sans',sans-serif",
-        fontWeight:700,
-        fontSize:13,
-        borderRadius: brutal ? 3 : 10,
-        cursor:disabled?"not-allowed":"pointer",
-        whiteSpace:"nowrap",
-        opacity:disabled?0.6:1,
-        minHeight:36,
-        transition: brutal ? "transform .08s ease, box-shadow .08s ease" : "opacity .15s, box-shadow .15s",
-        boxShadow: shadow,
-      }}
+      style={baseStyle}
     >
       {children}
     </button>

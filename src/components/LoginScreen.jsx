@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect, useRef } from "react";
+import GlowBtn from "@/components/GlowBtn";
 
 /* ── Feature cards data ────────────────────────────────────────────── */
 const FEATURES = [
@@ -297,9 +298,17 @@ export default function LoginScreen({ supabase }) {
               onMouseEnter={e=>e.target.style.color="#fff"} onMouseLeave={e=>e.target.style.color="#666"}>
               Features
             </a>
-            <button className="sd-btn" onClick={()=>document.getElementById("sd-email")?.focus()}>
+            <GlowBtn
+              onClick={()=>document.getElementById("sd-email")?.focus()}
+              glowColor="59,130,246"
+              style={{
+                background:"#fff", color:"#000", border:"none",
+                padding:"10px 28px", fontFamily:"'Inter',sans-serif",
+                fontWeight:700, fontSize:11, letterSpacing:"0.2em", textTransform:"uppercase",
+              }}
+            >
               Enter
-            </button>
+            </GlowBtn>
           </div>
         </nav>
 
@@ -377,9 +386,26 @@ export default function LoginScreen({ supabase }) {
                     onChange={e => setEmail(e.target.value)}
                     onKeyDown={e => e.key === "Enter" && handleSubmit()}
                   />
-                  <button className="sd-btn" onClick={handleSubmit} disabled={loading}>
+                  <GlowBtn
+                    onClick={handleSubmit}
+                    disabled={loading}
+                    glowColor="59,130,246"
+                    style={{
+                      background:"#000",
+                      color:"#fff",
+                      border:"1px solid #333",
+                      padding:"16px 36px",
+                      fontFamily:"'Inter',sans-serif",
+                      fontWeight:700,
+                      fontSize:11,
+                      letterSpacing:"0.2em",
+                      textTransform:"uppercase",
+                      whiteSpace:"nowrap",
+                      flexShrink:0,
+                    }}
+                  >
                     {loading ? "..." : "Enter"}
-                  </button>
+                  </GlowBtn>
                 </div>
                 {err && (
                   <div style={{ marginTop:12, fontSize:12, color:"#ef4444", letterSpacing:"0.04em" }}>{err}</div>
@@ -446,10 +472,18 @@ export default function LoginScreen({ supabase }) {
                 onMouseEnter={e=>e.target.style.color="#fff"} onMouseLeave={e=>e.target.style.color="#444"}>
                 Features
               </a>
-              <button className="sd-btn" style={{ padding:"12px 28px", fontSize:10 }}
-                onClick={()=>document.getElementById("sd-email")?.focus()}>
+              <GlowBtn
+                onClick={()=>document.getElementById("sd-email")?.focus()}
+                glowColor="59,130,246"
+                showArrow={false}
+                style={{
+                  background:"#fff", color:"#000", border:"none",
+                  padding:"12px 28px", fontFamily:"'Inter',sans-serif",
+                  fontWeight:700, fontSize:10, letterSpacing:"0.2em", textTransform:"uppercase",
+                }}
+              >
                 Sign In
-              </button>
+              </GlowBtn>
             </div>
           </div>
           <div style={{ maxWidth:1280, margin:"32px auto 0", borderTop:"1px solid #0f0f0f", paddingTop:24 }}>
