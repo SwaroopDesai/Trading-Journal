@@ -98,19 +98,25 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,
       <InsightCards T={T} trades={trades} />
       <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:isMobile?10:14,marginBottom:20}}>
         {kpis.map(k=>(
-          <div key={k.label} style={{background:k.gradient||T.surface,border:`1px solid ${T.border}`,borderRadius:isMobile?16:18,padding:isMobile?"14px 14px 13px":"18px 18px 16px",boxShadow:`0 10px 28px ${T.cardGlow}`,position:"relative",overflow:"hidden",minWidth:0}}>
+          <div key={k.label} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:isMobile?14:16,padding:isMobile?"16px 14px 14px":"22px 20px 18px",boxShadow:`0 10px 28px ${T.cardGlow}`,position:"relative",overflow:"hidden",minWidth:0}}>
             <HudCorners color={k.color}/>
-            <div style={{position:"absolute",inset:"0 auto auto 0",width:54,height:54,background:`radial-gradient(circle, ${k.color}18 0%, transparent 70%)`}} />
+            {/* Ambient glow top-left */}
+            <div style={{position:"absolute",top:0,left:0,width:80,height:80,background:`radial-gradient(circle, ${k.color}14 0%, transparent 70%)`,pointerEvents:"none"}} />
             <div style={{position:"relative"}}>
-              <div style={{display:"inline-flex",alignItems:"center",gap:6,padding:isMobile?"4px 8px":"5px 10px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:999,fontSize:isMobile?9:10,fontWeight:700,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:isMobile?10:12,maxWidth:"100%"}}>
-                <span style={{width:6,height:6,borderRadius:"50%",background:k.color,display:"inline-block"}} />
+              {/* Eyebrow */}
+              <div style={{fontSize:isMobile?9:10,fontWeight:700,color:k.color,letterSpacing:"0.22em",textTransform:"uppercase",marginBottom:isMobile?10:12,display:"flex",alignItems:"center",gap:6}}>
+                <span style={{width:5,height:5,background:k.color,display:"inline-block",flexShrink:0,boxShadow:`0 0 6px ${k.color}`}} />
                 {k.eyebrow}
               </div>
-              <div style={{fontSize:isMobile?10:11,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}}>{k.label}</div>
-              <div className="fx-num" style={{fontSize:isMobile?22:28,fontWeight:700,color:k.color,lineHeight:1.02,letterSpacing:"-0.02em",wordBreak:"break-word"}}>{k.value}</div>
+              {/* Label */}
+              <div style={{fontSize:isMobile?9:10,fontWeight:700,color:T.muted,letterSpacing:"0.18em",textTransform:"uppercase",marginBottom:isMobile?6:8}}>{k.label}</div>
+              {/* Value — monospace for numbers */}
+              <div style={{fontFamily:"'JetBrains Mono','Fira Code',monospace",fontSize:isMobile?20:26,fontWeight:700,color:k.color,lineHeight:1.0,letterSpacing:"-0.01em",wordBreak:"break-word"}}>{k.value}</div>
+              {/* Sub */}
               <div style={{fontSize:isMobile?10:11,color:T.textDim,marginTop:8,lineHeight:1.5}}>{k.sub}</div>
-              <div style={{height:4,borderRadius:999,background:T.surface,marginTop:isMobile?12:14,overflow:"hidden"}}>
-                <div style={{width:k.barWidth,height:"100%",background:`linear-gradient(90deg,${k.color},${T.pink})`,borderRadius:999,transition:"width 0.9s cubic-bezier(0.16,1,0.3,1)"}} />
+              {/* Progress bar — 2px with glow */}
+              <div style={{height:2,background:T.surface2,marginTop:isMobile?14:16,overflow:"hidden"}}>
+                <div style={{width:k.barWidth,height:"100%",background:`linear-gradient(90deg,${k.color},${T.pink})`,boxShadow:`0 0 8px ${k.color}80`,transition:"width 0.9s cubic-bezier(0.16,1,0.3,1)"}} />
               </div>
             </div>
           </div>
@@ -129,10 +135,11 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,
             ?<EmptyState T={T} icon="🎯" compact title="No trades logged today" copy="Capture the first execution, keep the notes sharp, and the day starts to tell a story." action={<Btn T={T} onClick={onNewTrade}>+ Log Trade</Btn>}/>
             :todayTrades.map(t=>(
               <div key={t._dbid} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderBottom:`1px solid ${T.border}`}}>
-                <span style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:800,color:T.accentBright,minWidth:65}}>{t.pair}</span>
+                <span style={{width:6,height:6,background:t.result==="WIN"?T.green:t.result==="LOSS"?T.red:T.amber,flexShrink:0,borderRadius:1}}/>
+                <span style={{fontFamily:"'JetBrains Mono','Fira Code',monospace",fontWeight:700,color:T.accentBright,minWidth:62,fontSize:13,letterSpacing:"0.04em"}}>{t.pair}</span>
                 <Badge color={t.direction==="LONG"?T.green:T.red}>{t.direction}</Badge>
                 <Badge color={t.result==="WIN"?T.green:t.result==="LOSS"?T.red:T.amber}>{t.result}</Badge>
-                <span style={{marginLeft:"auto",fontWeight:700,color:t.rr>=0?T.green:T.red}}>{fmtRR(t.rr||0)}</span>
+                <span style={{marginLeft:"auto",fontFamily:"'JetBrains Mono','Fira Code',monospace",fontWeight:700,fontSize:13,color:t.rr>=0?T.green:T.red}}>{fmtRR(t.rr||0)}</span>
               </div>
             ))
           }
@@ -174,17 +181,28 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,
         </Card>
 
         <Card T={T} style={{gridColumn:"1/-1",borderRadius:18,padding:"20px 22px"}}>
-          <CardTitle T={T}>Performance by Pair</CardTitle>
+          <CardTitle T={T}>Asset Efficiency Matrix</CardTitle>
           {stats.byPair.filter(p=>p.count>0).length===0
             ?<div style={{color:T.muted,fontSize:13,textAlign:"center",padding:20}}>Log trades to see pair performance</div>
-            :<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:10}}>
-              {stats.byPair.filter(p=>p.count>0).map(p=>(
-                <div key={p.pair} style={{background:`linear-gradient(180deg,${T.surface2},${T.surface})`,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 14px",boxShadow:`0 6px 18px ${T.cardGlow}`}}>
-                  <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:14,fontWeight:800,color:T.accentBright,marginBottom:4}}>{p.pair}</div>
-                  <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:18,fontWeight:800,color:p.totalR>=0?T.green:T.red}}>{p.totalR>=0?"+":""}{p.totalR.toFixed(1)}R</div>
-                  <div style={{fontSize:11,color:T.muted,marginTop:4}}>{p.wins}/{p.count} win ratio / {p.count>0?(p.wins/p.count*100).toFixed(0):0}%</div>
-                </div>
-              ))}
+            :<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(130px,1fr))",gap:10}}>
+              {stats.byPair.filter(p=>p.count>0).map(p=>{
+                const topColor = p.totalR > 0 ? T.green : p.totalR < 0 ? T.red : T.muted
+                const winPct = p.count > 0 ? (p.wins/p.count*100).toFixed(0) : 0
+                return (
+                  <div key={p.pair} style={{
+                    background:T.surface2,
+                    border:`1px solid ${T.border}`,
+                    borderTop:`2px solid ${topColor}`,
+                    borderRadius:10,padding:"16px 14px",
+                    boxShadow:`0 6px 18px ${T.cardGlow}`,
+                  }}>
+                    <div style={{fontFamily:"'JetBrains Mono','Fira Code',monospace",fontSize:12,fontWeight:700,color:T.textDim,marginBottom:6,letterSpacing:"0.04em"}}>{p.pair}</div>
+                    <div style={{fontFamily:"'JetBrains Mono','Fira Code',monospace",fontSize:20,fontWeight:700,color:topColor,lineHeight:1}}>{p.totalR>=0?"+":""}{p.totalR.toFixed(1)}R</div>
+                    <div style={{marginTop:10,height:1,background:T.border}}/>
+                    <div style={{fontSize:10,color:T.muted,marginTop:6,letterSpacing:"0.12em",textTransform:"uppercase",fontWeight:700}}>{winPct}% Win Rate</div>
+                  </div>
+                )
+              })}
             </div>
           }
         </Card>

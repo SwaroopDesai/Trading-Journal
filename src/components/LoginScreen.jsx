@@ -3,18 +3,18 @@ import { useState } from "react";
 import { DARK, LIGHT } from "@/lib/constants";
 
 const FEATURES = [
-  { icon:"📊", title:"Pattern Detection",      desc:"Auto-surfaces your edges and leaks from your trade history. Know exactly where your edge is — and where it isn't." },
-  { icon:"📅", title:"Daily & Weekly Planning", desc:"Set bias, key levels, and session plan before the open. Build the day before the market does." },
-  { icon:"📰", title:"Economic Calendar",       desc:"High-impact events with live countdown, Supabase cache fallback, and bank holiday warnings." },
-  { icon:"👁",  title:"Missed Trade Tracker",   desc:"Log setups you saw but didn't take. Find out if you're over-filtering or saving yourself from bad trades." },
-  { icon:"🔥", title:"Heatmap & Analytics",     desc:"Calendar view, session grid, day-of-week breakdown, streak tape, and drawdown chart — all in one." },
-  { icon:"✨", title:"AI Trade Coach",           desc:"Reads your actual journal data and gives you personalised coaching — not generic advice." },
+  { icon:"lucide:search",     title:"Pattern Detection",       desc:"Auto-surfaces your edges and leaks from your trade history. Know exactly where your high-probability setups originate." },
+  { icon:"lucide:calendar",   title:"Strategic Planning",      desc:"Set bias, key liquidity levels, and session plans before the open. Architect the day before the market moves." },
+  { icon:"lucide:zap",        title:"Economic Radar",          desc:"High-impact events with live countdowns and bank holiday warnings baked directly into your workflow." },
+  { icon:"lucide:eye-off",    title:"Missed Trade Tracker",    desc:"Log setups you identified but didn't execute. Quantify the psychological cost of hesitation and over-filtering." },
+  { icon:"lucide:bar-chart-3",title:"Advanced Analytics",      desc:"Drawdown charts, session grids, and streak tapes. A comprehensive calendar view of your equity performance." },
+  { icon:"lucide:brain-circuit",title:"AI Trade Coach",        desc:"A neural engine that reads your unique journal data to provide personalised coaching based on your real performance." },
 ]
 
 const STATS = [
-  { n:"15+", label:"tools in one app" },
-  { n:"ICT/SMC", label:"native concepts" },
-  { n:"100%", label:"your data, your control" },
+  { n:"15+",    label:"Prop Tools" },
+  { n:"SMC",    label:"Native Engine" },
+  { n:"100%",   label:"Data Sovereignty" },
 ]
 
 export default function LoginScreen({ supabase }) {
@@ -23,7 +23,6 @@ export default function LoginScreen({ supabase }) {
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState(null)
   const [dark,    setDark]    = useState(true)
-  const T = dark ? DARK : LIGHT
 
   const send = async () => {
     if (!email) return
@@ -35,181 +34,271 @@ export default function LoginScreen({ supabase }) {
     setSent(true); setLoading(false)
   }
 
+  const bg      = dark ? "#0a0a0f" : "#f9f8f6"
+  const surface = dark ? "#141420" : "#ffffff"
+  const border  = dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.1)"
+  const text     = dark ? "#f9f8f6" : "#1a1a2e"
+  const textDim  = dark ? "rgba(249,248,246,0.55)" : "rgba(26,26,46,0.55)"
+  const muted    = dark ? "rgba(249,248,246,0.3)" : "rgba(26,26,46,0.3)"
+  const accent   = dark ? "#00f5ff" : "#2563eb"
+  const pink     = dark ? "#ec4899" : "#db2777"
+  const grid     = dark ? "rgba(255,255,255,0.015)" : "rgba(0,0,0,0.04)"
+
   return (
-    <div style={{ minHeight:"100vh", background:T.bg, color:T.text, fontFamily:"Inter,sans-serif", transition:"background .3s, color .3s" }}>
+    <div style={{
+      minHeight:"100vh", background:bg, color:text,
+      fontFamily:"'Inter',sans-serif",
+      backgroundImage:`linear-gradient(to right,${grid} 1px,transparent 1px),linear-gradient(to bottom,${grid} 1px,transparent 1px)`,
+      backgroundSize:"80px 80px",
+    }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
         *{box-sizing:border-box;margin:0;padding:0;}
-        @keyframes heroFade { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-        @keyframes glowPulse { 0%,100%{opacity:.3} 50%{opacity:.7} }
-        .feat-card:hover { border-color: ${T.accentBright}66 !important; transform:translateY(-3px); }
-        .feat-card { transition: border-color .2s, transform .2s, box-shadow .2s; }
-        .sign-in-btn:hover { opacity:.9; transform:scale(1.02); }
-        .sign-in-btn { transition: opacity .15s, transform .15s; }
-        @media(max-width:640px){
-          .hero-title{font-size:36px !important;}
-          .features-grid{grid-template-columns:1fr !important;}
-          .stats-row{gap:20px !important;}
-          .hero-pad{padding:60px 20px 40px !important;}
+
+        @keyframes glow { 0%,100%{opacity:.4;transform:translate(0,0) scale(1)} 50%{opacity:.7;transform:translate(40px,-20px) scale(1.08)} }
+        @keyframes glow2 { 0%,100%{opacity:.3;transform:translate(0,0) scale(1)} 50%{opacity:.6;transform:translate(-30px,15px) scale(1.05)} }
+        @keyframes heroIn { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes shimmer { from{left:-100%} to{left:100%} }
+
+        .feat-item:hover { background:${dark?"rgba(255,255,255,.025)":"rgba(0,0,0,.03)"} !important; }
+        .feat-item:hover .feat-icon-box { border-color:${accent} !important; }
+        .feat-item { transition:background .25s; }
+        .feat-icon-box { transition:border-color .25s; }
+
+        .cta-btn { position:relative; overflow:hidden; transition:opacity .15s, transform .15s; }
+        .cta-btn:hover { opacity:.9; transform:scale(1.015); }
+        .cta-btn::after { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%;
+          background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);
+          transition:.55s; }
+        .cta-btn:hover::after { left:100%; }
+
+        .stat-pill { border-left:1px solid ${border}; padding-left:22px; }
+
+        .hud-tl,.hud-tr,.hud-bl,.hud-br { position:absolute; width:12px; height:12px; border-color:${accent}; opacity:.45; }
+        .hud-tl { top:10px; left:10px; border-top:1.5px solid; border-left:1.5px solid; }
+        .hud-tr { top:10px; right:10px; border-top:1.5px solid; border-right:1.5px solid; }
+        .hud-bl { bottom:10px; left:10px; border-bottom:1.5px solid; border-left:1.5px solid; }
+        .hud-br { bottom:10px; right:10px; border-bottom:1.5px solid; border-right:1.5px solid; }
+
+        .email-input { border-bottom:1px solid ${border}; background:transparent; color:${text};
+          font-family:'Inter',sans-serif; font-size:14px; padding:14px 4px; outline:none; width:100%;
+          transition:border-color .2s; }
+        .email-input:focus { border-color:${accent}; }
+        .email-input::placeholder { color:${muted}; font-style:italic; }
+
+        @media(max-width:900px){
+          .hero-grid { flex-direction:column !important; }
+          .signin-card { max-width:100% !important; }
+          .features-grid { grid-template-columns:1fr !important; }
+          .hero-h1 { font-size:52px !important; }
+        }
+        @media(max-width:600px){
+          .hero-h1 { font-size:38px !important; }
+          .hero-pad { padding:100px 20px 60px !important; }
+          .section-pad { padding:60px 20px !important; }
+          .stats-row { gap:16px !important; flex-wrap:wrap; }
         }
       `}</style>
 
+      {/* ── Glow orbs ── */}
+      <div aria-hidden style={{ position:"fixed", top:"-10%", left:"-5%", width:600, height:600, borderRadius:"50%", background:`radial-gradient(circle,${accent}18 0%,transparent 70%)`, filter:"blur(80px)", animation:"glow 9s ease-in-out infinite", pointerEvents:"none", zIndex:0 }}/>
+      <div aria-hidden style={{ position:"fixed", bottom:"-10%", right:"-5%", width:500, height:500, borderRadius:"50%", background:`radial-gradient(circle,${pink}14 0%,transparent 70%)`, filter:"blur(80px)", animation:"glow2 12s ease-in-out infinite", pointerEvents:"none", zIndex:0 }}/>
+
       {/* ── Nav ── */}
       <nav style={{
-        position:"sticky", top:0, zIndex:50,
-        borderBottom:`1px solid ${T.border}`,
-        background:`${T.bg}ee`, backdropFilter:"blur(14px)",
-        padding:"14px 32px", display:"flex", alignItems:"center", justifyContent:"space-between",
+        position:"fixed", top:0, left:0, right:0, zIndex:50,
+        borderBottom:`1px solid ${border}`,
+        background:dark ? "rgba(10,10,15,.85)" : "rgba(249,248,246,.9)",
+        backdropFilter:"blur(18px)", WebkitBackdropFilter:"blur(18px)",
+        padding:"0 48px", height:72,
+        display:"flex", alignItems:"center", justifyContent:"space-between",
       }}>
-        <div style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize:20, fontWeight:800, background:`linear-gradient(135deg,${T.accentBright},${T.pink})`, WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>
+        <div style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:900, letterSpacing:"-0.03em", background:`linear-gradient(135deg,${accent},${pink})`, WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>
           FXEDGE
         </div>
-        <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-          <span style={{ fontSize:11, color:T.muted, letterSpacing:"0.1em" }}>ICT / SMC</span>
+        <div style={{ display:"flex", alignItems:"center", gap:24 }}>
+          <span style={{ fontSize:10, color:muted, letterSpacing:"0.3em", textTransform:"uppercase", display:"flex", alignItems:"center", gap:6 }}>
+            <span style={{ width:6, height:6, borderRadius:"50%", background:accent, display:"inline-block", boxShadow:`0 0 8px ${accent}` }}/>
+            Live Edge
+          </span>
           <button onClick={() => setDark(!dark)} style={{
-            background:T.surface2, border:`1px solid ${T.border}`,
-            color:T.textDim, padding:"5px 14px", borderRadius:20,
-            cursor:"pointer", fontSize:12, fontFamily:"Inter,sans-serif",
-          }}>{dark ? "☀️ Light" : "🌙 Dark"}</button>
+            background:"none", border:`1px solid ${border}`,
+            color:textDim, padding:"5px 14px",
+            cursor:"pointer", fontSize:11, fontFamily:"Inter,sans-serif",
+          }}>{dark ? "☀ Light" : "🌙 Dark"}</button>
         </div>
       </nav>
 
       {/* ── Hero ── */}
-      <section className="hero-pad" style={{ padding:"80px 32px 60px", textAlign:"center", position:"relative", overflow:"hidden" }}>
-        {/* Background glow orbs */}
-        <div aria-hidden style={{ position:"absolute", top:-100, left:"20%", width:400, height:400, borderRadius:"50%", background:`radial-gradient(circle,${T.accent}18 0%,transparent 70%)`, animation:"glowPulse 4s ease-in-out infinite", pointerEvents:"none" }}/>
-        <div aria-hidden style={{ position:"absolute", top:-60, right:"15%", width:300, height:300, borderRadius:"50%", background:`radial-gradient(circle,${T.pink}12 0%,transparent 70%)`, animation:"glowPulse 5s ease-in-out infinite 1s", pointerEvents:"none" }}/>
+      <section className="hero-pad" style={{ position:"relative", zIndex:1, padding:"120px 64px 80px", maxWidth:1280, margin:"0 auto" }}>
+        <div style={{ animation:"heroIn .6s cubic-bezier(.16,1,.3,1) both" }}>
 
-        <div style={{ position:"relative", animation:"heroFade .6s cubic-bezier(.16,1,.3,1) both" }}>
           {/* Badge */}
           <div style={{
-            display:"inline-flex", alignItems:"center", gap:6,
-            background:`${T.accent}18`, border:`1px solid ${T.accent}40`,
-            borderRadius:999, padding:"5px 14px", marginBottom:24,
-            fontSize:11, fontWeight:700, color:T.accentBright, letterSpacing:"0.1em",
+            display:"inline-flex", alignItems:"center", gap:8,
+            border:`1px solid ${accent}40`, background:`${accent}08`,
+            padding:"6px 18px", marginBottom:32,
+            fontSize:10, fontWeight:700, color:accent, letterSpacing:"0.28em", textTransform:"uppercase",
           }}>
-            <span style={{ width:6, height:6, borderRadius:"50%", background:T.accentBright, display:"inline-block" }}/>
-            BUILT FOR ICT &amp; SMC TRADERS
+            <span style={{ width:5, height:5, background:accent, display:"inline-block" }}/>
+            Institutional Grade Journaling
           </div>
 
-          {/* Headline */}
-          <h1 className="hero-title" style={{
-            fontFamily:"'Plus Jakarta Sans',sans-serif",
-            fontSize:52, fontWeight:800, lineHeight:1.1,
-            letterSpacing:"-0.03em", marginBottom:20,
-            background:`linear-gradient(135deg,${T.text} 30%,${T.accentBright})`,
-            WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
-          }}>
-            The trading journal<br/>built around your edge.
-          </h1>
+          {/* Main layout: headline left, form right */}
+          <div className="hero-grid" style={{ display:"flex", alignItems:"flex-end", gap:80, flexWrap:"nowrap" }}>
 
-          {/* Sub */}
-          <p style={{ fontSize:16, color:T.textDim, lineHeight:1.75, maxWidth:520, margin:"0 auto 36px" }}>
-            Log trades, plan sessions, detect patterns, track missed setups, and get AI coaching — all in one clean app designed specifically for ICT and SMC traders.
-          </p>
+            {/* Left column */}
+            <div style={{ flex:1, minWidth:0 }}>
+              <h1 className="hero-h1" style={{
+                fontFamily:"'Playfair Display',serif",
+                fontSize:72, fontWeight:900, lineHeight:0.88,
+                letterSpacing:"-0.04em", marginBottom:28,
+                color:text,
+              }}>
+                The journal<br/>
+                <span style={{ background:`linear-gradient(135deg,${accent},${pink})`, WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>
+                  around your edge.
+                </span>
+              </h1>
 
-          {/* Stats */}
-          <div className="stats-row" style={{ display:"flex", justifyContent:"center", gap:40, marginBottom:48 }}>
-            {STATS.map(s => (
-              <div key={s.label} style={{ textAlign:"center" }}>
-                <div style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize:22, fontWeight:800, color:T.accentBright }}>{s.n}</div>
-                <div style={{ fontSize:11, color:T.muted, marginTop:2 }}>{s.label}</div>
+              <p style={{ fontSize:16, color:textDim, lineHeight:1.75, maxWidth:480, marginBottom:44, fontStyle:"italic", fontFamily:"'Playfair Display',serif", fontWeight:400 }}>
+                Transcending simple trade logging. A surgical environment for ICT and SMC practitioners to dissect, analyse, and refine every execution.
+              </p>
+
+              {/* Stats */}
+              <div className="stats-row" style={{ display:"flex", gap:32, alignItems:"flex-start" }}>
+                {STATS.map(s => (
+                  <div key={s.label} className="stat-pill">
+                    <div style={{ fontFamily:"'Playfair Display',serif", fontSize:26, fontWeight:900, color:text, marginBottom:4 }}>{s.n}</div>
+                    <div style={{ fontSize:9, color:muted, letterSpacing:"0.25em", textTransform:"uppercase", fontWeight:700 }}>{s.label}</div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+
+            {/* Right column — sign-in card */}
+            <div className="signin-card" style={{ flexShrink:0, width:380, position:"relative" }}>
+              <div className="hud-tl"/><div className="hud-tr"/><div className="hud-bl"/><div className="hud-br"/>
+              <div style={{
+                background:surface,
+                border:`1px solid ${border}`,
+                padding:"40px 36px",
+                animation:"heroIn .7s .15s cubic-bezier(.16,1,.3,1) both",
+              }}>
+                {!sent ? (<>
+                  <div style={{ fontSize:14, fontWeight:700, color:text, marginBottom:4, letterSpacing:"0.01em" }}>Secure Access</div>
+                  <div style={{ fontSize:10, color:muted, letterSpacing:"0.14em", textTransform:"uppercase", marginBottom:28 }}>Passwordless magic link authentication</div>
+
+                  <input
+                    className="email-input"
+                    type="email"
+                    placeholder="Professional email address"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && send()}
+                  />
+
+                  <button
+                    className="cta-btn"
+                    onClick={send}
+                    disabled={loading}
+                    style={{
+                      marginTop:20, width:"100%", padding:"16px 0",
+                      background: loading ? muted : `linear-gradient(135deg,${accent},${pink})`,
+                      border:"none", cursor: loading ? "not-allowed" : "pointer",
+                      fontFamily:"Inter,sans-serif", fontSize:11,
+                      fontWeight:700, letterSpacing:"0.22em", textTransform:"uppercase",
+                      color: dark ? "#0a0a0f" : "#fff",
+                    }}
+                  >
+                    {loading ? "Sending…" : "Request Magic Link"}
+                  </button>
+
+                  {error && <div style={{ fontSize:11, color:"#f87171", marginTop:10, letterSpacing:"0.02em" }}>{error}</div>}
+
+                  <div style={{ marginTop:18, display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
+                    <span style={{ fontSize:10, color:muted, letterSpacing:"0.18em", textTransform:"uppercase" }}>End-to-end encrypted · Your data stays yours</span>
+                  </div>
+                </>) : (
+                  <div style={{ textAlign:"center" }}>
+                    <div style={{ fontSize:40, marginBottom:14 }}>📬</div>
+                    <div style={{ fontFamily:"'Playfair Display',serif", fontSize:16, fontWeight:700, color:text, marginBottom:6 }}>Check your inbox</div>
+                    <div style={{ fontSize:12, color:textDim, lineHeight:1.6 }}>
+                      Magic link sent to <strong style={{ color:accent }}>{email}</strong>.<br/>Click it to open your journal.
+                    </div>
+                    <button onClick={() => setSent(false)} style={{ marginTop:18, background:"none", border:`1px solid ${border}`, color:textDim, padding:"8px 20px", cursor:"pointer", fontSize:11, letterSpacing:"0.1em" }}>
+                      Use different email
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
           </div>
-
-          {/* Sign-in form */}
-          {!sent ? (
-            <div style={{
-              background:T.surface, border:`1px solid ${T.border}`,
-              borderRadius:20, padding:"24px 28px",
-              maxWidth:400, margin:"0 auto",
-              boxShadow:`0 20px 60px ${T.cardGlow}`,
-              animation:"heroFade .7s .15s cubic-bezier(.16,1,.3,1) both",
-            }}>
-              <div style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize:15, fontWeight:700, color:T.text, marginBottom:4 }}>
-                Get started — it&apos;s free
-              </div>
-              <div style={{ fontSize:12, color:T.muted, marginBottom:16 }}>
-                No password needed. We&apos;ll send you a magic link.
-              </div>
-              <div style={{ display:"flex", gap:8 }}>
-                <input
-                  type="email" placeholder="your@email.com"
-                  value={email} onChange={e => setEmail(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && send()}
-                  style={{
-                    flex:1, background:T.surface2, border:`1px solid ${T.border}`,
-                    color:T.text, fontFamily:"Inter,sans-serif", fontSize:14,
-                    padding:"11px 14px", borderRadius:10, outline:"none",
-                  }}
-                />
-                <button className="sign-in-btn" onClick={send} disabled={loading} style={{
-                  background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,
-                  color:"#fff", border:"none", padding:"11px 20px",
-                  fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize:13,
-                  fontWeight:700, cursor:"pointer", borderRadius:10,
-                  whiteSpace:"nowrap", opacity:loading?.7:1,
-                }}>
-                  {loading ? "…" : "Sign In →"}
-                </button>
-              </div>
-              {error && <div style={{ fontSize:12, color:T.red, marginTop:8 }}>{error}</div>}
-            </div>
-          ) : (
-            <div style={{
-              background:T.surface, border:`1px solid ${T.green}44`,
-              borderRadius:20, padding:"28px",
-              maxWidth:400, margin:"0 auto", textAlign:"center",
-              boxShadow:`0 20px 60px ${T.cardGlow}`,
-            }}>
-              <div style={{ fontSize:36, marginBottom:12 }}>📬</div>
-              <div style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize:16, fontWeight:700, color:T.text, marginBottom:6 }}>Check your inbox</div>
-              <div style={{ fontSize:13, color:T.textDim, lineHeight:1.6 }}>
-                Magic link sent to <strong style={{ color:T.accentBright }}>{email}</strong>.<br/>Click it to open your journal.
-              </div>
-              <button onClick={() => setSent(false)} style={{ marginTop:16, background:"none", border:`1px solid ${T.border}`, color:T.textDim, padding:"7px 18px", borderRadius:8, cursor:"pointer", fontSize:12 }}>
-                Use different email
-              </button>
-            </div>
-          )}
         </div>
       </section>
 
       {/* ── Features ── */}
-      <section style={{ padding:"60px 32px", maxWidth:1100, margin:"0 auto" }}>
-        <div style={{ textAlign:"center", marginBottom:40 }}>
-          <div style={{ fontSize:11, fontWeight:700, color:T.accentBright, letterSpacing:"0.14em", textTransform:"uppercase", marginBottom:10 }}>Everything you need</div>
-          <h2 style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize:28, fontWeight:800, color:T.text, letterSpacing:"-0.02em" }}>
-            Not just a trade logger.
-          </h2>
-          <p style={{ fontSize:14, color:T.textDim, marginTop:8, lineHeight:1.7 }}>
-            Every feature is designed around how ICT and SMC traders actually work.
+      <section className="section-pad" style={{ position:"relative", zIndex:1, padding:"80px 64px", maxWidth:1280, margin:"0 auto" }}>
+        {/* Section header */}
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end", marginBottom:56, flexWrap:"wrap", gap:16 }}>
+          <div>
+            <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:40, fontWeight:900, color:text, letterSpacing:"-0.03em", marginBottom:8 }}>
+              Infrastructure
+            </h2>
+            <div style={{ fontSize:10, color:muted, letterSpacing:"0.28em", textTransform:"uppercase", fontWeight:700 }}>Optimised for professional tape reading</div>
+          </div>
+          <p style={{ fontSize:13, color:textDim, fontStyle:"italic", fontFamily:"'Playfair Display',serif", maxWidth:320, lineHeight:1.7 }}>
+            Built by traders who understand the necessity of precision and the cost of hesitation.
           </p>
         </div>
 
-        <div className="features-grid" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16 }}>
+        {/* Grid with gap-px separator aesthetic */}
+        <div style={{
+          display:"grid", gridTemplateColumns:"repeat(3,1fr)",
+          background:border, border:`1px solid ${border}`,
+          gap:"1px",
+        }} className="features-grid">
           {FEATURES.map((f, i) => (
-            <div key={f.title} className="feat-card" style={{
-              background:`linear-gradient(160deg,${T.surface},${T.surface2})`,
-              border:`1px solid ${T.border}`, borderRadius:18,
-              padding:"22px 20px",
-              boxShadow:`0 8px 28px ${T.cardGlow}`,
-              animation:`heroFade .5s ${.1 + i * .07}s cubic-bezier(.16,1,.3,1) both`,
+            <div key={f.title} className="feat-item" style={{
+              background:surface,
+              padding:"40px 36px",
+              display:"flex", flexDirection:"column", gap:24,
             }}>
-              <div style={{ fontSize:26, marginBottom:12, display:"inline-block", animation:"float 4s ease-in-out infinite", animationDelay:`${i * .4}s` }}>{f.icon}</div>
-              <div style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize:14, fontWeight:800, color:T.text, marginBottom:6 }}>{f.title}</div>
-              <div style={{ fontSize:12, color:T.textDim, lineHeight:1.65 }}>{f.desc}</div>
+              {/* Icon box */}
+              <div className="feat-icon-box" style={{
+                width:44, height:44,
+                border:`1px solid ${i % 2 === 0 ? accent : pink}30`,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                flexShrink:0,
+              }}>
+                <img
+                  src={`https://api.iconify.design/${f.icon.replace(":","/")}.svg?color=${encodeURIComponent(i % 2 === 0 ? accent : pink)}`}
+                  width={20} height={20} alt="" aria-hidden
+                  onError={e => { e.currentTarget.style.display="none" }}
+                />
+              </div>
+              <div>
+                <div style={{ fontFamily:"'Playfair Display',serif", fontSize:16, fontWeight:800, color:text, marginBottom:10, letterSpacing:"-0.01em" }}>{f.title}</div>
+                <div style={{ fontSize:12, color:textDim, lineHeight:1.7, fontWeight:300 }}>{f.desc}</div>
+              </div>
             </div>
           ))}
         </div>
       </section>
 
       {/* ── Footer ── */}
-      <footer style={{ padding:"32px", borderTop:`1px solid ${T.border}`, textAlign:"center" }}>
-        <div style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize:18, fontWeight:800, background:`linear-gradient(135deg,${T.accentBright},${T.pink})`, WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", marginBottom:6 }}>FXEDGE</div>
-        <div style={{ fontSize:11, color:T.muted }}>Trading Journal · Built for ICT / SMC traders · Your data stays yours</div>
+      <footer style={{ position:"relative", zIndex:1, borderTop:`1px solid ${border}`, padding:"48px 64px 32px" }}>
+        <div style={{ maxWidth:1280, margin:"0 auto", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:20 }}>
+          <div>
+            <div style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:900, background:`linear-gradient(135deg,${accent},${pink})`, WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", marginBottom:6 }}>FXEDGE</div>
+            <div style={{ fontSize:10, color:muted, letterSpacing:"0.2em", textTransform:"uppercase" }}>Trading Journal · ICT / SMC · Data sovereignty</div>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <span style={{ width:6, height:6, background:"#22c55e", display:"inline-block" }}/>
+            <span style={{ fontSize:10, color:muted, letterSpacing:"0.18em", textTransform:"uppercase" }}>All systems operational</span>
+          </div>
+        </div>
       </footer>
     </div>
   )
