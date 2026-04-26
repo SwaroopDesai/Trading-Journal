@@ -25,6 +25,7 @@ import MissedTrades from "@/components/tabs/MissedTrades"
 import MissedTradeModal from "@/components/MissedTradeModal"
 import EconomicCalendar from "@/components/tabs/EconomicCalendar"
 import PatternDetector from "@/components/tabs/PatternDetector"
+import OnboardingFlow from "@/components/OnboardingFlow"
 
 export default function App() {
   const supabase = createClient()
@@ -55,6 +56,7 @@ export default function App() {
   const [imgViewer,setImgViewer] = useState(null)
   const [mountedTabs,setMountedTabs] = useState(["dashboard"])
   const [toasts,setToasts] = useState([])
+  const [showOnboarding,setShowOnboarding] = useState(false)
   const scrollPositionsRef = useRef({})
   const restoreFrameRef = useRef(null)
   const toastDedupRef = useRef(new Map())
@@ -132,6 +134,13 @@ export default function App() {
   },[hydrateMedia,supabase,user])
 
   useEffect(()=>{ if(user) loadAll() },[user,loadAll])
+
+  // Show onboarding for brand-new users (0 trades, never completed onboarding)
+  useEffect(()=>{
+    if(!user||loading) return
+    const done = typeof window!=="undefined" && localStorage.getItem(`fxedge_onboarded_${user.id}`)
+    if(!done && trades.length === 0) setShowOnboarding(true)
+  },[user,loading,trades.length])
 
   useEffect(()=>{
     setMountedTabs(prev=>prev.includes(tab)?prev:[...prev,tab])
@@ -619,6 +628,15 @@ export default function App() {
       )}
 
       <BottomNav T={T} tab={tab} setTab={changeTab} TABS={TABS} MOBILE_PRIMARY={MOBILE_PRIMARY}/>
+
+      {showOnboarding && (
+        <OnboardingFlow
+          T={T}
+          user={user}
+          onComplete={()=>setShowOnboarding(false)}
+          onLogTrade={()=>{ setShowOnboarding(false); setTradeModal("new") }}
+        />
+      )}
     </div>
   )
 }
