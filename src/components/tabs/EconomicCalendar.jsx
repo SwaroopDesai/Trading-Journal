@@ -47,8 +47,18 @@ const BANK_HOLIDAYS = [
   { date:"2026-12-28", title:"Boxing Day (obs)",      currencies:["GBP"] },
 ]
 
-// ── Date helpers (all ET-aware) ────────────────────────────────────────────
-const ET_ZONE = "America/New_York"
+// ── Date helpers (local timezone) ─────────────────────────────────────────
+// Use the browser's own timezone so times show correctly for any user
+const LOCAL_ZONE = typeof window !== "undefined"
+  ? Intl.DateTimeFormat().resolvedOptions().timeZone
+  : "America/New_York"
+
+// Short label, e.g. "BST", "EST", "IST"
+function tzAbbr() {
+  return new Intl.DateTimeFormat("en-US", { timeZoneName:"short", timeZone:LOCAL_ZONE })
+    .formatToParts(new Date())
+    .find(p => p.type === "timeZoneName")?.value ?? LOCAL_ZONE
+}
 
 // Parse ISO timestamp from feed: "2026-04-19T18:45:00-04:00"
 function parseDate(event) {
@@ -57,31 +67,30 @@ function parseDate(event) {
   return isNaN(d.getTime()) ? null : d
 }
 
-// YYYY-MM-DD in ET
-function toETDateKey(d) {
+// YYYY-MM-DD in local timezone
+function toLocalDateKey(d) {
   if (!d) return "unknown"
-  return d.toLocaleDateString("en-CA", { timeZone: ET_ZONE }) // en-CA → YYYY-MM-DD
+  return d.toLocaleDateString("en-CA", { timeZone: LOCAL_ZONE }) // en-CA → YYYY-MM-DD
 }
 
-// "8:30 AM" in ET
-function toETTime(d) {
+// "8:30 AM" in local timezone
+function toLocalTime(d) {
   if (!d) return null
-  return d.toLocaleTimeString("en-US", { timeZone: ET_ZONE, hour:"numeric", minute:"2-digit", hour12:true })
+  return d.toLocaleTimeString("en-US", { timeZone: LOCAL_ZONE, hour:"numeric", minute:"2-digit", hour12:true })
 }
 
-function todayETKey() {
-  return new Date().toLocaleDateString("en-CA", { timeZone: ET_ZONE })
+function todayLocalKey() {
+  return new Date().toLocaleDateString("en-CA", { timeZone: LOCAL_ZONE })
 }
-function tomorrowETKey() {
+function tomorrowLocalKey() {
   const t = new Date(); t.setDate(t.getDate() + 1)
-  return t.toLocaleDateString("en-CA", { timeZone: ET_ZONE })
+  return t.toLocaleDateString("en-CA", { timeZone: LOCAL_ZONE })
 }
 
 function dayLabel(isoKey) {
-  if (isoKey === todayETKey())    return "Today"
-  if (isoKey === tomorrowETKey()) return "Tomorrow"
-  // parse safely at noon ET to avoid DST boundary issues
-  const d = new Date(`${isoKey}T12:00:00-05:00`)
+  if (isoKey === todayLocalKey())    return "Today"
+  if (isoKey === tomorrowLocalKey()) return "Tomorrow"
+  const d = new Date(`${isoKey}T12:00:00`)
   return d.toLocaleDateString("en-US", { weekday:"short", month:"short", day:"numeric" })
 }
 
@@ -173,7 +182,7 @@ function HolidayRow({ T, holiday, filterCurrencies }) {
 // ── Event row ─────────────────────────────────────────────────────────────
 function EventRow({ T, event, warn }) {
   const iColor  = impactColor(event.impact, T)
-  const timeStr = toETTime(event._date)
+  const timeStr = toLocalTime(event._date)
 
   return (
     <div style={{
@@ -310,7 +319,7 @@ export default function EconomicCalendar({ T, viewportWidth }) {
       const events = (json.events || []).map(e => ({
         ...e,
         _date:   parseDate(e),
-        _dayKey: toETDateKey(parseDate(e)),
+        _dayKey: toLocalDateKey(parseDate(e)),
       }))
       setRaw({ ...json, events })
     } catch (err) {
@@ -345,7 +354,8 @@ export default function EconomicCalendar({ T, viewportWidth }) {
       if (h.currencies.some(c => currencies.includes(c))) allDays.add(h.date)
     })
   }
-  const days = [...allDays].sort()
+  // Only show today and future — no past days/holidays
+  const days = [...allDays].sort().filter(d => d >= todayKey)
 
   const toggleCurrency = c => setCurrencies(p =>
     p.includes(c) ? (p.length > 1 ? p.filter(x => x !== c) : p) : [...p, c]
@@ -354,7 +364,7 @@ export default function EconomicCalendar({ T, viewportWidth }) {
     p.includes(i) ? (p.length > 1 ? p.filter(x => x !== i) : p) : [...p, i]
   )
 
-  const todayKey = todayETKey()
+  const todayKey = todayLocalKey()
 
   return (
     <div style={{ padding:isMobile?14:24, display:"flex", flexDirection:"column", gap:20 }}>
@@ -366,7 +376,7 @@ export default function EconomicCalendar({ T, viewportWidth }) {
             Economic Calendar
           </div>
           <div style={{ fontSize:12, color:T.textDim, marginTop:4, display:"flex", gap:8, alignItems:"center", flexWrap:"wrap" }}>
-            <span>High-impact events · This week · Times in ET</span>
+            <span>High-impact events · This week · Times in {tzAbbr()}</span>
             {raw?.cached && raw?.fetchedAt && (
               <span style={{ background:`${T.amber}15`, border:`1px solid ${T.amber}40`, color:T.amber, padding:"2px 8px", borderRadius:999, fontSize:10, fontWeight:700 }}>
                 ⚡ Cached · {timeSince(raw.fetchedAt)}
@@ -539,7 +549,7 @@ export default function EconomicCalendar({ T, viewportWidth }) {
           paddingTop:8, borderTop:`1px solid ${T.border}`,
           display:"flex", justifyContent:"center", gap:14, flexWrap:"wrap",
         }}>
-          <span>🕐 Times in Eastern Time (ET)</span>
+          <span>🕐 Times in your local timezone ({tzAbbr()})</span>
           <span>·</span>
           <span>Source: ForexFactory</span>
           <span>·</span>
