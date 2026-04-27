@@ -490,7 +490,7 @@ export default function LoginScreen({ supabase }) {
           {/* Badge */}
           <div className="phantom-badge phantom-reveal">
             <div style={{ width:6, height:6, borderRadius:"50%", background:"var(--purple)", boxShadow:"0 0 6px rgba(177,158,239,0.8)" }}/>
-            Your Trading Journal
+            AI-Powered Trading Journal
           </div>
 
           {/* Title */}
