@@ -2,6 +2,34 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import GlowBtn from "@/components/GlowBtn";
 
+/* ── Pain points ───────────────────────────────────────────────────── */
+const PAIN_POINTS = [
+  "They take the same losing setup twice in the same week — because they never wrote it down.",
+  "They think they're calm and disciplined. Their trade log says otherwise.",
+  "They can't remember why they entered a trade three days later.",
+  "One bad Friday wipes out two weeks of careful gains.",
+  "They have no idea which pairs or sessions actually make them money.",
+]
+
+/* ── AI features ────────────────────────────────────────────────────── */
+const AI_FEATURES = [
+  {
+    icon: "scan-eye",
+    title: "AI Trade Review",
+    desc: "Upload a screenshot of your chart and get an instant breakdown — setup quality, bias alignment, and exactly what you could do better next time.",
+  },
+  {
+    icon: "brain",
+    title: "Weekly AI Debrief",
+    desc: "Every week, AI reads through your trades and tells you what to focus on. No guessing. No blind spots. Just a clear picture of where your edge is and where it isn't.",
+  },
+  {
+    icon: "newspaper",
+    title: "Smart News Filter",
+    desc: "High-impact events like NFP, CPI, and FOMC — filtered for your pairs automatically. Know what's moving the market before it moves against you.",
+  },
+]
+
 /* ── Feature cards ─────────────────────────────────────────────────── */
 const FEATURES = [
   {
@@ -353,11 +381,58 @@ export default function LoginScreen({ supabase }) {
         .phantom-reveal-d3 { animation-delay: 0.4s; }
         .phantom-reveal-d4 { animation-delay: 0.55s; }
 
+        /* Pain point row */
+        .phantom-pain-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 16px;
+          padding: 20px 24px;
+          background: rgba(239,68,68,0.03);
+          border: 1px solid rgba(239,68,68,0.09);
+          border-radius: 16px;
+          transition: border-color 0.3s ease, background 0.3s ease;
+        }
+        .phantom-pain-item:hover {
+          border-color: rgba(239,68,68,0.2);
+          background: rgba(239,68,68,0.06);
+        }
+
+        /* Wide feature highlight card (calendar / mobile) */
+        .phantom-wide-card {
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(255,255,255,0.07);
+          border-radius: 28px;
+          padding: 64px;
+          position: relative;
+          overflow: hidden;
+          transition: border-color 0.45s ease;
+        }
+        .phantom-wide-card:hover { border-color: rgba(177,158,239,0.25); }
+
+        /* Two-col grid */
+        .phantom-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+
+        /* Mobile stat pill */
+        .phantom-stat-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          padding: 12px 20px;
+          background: rgba(177,158,239,0.06);
+          border: 1px solid rgba(177,158,239,0.18);
+          border-radius: 9999px;
+          font-size: 13px;
+          color: rgba(255,255,255,0.7);
+          font-family: 'Satoshi', sans-serif;
+        }
+
         @media (max-width: 768px) {
           .phantom-hero-title { font-size: 72px !important; }
           .phantom-features-grid { grid-template-columns: 1fr !important; }
           .phantom-nav-center { display: none !important; }
           .phantom-cta-heading { font-size: 42px !important; }
+          .phantom-two-col { grid-template-columns: 1fr !important; gap: 40px !important; }
+          .phantom-wide-card { padding: 36px !important; }
           .phantom-root, .phantom-root * { cursor: auto !important; }
         }
         @media (prefers-reduced-motion: reduce) {
@@ -501,6 +576,44 @@ export default function LoginScreen({ supabase }) {
           </div>
         </section>
 
+        {/* ── Why traders fail ── */}
+        <section style={{ padding:"120px 48px" }}>
+          <div style={{ maxWidth:1100, margin:"0 auto" }}>
+            <div className="phantom-two-col">
+              {/* Left */}
+              <div>
+                <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.25em", textTransform:"uppercase", color:"rgba(239,68,68,0.7)", marginBottom:20 }}>
+                  The Hard Truth
+                </p>
+                <h2 className="phantom-display" style={{ fontSize:50, color:"#fff", lineHeight:1.1, marginBottom:24 }}>
+                  Most traders fail for the same reasons.
+                </h2>
+                <p style={{ fontSize:16, color:"rgba(255,255,255,0.38)", lineHeight:1.8, marginBottom:36 }}>
+                  It&apos;s not the market. It&apos;s not bad luck. It&apos;s the same avoidable mistakes, repeated over and over — because there&apos;s no record to learn from.
+                </p>
+                <button
+                  className="phantom-pill phantom-pill-primary"
+                  onClick={() => { setShowForm(true); window.scrollTo({top:0,behavior:"smooth"}); setTimeout(()=>document.getElementById("ph-email")?.focus(), 700) }}
+                >
+                  Fix This Today
+                </button>
+              </div>
+              {/* Right — pain list */}
+              <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+                {PAIN_POINTS.map((p, i) => (
+                  <div key={i} className="phantom-pain-item">
+                    <span style={{ color:"#ef4444", fontSize:16, marginTop:1, flexShrink:0 }}>✗</span>
+                    <p style={{ fontSize:14, color:"rgba(255,255,255,0.5)", lineHeight:1.7, fontFamily:"'Satoshi',sans-serif", margin:0 }}>{p}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Divider ── */}
+        <div style={{ maxWidth:1100, margin:"0 auto 0", height:1, background:"linear-gradient(to right, transparent, rgba(255,255,255,0.07), transparent)" }}/>
+
         {/* ── Features ── */}
         <section id="features" style={{ padding:"120px 48px" }}>
           <div style={{ maxWidth:1200, margin:"0 auto" }}>
@@ -532,6 +645,138 @@ export default function LoginScreen({ supabase }) {
                   </p>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── AI Features ── */}
+        <section style={{ padding:"0 48px 120px" }}>
+          <div style={{ maxWidth:1200, margin:"0 auto" }}>
+            {/* Header */}
+            <div style={{ textAlign:"center", marginBottom:72 }}>
+              <div className="phantom-badge" style={{ marginBottom:24 }}>
+                <div style={{ width:6, height:6, borderRadius:"50%", background:"var(--purple)", boxShadow:"0 0 6px rgba(177,158,239,0.8)" }}/>
+                Powered by AI
+              </div>
+              <h2 className="phantom-display" style={{ fontSize:44, color:"#fff", marginBottom:12 }}>
+                Your journal thinks with you
+              </h2>
+              <p style={{ fontSize:16, color:"rgba(255,255,255,0.35)", maxWidth:480, margin:"0 auto", fontFamily:"'Satoshi',sans-serif", lineHeight:1.7 }}>
+                Not just a place to log trades — an AI that actually reads them and tells you what to do next.
+              </p>
+            </div>
+
+            <div className="phantom-features-grid" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:24 }}>
+              {AI_FEATURES.map((f, i) => (
+                <div key={f.title} className="phantom-card" style={{ animationDelay:`${i * 0.12}s` }}>
+                  <div style={{
+                    width:52, height:52, borderRadius:14,
+                    background:"rgba(177,158,239,0.1)",
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                    marginBottom:28,
+                  }}>
+                    <Icon name={f.icon} size={24} />
+                  </div>
+                  <h3 className="phantom-display" style={{ fontSize:20, color:"#fff", marginBottom:14 }}>
+                    {f.title}
+                  </h3>
+                  <p style={{ fontSize:14, color:"rgba(255,255,255,0.38)", lineHeight:1.75, fontFamily:"'Satoshi',sans-serif" }}>
+                    {f.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Economic Calendar ── */}
+        <section style={{ padding:"0 48px 120px" }}>
+          <div style={{ maxWidth:1200, margin:"0 auto" }}>
+            <div className="phantom-wide-card">
+              {/* Background glow */}
+              <div style={{ position:"absolute", top:"-40px", right:"-40px", width:300, height:300, borderRadius:"50%", background:"radial-gradient(circle, rgba(177,158,239,0.1) 0%, transparent 70%)", filter:"blur(50px)", pointerEvents:"none" }}/>
+              <div className="phantom-two-col" style={{ position:"relative" }}>
+                {/* Left */}
+                <div>
+                  <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.25em", textTransform:"uppercase", color:"var(--purple)", marginBottom:20 }}>
+                    Economic Calendar
+                  </p>
+                  <h2 className="phantom-display" style={{ fontSize:44, color:"#fff", lineHeight:1.1, marginBottom:20 }}>
+                    Never get caught by the news again.
+                  </h2>
+                  <p style={{ fontSize:16, color:"rgba(255,255,255,0.38)", lineHeight:1.8, marginBottom:36, fontFamily:"'Satoshi',sans-serif" }}>
+                    FXEDGE tracks high-impact events — NFP, CPI, FOMC, Interest Rate decisions — and highlights which ones affect your pairs. Know when to be in. Know when to stay out.
+                  </p>
+                  <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+                    {["High-impact events colour-coded by risk level","Filtered for your specific pairs","Integrated into your daily planning journal"].map(item => (
+                      <div key={item} style={{ display:"flex", alignItems:"center", gap:12 }}>
+                        <div style={{ width:6, height:6, borderRadius:"50%", background:"var(--purple)", flexShrink:0 }}/>
+                        <span style={{ fontSize:14, color:"rgba(255,255,255,0.55)", fontFamily:"'Satoshi',sans-serif" }}>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {/* Right — visual mock */}
+                <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+                  {[
+                    { time:"08:30", event:"Non-Farm Payrolls", impact:"HIGH", pair:"EURUSD, GBPUSD" },
+                    { time:"13:30", event:"CPI m/m",          impact:"HIGH", pair:"All USD pairs"  },
+                    { time:"15:00", event:"FOMC Statement",   impact:"HIGH", pair:"All USD pairs"  },
+                    { time:"09:00", event:"ECB Rate Decision", impact:"MED", pair:"EURUSD"         },
+                  ].map((ev, i) => (
+                    <div key={i} style={{
+                      display:"flex", alignItems:"center", gap:16,
+                      padding:"16px 20px",
+                      background:"rgba(255,255,255,0.02)",
+                      border:"1px solid rgba(255,255,255,0.07)",
+                      borderRadius:14,
+                    }}>
+                      <span style={{ fontSize:12, color:"rgba(255,255,255,0.3)", fontFamily:"'Satoshi',sans-serif", minWidth:40 }}>{ev.time}</span>
+                      <div style={{ flex:1 }}>
+                        <p style={{ fontSize:13, color:"#fff", fontFamily:"'Satoshi',sans-serif", margin:0, fontWeight:600 }}>{ev.event}</p>
+                        <p style={{ fontSize:11, color:"rgba(255,255,255,0.3)", fontFamily:"'Satoshi',sans-serif", margin:0, marginTop:2 }}>{ev.pair}</p>
+                      </div>
+                      <span style={{
+                        fontSize:10, fontWeight:700, letterSpacing:"0.12em", padding:"4px 10px",
+                        borderRadius:9999,
+                        background: ev.impact === "HIGH" ? "rgba(239,68,68,0.12)" : "rgba(245,158,11,0.12)",
+                        color: ev.impact === "HIGH" ? "#ef4444" : "#f59e0b",
+                        border: `1px solid ${ev.impact === "HIGH" ? "rgba(239,68,68,0.25)" : "rgba(245,158,11,0.25)"}`,
+                      }}>
+                        {ev.impact}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Mobile / Any Device ── */}
+        <section style={{ padding:"0 48px 120px" }}>
+          <div style={{ maxWidth:1200, margin:"0 auto" }}>
+            <div className="phantom-wide-card" style={{ textAlign:"center", background:"rgba(177,158,239,0.03)", borderColor:"rgba(177,158,239,0.1)" }}>
+              <div style={{ position:"absolute", bottom:"-60px", left:"50%", transform:"translateX(-50%)", width:500, height:200, background:"radial-gradient(ellipse, rgba(177,158,239,0.15) 0%, transparent 70%)", filter:"blur(50px)", pointerEvents:"none" }}/>
+              <div style={{ position:"relative" }}>
+                <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.25em", textTransform:"uppercase", color:"var(--purple)", marginBottom:20 }}>
+                  Available Everywhere
+                </p>
+                <h2 className="phantom-display" style={{ fontSize:44, color:"#fff", lineHeight:1.1, marginBottom:20 }}>
+                  Journal from anywhere. Even mid-session.
+                </h2>
+                <p style={{ fontSize:16, color:"rgba(255,255,255,0.38)", lineHeight:1.8, maxWidth:560, margin:"0 auto 48px", fontFamily:"'Satoshi',sans-serif" }}>
+                  FXEDGE works on your phone, tablet, and desktop — no app download needed. Log a trade between setups. Check your stats on the go. Review your week from your couch.
+                </p>
+                <div style={{ display:"flex", gap:16, justifyContent:"center", flexWrap:"wrap" }}>
+                  {["Works on iOS & Android","No app download needed","Instant sync across devices","Fast enough for live sessions"].map(stat => (
+                    <div key={stat} className="phantom-stat-pill">
+                      <div style={{ width:6, height:6, borderRadius:"50%", background:"var(--purple)" }}/>
+                      {stat}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </section>
