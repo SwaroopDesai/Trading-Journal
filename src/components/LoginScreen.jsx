@@ -426,15 +426,64 @@ export default function LoginScreen({ supabase }) {
           font-family: 'Satoshi', sans-serif;
         }
 
+        /* ── Mobile ─────────────────────────────────────────────────── */
         @media (max-width: 768px) {
-          .phantom-hero-title { font-size: 72px !important; }
-          .phantom-features-grid { grid-template-columns: 1fr !important; }
-          .phantom-nav-center { display: none !important; }
-          .phantom-cta-heading { font-size: 42px !important; }
-          .phantom-two-col { grid-template-columns: 1fr !important; gap: 40px !important; }
-          .phantom-wide-card { padding: 36px !important; }
+          /* Restore cursor on touch */
           .phantom-root, .phantom-root * { cursor: auto !important; }
+
+          /* Nav */
+          .phantom-nav-center { display: none !important; }
+          .phantom-nav { padding: 0 20px !important; }
+
+          /* Hero */
+          .phantom-hero { padding: 100px 20px 60px !important; }
+          .phantom-hero-title { font-size: 64px !important; }
+          .phantom-hero-sub { font-size: 16px !important; }
+          .phantom-hero-btns { flex-direction: column !important; align-items: stretch !important; }
+          .phantom-hero-btns button, .phantom-hero-btns a { width: 100% !important; }
+          .phantom-glow-blob { width: 320px !important; height: 320px !important; }
+
+          /* Sections */
+          .phantom-section { padding: 72px 20px !important; }
+          .phantom-section-sm { padding: 0 20px 72px !important; }
+
+          /* Grids */
+          .phantom-features-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
+          .phantom-two-col { grid-template-columns: 1fr !important; gap: 40px !important; }
+
+          /* Cards */
+          .phantom-card { padding: 28px 24px !important; border-radius: 18px !important; }
+          .phantom-wide-card { padding: 28px 20px !important; border-radius: 20px !important; }
+
+          /* Section headings */
+          .phantom-section-h2 { font-size: 34px !important; }
+          .phantom-cta-heading { font-size: 38px !important; }
+
+          /* Pain section heading */
+          .phantom-pain-heading { font-size: 34px !important; }
+
+          /* Calendar mock cards */
+          .phantom-cal-row { padding: 12px 14px !important; }
+          .phantom-cal-pair { display: none !important; }
+
+          /* Stat pills — stack 2 per row */
+          .phantom-stat-pills { gap: 10px !important; }
+          .phantom-stat-pill { font-size: 12px !important; padding: 10px 14px !important; }
+
+          /* Wide-card inner two-col already collapses above */
+
+          /* Footer */
+          .phantom-footer { flex-direction: column !important; align-items: flex-start !important; gap: 20px !important; padding: 32px 20px !important; }
+          .phantom-footer-links { gap: 16px !important; }
         }
+
+        /* ── Small phones ── */
+        @media (max-width: 390px) {
+          .phantom-hero-title { font-size: 52px !important; }
+          .phantom-section-h2 { font-size: 28px !important; }
+          .phantom-cta-heading { font-size: 32px !important; }
+        }
+
         @media (prefers-reduced-motion: reduce) {
           .phantom-reveal, .phantom-glow-blob, .phantom-bounce { animation: none !important; opacity: 1 !important; }
         }
@@ -445,7 +494,7 @@ export default function LoginScreen({ supabase }) {
       <div className="phantom-root">
 
         {/* ── Fixed Navigation ── */}
-        <nav style={{
+        <nav className="phantom-nav" style={{
           position: "fixed", top: 0, left: 0, right: 0, height: 80, zIndex: 50,
           background: "rgba(5,5,5,0.92)",
           borderBottom: "1px solid rgba(255,255,255,0.06)",
@@ -478,11 +527,11 @@ export default function LoginScreen({ supabase }) {
         </nav>
 
         {/* ── Hero ── */}
-        <section style={{
-          height: "100vh",
+        <section className="phantom-hero" style={{
+          minHeight: "100vh",
           display: "flex", flexDirection: "column",
           alignItems: "center", justifyContent: "center",
-          textAlign: "center", padding: "80px 24px 0",
+          textAlign: "center", padding: "100px 24px 60px",
           position: "relative", overflow: "hidden",
         }}>
           <div className="phantom-glow-blob" />
@@ -502,7 +551,7 @@ export default function LoginScreen({ supabase }) {
           </GradientHeading>
 
           {/* Subtitle */}
-          <p className="phantom-reveal phantom-reveal-d2" style={{
+          <p className="phantom-reveal phantom-reveal-d2 phantom-hero-sub" style={{
             fontFamily: "'Satoshi',sans-serif", fontSize:20, lineHeight:1.65,
             color: "rgba(255,255,255,0.42)", maxWidth:560, margin:"0 0 48px", fontWeight:400,
           }}>
@@ -552,14 +601,14 @@ export default function LoginScreen({ supabase }) {
                 </button>
               </div>
             ) : (
-              <div style={{ display:"flex", gap:16, justifyContent:"center", flexWrap:"wrap" }}>
+              <div className="phantom-hero-btns" style={{ display:"flex", gap:16, justifyContent:"center", flexWrap:"wrap" }}>
                 <button
                   className="phantom-pill phantom-pill-primary"
                   onClick={() => { setShowForm(true); setTimeout(()=>document.getElementById("ph-email")?.focus(), 100) }}
                 >
                   Start Journaling
                 </button>
-                <a href="#features">
+                <a href="#features" style={{ display:"contents" }}>
                   <button className="phantom-pill phantom-pill-ghost">
                     See How It Works
                   </button>
@@ -577,7 +626,7 @@ export default function LoginScreen({ supabase }) {
         </section>
 
         {/* ── Why traders fail ── */}
-        <section style={{ padding:"120px 48px" }}>
+        <section className="phantom-section" style={{ padding:"120px 48px" }}>
           <div style={{ maxWidth:1100, margin:"0 auto" }}>
             <div className="phantom-two-col">
               {/* Left */}
@@ -585,7 +634,7 @@ export default function LoginScreen({ supabase }) {
                 <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.25em", textTransform:"uppercase", color:"rgba(239,68,68,0.7)", marginBottom:20 }}>
                   The Hard Truth
                 </p>
-                <h2 className="phantom-display" style={{ fontSize:50, color:"#fff", lineHeight:1.1, marginBottom:24 }}>
+                <h2 className="phantom-display phantom-section-h2 phantom-pain-heading" style={{ fontSize:50, color:"#fff", lineHeight:1.1, marginBottom:24 }}>
                   Most traders fail for the same reasons.
                 </h2>
                 <p style={{ fontSize:16, color:"rgba(255,255,255,0.38)", lineHeight:1.8, marginBottom:36 }}>
@@ -615,10 +664,10 @@ export default function LoginScreen({ supabase }) {
         <div style={{ maxWidth:1100, margin:"0 auto 0", height:1, background:"linear-gradient(to right, transparent, rgba(255,255,255,0.07), transparent)" }}/>
 
         {/* ── Features ── */}
-        <section id="features" style={{ padding:"120px 48px" }}>
+        <section id="features" className="phantom-section" style={{ padding:"120px 48px" }}>
           <div style={{ maxWidth:1200, margin:"0 auto" }}>
             <div style={{ textAlign:"center", marginBottom:72 }}>
-              <h2 className="phantom-display" style={{ fontSize:44, color:"#fff", marginBottom:12 }}>
+              <h2 className="phantom-display phantom-section-h2" style={{ fontSize:44, color:"#fff", marginBottom:12 }}>
                 Everything you need to improve
               </h2>
               <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.25em", textTransform:"uppercase", color:"rgba(255,255,255,0.3)" }}>
@@ -650,7 +699,7 @@ export default function LoginScreen({ supabase }) {
         </section>
 
         {/* ── AI Features ── */}
-        <section style={{ padding:"0 48px 120px" }}>
+        <section className="phantom-section-sm" style={{ padding:"0 48px 120px" }}>
           <div style={{ maxWidth:1200, margin:"0 auto" }}>
             {/* Header */}
             <div style={{ textAlign:"center", marginBottom:72 }}>
@@ -658,7 +707,7 @@ export default function LoginScreen({ supabase }) {
                 <div style={{ width:6, height:6, borderRadius:"50%", background:"var(--purple)", boxShadow:"0 0 6px rgba(177,158,239,0.8)" }}/>
                 Powered by AI
               </div>
-              <h2 className="phantom-display" style={{ fontSize:44, color:"#fff", marginBottom:12 }}>
+              <h2 className="phantom-display phantom-section-h2" style={{ fontSize:44, color:"#fff", marginBottom:12 }}>
                 Your journal thinks with you
               </h2>
               <p style={{ fontSize:16, color:"rgba(255,255,255,0.35)", maxWidth:480, margin:"0 auto", fontFamily:"'Satoshi',sans-serif", lineHeight:1.7 }}>
@@ -690,7 +739,7 @@ export default function LoginScreen({ supabase }) {
         </section>
 
         {/* ── Economic Calendar ── */}
-        <section style={{ padding:"0 48px 120px" }}>
+        <section className="phantom-section-sm" style={{ padding:"0 48px 120px" }}>
           <div style={{ maxWidth:1200, margin:"0 auto" }}>
             <div className="phantom-wide-card">
               {/* Background glow */}
@@ -701,7 +750,7 @@ export default function LoginScreen({ supabase }) {
                   <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.25em", textTransform:"uppercase", color:"var(--purple)", marginBottom:20 }}>
                     Economic Calendar
                   </p>
-                  <h2 className="phantom-display" style={{ fontSize:44, color:"#fff", lineHeight:1.1, marginBottom:20 }}>
+                  <h2 className="phantom-display phantom-section-h2" style={{ fontSize:44, color:"#fff", lineHeight:1.1, marginBottom:20 }}>
                     Never get caught by the news again.
                   </h2>
                   <p style={{ fontSize:16, color:"rgba(255,255,255,0.38)", lineHeight:1.8, marginBottom:36, fontFamily:"'Satoshi',sans-serif" }}>
@@ -754,7 +803,7 @@ export default function LoginScreen({ supabase }) {
         </section>
 
         {/* ── Mobile / Any Device ── */}
-        <section style={{ padding:"0 48px 120px" }}>
+        <section className="phantom-section-sm" style={{ padding:"0 48px 120px" }}>
           <div style={{ maxWidth:1200, margin:"0 auto" }}>
             <div className="phantom-wide-card" style={{ textAlign:"center", background:"rgba(177,158,239,0.03)", borderColor:"rgba(177,158,239,0.1)" }}>
               <div style={{ position:"absolute", bottom:"-60px", left:"50%", transform:"translateX(-50%)", width:500, height:200, background:"radial-gradient(ellipse, rgba(177,158,239,0.15) 0%, transparent 70%)", filter:"blur(50px)", pointerEvents:"none" }}/>
@@ -762,13 +811,13 @@ export default function LoginScreen({ supabase }) {
                 <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.25em", textTransform:"uppercase", color:"var(--purple)", marginBottom:20 }}>
                   Available Everywhere
                 </p>
-                <h2 className="phantom-display" style={{ fontSize:44, color:"#fff", lineHeight:1.1, marginBottom:20 }}>
+                <h2 className="phantom-display phantom-section-h2" style={{ fontSize:44, color:"#fff", lineHeight:1.1, marginBottom:20 }}>
                   Journal from anywhere. Even mid-session.
                 </h2>
                 <p style={{ fontSize:16, color:"rgba(255,255,255,0.38)", lineHeight:1.8, maxWidth:560, margin:"0 auto 48px", fontFamily:"'Satoshi',sans-serif" }}>
                   FXEDGE works on your phone, tablet, and desktop — no app download needed. Log a trade between setups. Check your stats on the go. Review your week from your couch.
                 </p>
-                <div style={{ display:"flex", gap:16, justifyContent:"center", flexWrap:"wrap" }}>
+                <div className="phantom-stat-pills" style={{ display:"flex", gap:16, justifyContent:"center", flexWrap:"wrap" }}>
                   {["Works on iOS & Android","No app download needed","Instant sync across devices","Fast enough for live sessions"].map(stat => (
                     <div key={stat} className="phantom-stat-pill">
                       <div style={{ width:6, height:6, borderRadius:"50%", background:"var(--purple)" }}/>
@@ -782,7 +831,7 @@ export default function LoginScreen({ supabase }) {
         </section>
 
         {/* ── CTA Section ── */}
-        <section id="cta" style={{ padding:"120px 48px", textAlign:"center", position:"relative" }}>
+        <section id="cta" className="phantom-section" style={{ padding:"120px 48px", textAlign:"center", position:"relative" }}>
           {/* Vertical line from top */}
           <div style={{
             position:"absolute", top:0, left:"50%", transform:"translateX(-50%)",
@@ -821,7 +870,7 @@ export default function LoginScreen({ supabase }) {
         </section>
 
         {/* ── Footer ── */}
-        <footer style={{
+        <footer className="phantom-footer" style={{
           borderTop: "1px solid rgba(255,255,255,0.05)",
           padding: "48px",
           display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -834,7 +883,7 @@ export default function LoginScreen({ supabase }) {
             </span>
           </div>
 
-          <div style={{ display:"flex", gap:28 }}>
+          <div className="phantom-footer-links" style={{ display:"flex", gap:28 }}>
             {["Privacy","Terms","Discord"].map(l => (
               <a key={l} href="#" className="phantom-nav-link" style={{ letterSpacing:"0.12em" }}>{l}</a>
             ))}
