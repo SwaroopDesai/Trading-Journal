@@ -5,19 +5,19 @@ import GlowBtn from "@/components/GlowBtn";
 /* ── Feature cards ─────────────────────────────────────────────────── */
 const FEATURES = [
   {
-    icon: "cpu",
-    title: "Neural Latency",
-    desc: "Proprietary routing protocols that move data faster than thought. Sub-millisecond execution as a standard, not a feature.",
+    icon: "notebook-pen",
+    title: "Log Every Trade",
+    desc: "Entry, SL, TP, setup, emotions — all in one place. Takes 2 minutes per trade. Saves you from repeating the same mistakes.",
   },
   {
     icon: "bar-chart-3",
-    title: "Smart Flow",
-    desc: "Visualise liquidity pools with surgical precision. Our data layer aggregates institutional depth into a single ethereal stream.",
+    title: "See Your Patterns",
+    desc: "Which pairs do you actually win on? Which sessions drain your account? Your journal shows you the truth your memory hides.",
   },
   {
-    icon: "shield",
-    title: "Void Security",
-    desc: "Your edge remains in the shadows. Multi-signature encryption and private access nodes keep your data yours alone.",
+    icon: "shield-check",
+    title: "Trade With Discipline",
+    desc: "A pre-trade checklist keeps you honest before every entry. No more FOMO trades. No more revenge. Just the plan.",
   },
 ]
 
@@ -388,8 +388,8 @@ export default function LoginScreen({ supabase }) {
 
           {/* Center links */}
           <div className="phantom-nav-center" style={{ display:"flex", gap:40 }}>
-            <a href="#features" className="phantom-nav-link">Ecosystem</a>
-            <a href="#cta"      className="phantom-nav-link">Collective</a>
+            <a href="#features" className="phantom-nav-link">Features</a>
+            <a href="#cta"      className="phantom-nav-link">Get Started</a>
           </div>
 
           {/* Enter */}
@@ -398,7 +398,7 @@ export default function LoginScreen({ supabase }) {
             style={{ padding:"10px 24px", fontSize:10 }}
             onClick={() => { setShowForm(true); setTimeout(()=>document.getElementById("ph-email")?.focus(), 100) }}
           >
-            Enter
+            Log In
           </button>
         </nav>
 
@@ -415,7 +415,7 @@ export default function LoginScreen({ supabase }) {
           {/* Badge */}
           <div className="phantom-badge phantom-reveal">
             <div style={{ width:6, height:6, borderRadius:"50%", background:"var(--purple)", boxShadow:"0 0 6px rgba(177,158,239,0.8)" }}/>
-            Intelligent Trading Infrastructure
+            Your Trading Journal
           </div>
 
           {/* Title */}
@@ -431,7 +431,7 @@ export default function LoginScreen({ supabase }) {
             fontFamily: "'Satoshi',sans-serif", fontSize:20, lineHeight:1.65,
             color: "rgba(255,255,255,0.42)", maxWidth:560, margin:"0 0 48px", fontWeight:400,
           }}>
-            A ghost in the machine. Redefining disciplined execution through ethereal minimalist architecture.
+            Stop trading from memory. Log every trade, track your patterns, and finally understand what&apos;s costing you.
           </p>
 
           {/* Auth form / CTAs */}
@@ -482,11 +482,11 @@ export default function LoginScreen({ supabase }) {
                   className="phantom-pill phantom-pill-primary"
                   onClick={() => { setShowForm(true); setTimeout(()=>document.getElementById("ph-email")?.focus(), 100) }}
                 >
-                  Enter the Void
+                  Start Journaling
                 </button>
                 <a href="#features">
                   <button className="phantom-pill phantom-pill-ghost">
-                    Explore
+                    See How It Works
                   </button>
                 </a>
               </div>
@@ -506,10 +506,10 @@ export default function LoginScreen({ supabase }) {
           <div style={{ maxWidth:1200, margin:"0 auto" }}>
             <div style={{ textAlign:"center", marginBottom:72 }}>
               <h2 className="phantom-display" style={{ fontSize:44, color:"#fff", marginBottom:12 }}>
-                Engineered for Edge
+                Everything you need to improve
               </h2>
               <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.25em", textTransform:"uppercase", color:"rgba(255,255,255,0.3)" }}>
-                The Core Components
+                The tools that turn losing traders into consistent ones
               </p>
             </div>
 
@@ -551,7 +551,7 @@ export default function LoginScreen({ supabase }) {
               className="phantom-cta-heading"
               style={{ fontSize:64, marginBottom:24, lineHeight:1 }}
             >
-              THE FUTURE IS GHOSTLY.
+              KNOW YOUR EDGE.
             </GradientHeading>
 
             <p style={{
@@ -559,7 +559,7 @@ export default function LoginScreen({ supabase }) {
               lineHeight:1.7, marginBottom:52,
               fontFamily:"'Satoshi',sans-serif",
             }}>
-              Don&apos;t trade the market. Become the market.
+              Every consistent trader has a journal. This is yours.
             </p>
 
             <div style={{ position:"relative", display:"inline-block" }}>
@@ -569,7 +569,7 @@ export default function LoginScreen({ supabase }) {
                 style={{ fontSize:12, padding:"18px 52px", position:"relative" }}
                 onClick={() => { setShowForm(true); window.scrollTo({top:0,behavior:"smooth"}); setTimeout(()=>document.getElementById("ph-email")?.focus(), 700) }}
               >
-                Join the Collective
+                Start Your Journal
               </button>
             </div>
           </div>
@@ -596,7 +596,7 @@ export default function LoginScreen({ supabase }) {
           </div>
 
           <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.15em", textTransform:"uppercase", color:"rgba(255,255,255,0.15)", fontFamily:"'Satoshi',sans-serif" }}>
-            © 2026 FXEDGE. VANISHING INTO THIN AIR.
+            © 2026 FXEDGE. Built for traders who take it seriously.
           </p>
         </footer>
       </div>
