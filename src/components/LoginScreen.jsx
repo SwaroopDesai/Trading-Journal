@@ -163,9 +163,9 @@ function Icon({ name, size = 24, color = "%23B19EEF" }) {
 }
 
 /* ── Gradient text heading ─────────────────────────────────────────── */
-function GradientHeading({ children, style = {}, tag: Tag = "h1" }) {
+function GradientHeading({ children, style = {}, tag: Tag = "h1", className = "" }) {
   return (
-    <Tag className="phantom-gradient-text" style={style}>
+    <Tag className={`phantom-gradient-text ${className}`} style={style}>
       {children}
     </Tag>
   )
@@ -437,7 +437,7 @@ export default function LoginScreen({ supabase }) {
 
           /* Hero */
           .phantom-hero { padding: 100px 20px 60px !important; }
-          .phantom-hero-title { font-size: 64px !important; }
+          .phantom-hero-title { font-size: clamp(36px, 13vw, 56px) !important; margin-left: 0 !important; margin-right: 0 !important; width: 100% !important; }
           .phantom-hero-sub { font-size: 16px !important; }
           .phantom-hero-btns { flex-direction: column !important; align-items: stretch !important; }
           .phantom-hero-btns button, .phantom-hero-btns a { width: 100% !important; }
@@ -479,7 +479,7 @@ export default function LoginScreen({ supabase }) {
 
         /* ── Small phones ── */
         @media (max-width: 390px) {
-          .phantom-hero-title { font-size: 52px !important; }
+          .phantom-hero-title { font-size: clamp(32px, 12vw, 44px) !important; }
           .phantom-section-h2 { font-size: 28px !important; }
           .phantom-cta-heading { font-size: 32px !important; }
         }
