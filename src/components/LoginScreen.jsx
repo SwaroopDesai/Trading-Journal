@@ -173,29 +173,56 @@ function GradientHeading({ children, style = {}, tag: Tag = "h1", className = ""
 
 /* ── Main component ────────────────────────────────────────────────── */
 export default function LoginScreen({ supabase }) {
-  const [email,   setEmail]   = useState("")
-  const [sent,    setSent]    = useState(false)
-  const [err,     setErr]     = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [showForm, setShowForm] = useState(false)
+  // Waitlist state
+  const [wEmail,   setWEmail]   = useState("")
+  const [wSent,    setWSent]    = useState(false)
+  const [wErr,     setWErr]     = useState(null)
+  const [wLoading, setWLoading] = useState(false)
 
-  /* ── Auth ── */
-  const handleSubmit = useCallback(async () => {
-    if (!email.trim()) return
-    setLoading(true); setErr(null)
+  // Login state
+  const [lEmail,   setLEmail]   = useState("")
+  const [lSent,    setLSent]    = useState(false)
+  const [lErr,     setLErr]     = useState(null)
+  const [lLoading, setLLoading] = useState(false)
+  const [showLogin, setShowLogin] = useState(false)
+
+  /* ── Waitlist submit ── */
+  const handleWaitlist = useCallback(async () => {
+    if (!wEmail.trim()) return
+    setWLoading(true); setWErr(null)
+    try {
+      const { error } = await supabase
+        .from("waitlist")
+        .insert({ email: wEmail.trim().toLowerCase() })
+      if (error) {
+        if (error.code === "23505") throw new Error("You're already on the list!")
+        throw error
+      }
+      setWSent(true)
+    } catch (e) {
+      setWErr(e.message)
+    } finally {
+      setWLoading(false)
+    }
+  }, [wEmail, supabase])
+
+  /* ── Login submit ── */
+  const handleLogin = useCallback(async () => {
+    if (!lEmail.trim()) return
+    setLLoading(true); setLErr(null)
     try {
       const { error } = await supabase.auth.signInWithOtp({
-        email: email.trim(),
+        email: lEmail.trim(),
         options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
       })
       if (error) throw error
-      setSent(true)
+      setLSent(true)
     } catch (e) {
-      setErr(e.message)
+      setLErr(e.message)
     } finally {
-      setLoading(false)
+      setLLoading(false)
     }
-  }, [email, supabase])
+  }, [lEmail, supabase])
 
   return (
     <>
@@ -520,7 +547,7 @@ export default function LoginScreen({ supabase }) {
           <button
             className="phantom-pill phantom-pill-ghost"
             style={{ padding:"10px 24px", fontSize:10 }}
-            onClick={() => { setShowForm(true); setTimeout(()=>document.getElementById("ph-email")?.focus(), 100) }}
+            onClick={() => { setShowLogin(true); setTimeout(()=>document.getElementById("ph-login-email")?.focus(), 100) }}
           >
             Log In
           </button>
@@ -558,64 +585,111 @@ export default function LoginScreen({ supabase }) {
             Stop trading from memory. Log every trade, track your patterns, and finally understand what&apos;s costing you.
           </p>
 
-          {/* Auth form / CTAs */}
+          {/* ── Waitlist form ── */}
           <div className="phantom-reveal phantom-reveal-d3" style={{ width:"100%", maxWidth:440 }}>
-            {sent ? (
+            {wSent ? (
               <div style={{
                 border: "1px solid rgba(177,158,239,0.3)",
                 background: "rgba(177,158,239,0.06)",
                 borderRadius: 16, padding: "28px 32px", textAlign:"center",
               }}>
+                <div style={{ fontSize:24, marginBottom:12 }}>🎉</div>
                 <div style={{ fontSize:10, fontWeight:700, letterSpacing:"0.3em", textTransform:"uppercase", color:"var(--purple)", marginBottom:10 }}>
-                  Check Your Inbox
+                  You&apos;re on the list!
                 </div>
                 <p style={{ fontFamily:"'Satoshi',sans-serif", fontSize:15, color:"rgba(255,255,255,0.5)", lineHeight:1.6 }}>
-                  Magic link sent to <span style={{ color:"#fff" }}>{email}</span>
+                  We&apos;ll reach out to <span style={{ color:"#fff" }}>{wEmail}</span> when access opens up.
                 </p>
               </div>
-            ) : showForm ? (
-              <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-                <input
-                  id="ph-email"
-                  className="phantom-input"
-                  type="email"
-                  placeholder="Enter your email address"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && handleSubmit()}
-                />
-                {err && <div style={{ fontSize:12, color:"#ef4444", textAlign:"center" }}>{err}</div>}
-                <button
-                  className="phantom-pill phantom-pill-primary"
-                  onClick={handleSubmit}
-                  disabled={loading}
-                  style={{ width:"100%" }}
-                >
-                  {loading ? "Sending…" : "Send Magic Link"}
-                </button>
-                <button
-                  onClick={() => setShowForm(false)}
-                  style={{ background:"none", border:"none", color:"rgba(255,255,255,0.3)", fontSize:12, cursor:"none", fontFamily:"'Satoshi',sans-serif" }}
-                >
-                  Cancel
-                </button>
-              </div>
             ) : (
-              <div className="phantom-hero-btns" style={{ display:"flex", gap:16, justifyContent:"center", flexWrap:"wrap" }}>
-                <button
-                  className="phantom-pill phantom-pill-primary"
-                  onClick={() => { setShowForm(true); setTimeout(()=>document.getElementById("ph-email")?.focus(), 100) }}
-                >
-                  Start Journaling
-                </button>
-                <a href="#features" style={{ display:"contents" }}>
-                  <button className="phantom-pill phantom-pill-ghost">
-                    See How It Works
+              <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+                <div style={{ display:"flex", gap:10 }}>
+                  <input
+                    id="ph-waitlist-email"
+                    className="phantom-input"
+                    type="email"
+                    placeholder="Enter your email to request access"
+                    value={wEmail}
+                    onChange={e => setWEmail(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && handleWaitlist()}
+                    style={{ flex:1 }}
+                  />
+                  <button
+                    className="phantom-pill phantom-pill-primary"
+                    onClick={handleWaitlist}
+                    disabled={wLoading}
+                    style={{ whiteSpace:"nowrap", padding:"14px 24px" }}
+                  >
+                    {wLoading ? "…" : "Request Access"}
                   </button>
-                </a>
+                </div>
+                {wErr && <div style={{ fontSize:12, color:"#ef4444", textAlign:"center" }}>{wErr}</div>}
+                <p style={{ fontSize:11, color:"rgba(255,255,255,0.2)", textAlign:"center", fontFamily:"'Satoshi',sans-serif" }}>
+                  Early access only. No spam, ever.
+                </p>
               </div>
             )}
           </div>
+
+          {/* ── Login modal overlay ── */}
+          {showLogin && (
+            <div
+              onClick={(e) => e.target === e.currentTarget && setShowLogin(false)}
+              style={{
+                position:"fixed", inset:0, zIndex:200,
+                background:"rgba(0,0,0,0.7)", backdropFilter:"blur(12px)",
+                display:"flex", alignItems:"center", justifyContent:"center",
+                padding:24,
+              }}
+            >
+              <div style={{
+                background:"#0d0d0d", border:"1px solid rgba(177,158,239,0.2)",
+                borderRadius:24, padding:"40px 36px", width:"100%", maxWidth:400,
+                position:"relative",
+              }}>
+                <button
+                  onClick={() => setShowLogin(false)}
+                  style={{ position:"absolute", top:16, right:16, background:"none", border:"none", color:"rgba(255,255,255,0.3)", fontSize:20, cursor:"pointer" }}
+                >✕</button>
+
+                <div style={{ marginBottom:28 }}>
+                  <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.25em", textTransform:"uppercase", color:"var(--purple)", marginBottom:8 }}>Welcome back</p>
+                  <h3 className="phantom-display" style={{ fontSize:24, color:"#fff" }}>Log in to FXEDGE</h3>
+                </div>
+
+                {lSent ? (
+                  <div style={{ textAlign:"center", padding:"20px 0" }}>
+                    <div style={{ fontSize:32, marginBottom:12 }}>📬</div>
+                    <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.25em", textTransform:"uppercase", color:"var(--purple)", marginBottom:8 }}>Check your inbox</p>
+                    <p style={{ fontFamily:"'Satoshi',sans-serif", fontSize:14, color:"rgba(255,255,255,0.5)", lineHeight:1.6 }}>
+                      Magic link sent to <span style={{ color:"#fff" }}>{lEmail}</span>
+                    </p>
+                  </div>
+                ) : (
+                  <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+                    <input
+                      id="ph-login-email"
+                      className="phantom-input"
+                      type="email"
+                      placeholder="Your email address"
+                      value={lEmail}
+                      onChange={e => setLEmail(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && handleLogin()}
+                    />
+                    {lErr && <div style={{ fontSize:12, color:"#ef4444", textAlign:"center" }}>{lErr}</div>}
+                    <button
+                      className="phantom-pill phantom-pill-primary"
+                      onClick={handleLogin}
+                      disabled={lLoading}
+                      style={{ width:"100%" }}
+                    >
+                      {lLoading ? "Sending…" : "Send Magic Link"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Scroll cue */}
           <div className="phantom-bounce" style={{ position:"absolute", bottom:40, opacity:0.25 }}>
@@ -642,9 +716,9 @@ export default function LoginScreen({ supabase }) {
                 </p>
                 <button
                   className="phantom-pill phantom-pill-primary"
-                  onClick={() => { setShowForm(true); window.scrollTo({top:0,behavior:"smooth"}); setTimeout(()=>document.getElementById("ph-email")?.focus(), 700) }}
+                  onClick={() => { window.scrollTo({top:0,behavior:"smooth"}); setTimeout(()=>document.getElementById("ph-waitlist-email")?.focus(), 700) }}
                 >
-                  Fix This Today
+                  Request Access
                 </button>
               </div>
               {/* Right — pain list */}
@@ -861,9 +935,9 @@ export default function LoginScreen({ supabase }) {
               <button
                 className="phantom-pill phantom-pill-primary"
                 style={{ fontSize:12, padding:"18px 52px", position:"relative" }}
-                onClick={() => { setShowForm(true); window.scrollTo({top:0,behavior:"smooth"}); setTimeout(()=>document.getElementById("ph-email")?.focus(), 700) }}
+                onClick={() => { window.scrollTo({top:0,behavior:"smooth"}); setTimeout(()=>document.getElementById("ph-waitlist-email")?.focus(), 700) }}
               >
-                Start Your Journal
+                Request Access
               </button>
             </div>
           </div>
