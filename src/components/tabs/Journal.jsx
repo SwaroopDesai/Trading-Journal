@@ -129,7 +129,7 @@ function Journal({
                 padding: "12px 13px",
                 outline: "none",
                 fontSize: 13,
-                fontFamily: "'Satoshi',sans-serif",
+                fontFamily: "var(--font-geist-sans)",
               }}
             />
           </div>

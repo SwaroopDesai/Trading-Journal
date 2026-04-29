@@ -320,12 +320,10 @@ export default function LoginScreen({ supabase }) {
     <>
       {/* ── CSS ── */}
       <style>{`
-        @import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700,800,900&f[]=satoshi@400,500,700&display=swap');
-
         :root { --purple: #B19EEF; --bg: #050505; }
 
         .phantom-root {
-          font-family: 'Satoshi', sans-serif;
+          font-family: var(--font-geist-sans), sans-serif;
           background: var(--bg);
           color: #fff;
           overflow-x: hidden;
@@ -339,7 +337,7 @@ export default function LoginScreen({ supabase }) {
 
         /* Gradient heading */
         .phantom-gradient-text {
-          font-family: 'Cabinet Grotesk', sans-serif;
+          font-family: var(--font-geist-sans), sans-serif;
           font-weight: 900;
           letter-spacing: -0.05em;
           line-height: 0.95;
@@ -352,7 +350,7 @@ export default function LoginScreen({ supabase }) {
 
         /* Display font */
         .phantom-display {
-          font-family: 'Cabinet Grotesk', sans-serif;
+          font-family: var(--font-geist-sans), sans-serif;
           letter-spacing: -0.05em;
           font-weight: 800;
         }
@@ -377,7 +375,7 @@ export default function LoginScreen({ supabase }) {
         /* Pill button */
         .phantom-pill {
           border-radius: 9999px !important;
-          font-family: 'Cabinet Grotesk', sans-serif;
+          font-family: var(--font-geist-sans), sans-serif;
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
@@ -424,7 +422,7 @@ export default function LoginScreen({ supabase }) {
           border: 1px solid rgba(255,255,255,0.1);
           border-radius: 9999px;
           color: #fff;
-          font-family: 'Satoshi', sans-serif;
+          font-family: var(--font-geist-sans), sans-serif;
           font-size: 14px;
           padding: 14px 24px;
           outline: none;
@@ -578,7 +576,7 @@ export default function LoginScreen({ supabase }) {
           border-radius: 9999px;
           font-size: 13px;
           color: rgba(255,255,255,0.7);
-          font-family: 'Satoshi', sans-serif;
+          font-family: var(--font-geist-sans), sans-serif;
         }
 
         /* ── Mobile ─────────────────────────────────────────────────── */
@@ -699,7 +697,7 @@ export default function LoginScreen({ supabase }) {
           padding: 0 28px;
           border-right: 1px solid rgba(255,255,255,0.05);
           white-space: nowrap;
-          font-family: 'Cabinet Grotesk', sans-serif;
+          font-family: var(--font-geist-sans), sans-serif;
           font-weight: 800; font-size: 12px; letter-spacing: 0.04em;
           flex-shrink: 0;
         }
@@ -741,7 +739,7 @@ export default function LoginScreen({ supabase }) {
           border: 1px solid rgba(255,255,255,0.1);
           border-radius: 18px 18px 4px 18px;
           padding: 12px 18px;
-          font-family: 'Satoshi', sans-serif;
+          font-family: var(--font-geist-sans), sans-serif;
           font-size: 13px; color: rgba(255,255,255,0.65);
           max-width: 72%;
         }
@@ -751,7 +749,7 @@ export default function LoginScreen({ supabase }) {
           border: 1px solid rgba(177,158,239,0.18);
           border-radius: 18px 18px 18px 4px;
           padding: 18px 20px;
-          font-family: 'Satoshi', sans-serif;
+          font-family: var(--font-geist-sans), sans-serif;
           font-size: 13px; color: rgba(255,255,255,0.7);
           line-height: 1.75; max-width: 90%;
         }
@@ -789,7 +787,7 @@ export default function LoginScreen({ supabase }) {
           display: flex; justify-content: space-between; align-items: center;
           padding: 24px 4px;
           cursor: pointer;
-          font-family: 'Cabinet Grotesk', sans-serif;
+          font-family: var(--font-geist-sans), sans-serif;
           font-size: 17px; font-weight: 800;
           color: rgba(255,255,255,0.85);
           letter-spacing: -0.02em;
@@ -803,7 +801,7 @@ export default function LoginScreen({ supabase }) {
         }
         .phantom-faq-chevron.open { transform: rotate(45deg); }
         .phantom-faq-a {
-          font-family: 'Satoshi', sans-serif;
+          font-family: var(--font-geist-sans), sans-serif;
           font-size: 15px; color: rgba(255,255,255,0.42);
           line-height: 1.8; padding: 0 4px 24px;
           max-height: 0; overflow: hidden;
@@ -879,12 +877,12 @@ export default function LoginScreen({ supabase }) {
           {/* ── Left float: trade card ── */}
           <div className="phantom-hero-float phantom-hero-float-l">
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
-              <span style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:900, fontSize:15, color:"#fff", letterSpacing:"-0.04em" }}>EURUSD</span>
+              <span style={{ fontFamily:"var(--font-geist-sans)", fontWeight:900, fontSize:15, color:"#fff", letterSpacing:"-0.04em" }}>EURUSD</span>
               <span style={{ fontSize:9, color:"rgba(255,255,255,0.3)", letterSpacing:"0.12em", textTransform:"uppercase" }}>London</span>
             </div>
             <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
               <span style={{ background:"rgba(34,197,94,0.12)", color:"#4ade80", padding:"3px 10px", borderRadius:999, fontSize:11, fontWeight:700 }}>LONG ↑</span>
-              <span style={{ color:"#4ade80", fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:900, fontSize:15 }}>+2.3R</span>
+              <span style={{ color:"#4ade80", fontFamily:"var(--font-geist-sans)", fontWeight:900, fontSize:15 }}>+2.3R</span>
             </div>
             {/* Sparkline */}
             <svg width="180" height="38" viewBox="0 0 180 38" fill="none" aria-hidden="true" style={{ display:"block", marginBottom:10 }}>
@@ -913,11 +911,11 @@ export default function LoginScreen({ supabase }) {
               { label:"Net P&L",   value:"+8.4R",  accent:true  },
             ].map(row => (
               <div key={row.label} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:11 }}>
-                <span style={{ fontSize:11, color:"rgba(255,255,255,0.35)", fontFamily:"'Satoshi',sans-serif" }}>{row.label}</span>
-                <span style={{ fontSize:13, fontWeight:900, fontFamily:"'Cabinet Grotesk',sans-serif", letterSpacing:"-0.03em", color: row.accent ? "#4ade80" : "rgba(255,255,255,0.85)" }}>{row.value}</span>
+                <span style={{ fontSize:11, color:"rgba(255,255,255,0.35)", fontFamily:"var(--font-geist-sans)" }}>{row.label}</span>
+                <span style={{ fontSize:13, fontWeight:900, fontFamily:"var(--font-geist-sans)", letterSpacing:"-0.03em", color: row.accent ? "#4ade80" : "rgba(255,255,255,0.85)" }}>{row.value}</span>
               </div>
             ))}
-            <div style={{ borderTop:"1px solid rgba(255,255,255,0.06)", paddingTop:11, marginTop:4, fontSize:11, color:"rgba(177,158,239,0.65)", fontFamily:"'Satoshi',sans-serif" }}>
+            <div style={{ borderTop:"1px solid rgba(255,255,255,0.06)", paddingTop:11, marginTop:4, fontSize:11, color:"rgba(177,158,239,0.65)", fontFamily:"var(--font-geist-sans)" }}>
               ↑ 12% vs last week
             </div>
           </div>
@@ -938,7 +936,7 @@ export default function LoginScreen({ supabase }) {
 
           {/* Subtitle */}
           <p className="phantom-reveal phantom-reveal-d2 phantom-hero-sub" style={{
-            fontFamily: "'Satoshi',sans-serif", fontSize:20, lineHeight:1.65,
+            fontFamily: "var(--font-geist-sans)", fontSize:20, lineHeight:1.65,
             color: "rgba(255,255,255,0.42)", maxWidth:560, margin:"0 0 48px", fontWeight:400,
           }}>
             Stop trading from memory. Log every trade, track your patterns, and finally understand what&apos;s costing you.
@@ -956,7 +954,7 @@ export default function LoginScreen({ supabase }) {
                 <div style={{ fontSize:10, fontWeight:700, letterSpacing:"0.3em", textTransform:"uppercase", color:"var(--purple)", marginBottom:10 }}>
                   You&apos;re on the list!
                 </div>
-                <p style={{ fontFamily:"'Satoshi',sans-serif", fontSize:15, color:"rgba(255,255,255,0.5)", lineHeight:1.6 }}>
+                <p style={{ fontFamily:"var(--font-geist-sans)", fontSize:15, color:"rgba(255,255,255,0.5)", lineHeight:1.6 }}>
                   We&apos;ll reach out to <span style={{ color:"#fff" }}>{wEmail}</span> when access opens up.
                 </p>
               </div>
@@ -983,7 +981,7 @@ export default function LoginScreen({ supabase }) {
                   </button>
                 </div>
                 {wErr && <div style={{ fontSize:12, color:"#ef4444", textAlign:"center" }}>{wErr}</div>}
-                <p style={{ fontSize:11, color:"rgba(255,255,255,0.22)", textAlign:"center", fontFamily:"'Satoshi',sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
+                <p style={{ fontSize:11, color:"rgba(255,255,255,0.22)", textAlign:"center", fontFamily:"var(--font-geist-sans)", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
                   <span style={{ width:6, height:6, borderRadius:"50%", background:"#4ade80", boxShadow:"0 0 6px rgba(74,222,128,0.7)", display:"inline-block", flexShrink:0 }}/>
                   412 traders already on the waitlist · Early access only
                 </p>
@@ -1021,7 +1019,7 @@ export default function LoginScreen({ supabase }) {
                   <div style={{ textAlign:"center", padding:"20px 0" }}>
                     <div style={{ fontSize:32, marginBottom:12 }}>📬</div>
                     <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.25em", textTransform:"uppercase", color:"var(--purple)", marginBottom:8 }}>Check your inbox</p>
-                    <p style={{ fontFamily:"'Satoshi',sans-serif", fontSize:14, color:"rgba(255,255,255,0.5)", lineHeight:1.6 }}>
+                    <p style={{ fontFamily:"var(--font-geist-sans)", fontSize:14, color:"rgba(255,255,255,0.5)", lineHeight:1.6 }}>
                       Magic link sent to <span style={{ color:"#fff" }}>{lEmail}</span>
                     </p>
                   </div>
@@ -1084,8 +1082,8 @@ export default function LoginScreen({ supabase }) {
               { num:"Weekly", label:"AI debrief, every week"        },
             ].map((s, i) => (
               <div key={i} className="phantom-stat-item" data-reveal data-delay={String(i + 1)}>
-                <span style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:900, fontSize:34, color:"#fff", letterSpacing:"-0.05em", lineHeight:1 }}>{s.num}</span>
-                <span style={{ fontSize:11, color:"rgba(255,255,255,0.28)", letterSpacing:"0.1em", textAlign:"center", fontFamily:"'Satoshi',sans-serif" }}>{s.label}</span>
+                <span style={{ fontFamily:"var(--font-geist-sans)", fontWeight:900, fontSize:34, color:"#fff", letterSpacing:"-0.05em", lineHeight:1 }}>{s.num}</span>
+                <span style={{ fontSize:11, color:"rgba(255,255,255,0.28)", letterSpacing:"0.1em", textAlign:"center", fontFamily:"var(--font-geist-sans)" }}>{s.label}</span>
               </div>
             ))}
           </div>
@@ -1118,7 +1116,7 @@ export default function LoginScreen({ supabase }) {
                 {PAIN_POINTS.map((p, i) => (
                   <div key={i} className="phantom-pain-item">
                     <span style={{ color:"#ef4444", fontSize:16, marginTop:1, flexShrink:0 }}>✗</span>
-                    <p style={{ fontSize:14, color:"rgba(255,255,255,0.5)", lineHeight:1.7, fontFamily:"'Satoshi',sans-serif", margin:0 }}>{p}</p>
+                    <p style={{ fontSize:14, color:"rgba(255,255,255,0.5)", lineHeight:1.7, fontFamily:"var(--font-geist-sans)", margin:0 }}>{p}</p>
                   </div>
                 ))}
               </div>
@@ -1161,12 +1159,12 @@ export default function LoginScreen({ supabase }) {
               ].map((s, i) => (
                 <div key={i} className="phantom-step" data-reveal data-delay={String(i + 1)}
                   style={{ background:"rgba(255,255,255,0.01)" }}>
-                  <div style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontSize:12, fontWeight:900, color:"rgba(177,158,239,0.35)", letterSpacing:"0.14em", marginBottom:28 }}>{s.num}</div>
+                  <div style={{ fontFamily:"var(--font-geist-sans)", fontSize:12, fontWeight:900, color:"rgba(177,158,239,0.35)", letterSpacing:"0.14em", marginBottom:28 }}>{s.num}</div>
                   <div style={{ width:44, height:44, borderRadius:12, background:"rgba(177,158,239,0.08)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:24 }}>
                     <Icon name={s.icon} size={20} />
                   </div>
                   <h3 className="phantom-display" style={{ fontSize:21, color:"#fff", marginBottom:14 }}>{s.title}</h3>
-                  <p style={{ fontSize:14, color:"rgba(255,255,255,0.38)", lineHeight:1.8, fontFamily:"'Satoshi',sans-serif", margin:0 }}>{s.body}</p>
+                  <p style={{ fontSize:14, color:"rgba(255,255,255,0.38)", lineHeight:1.8, fontFamily:"var(--font-geist-sans)", margin:0 }}>{s.body}</p>
                 </div>
               ))}
             </div>
@@ -1184,7 +1182,7 @@ export default function LoginScreen({ supabase }) {
               <h2 className="phantom-display phantom-section-h2" style={{ fontSize:44, color:"#fff", marginBottom:12 }}>
                 One journal. Twelve tools.
               </h2>
-              <p style={{ fontSize:16, color:"rgba(255,255,255,0.32)", fontFamily:"'Satoshi',sans-serif", maxWidth:480, margin:"0 auto" }}>
+              <p style={{ fontSize:16, color:"rgba(255,255,255,0.32)", fontFamily:"var(--font-geist-sans)", maxWidth:480, margin:"0 auto" }}>
                 Everything a serious trader needs — built in, not bolted on.
               </p>
             </div>
@@ -1194,8 +1192,8 @@ export default function LoginScreen({ supabase }) {
                   <div style={{ width:42, height:42, borderRadius:12, background:"rgba(177,158,239,0.09)", display:"flex", alignItems:"center", justifyContent:"center" }}>
                     <Icon name={f.icon} size={18} />
                   </div>
-                  <span style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:800, fontSize:12, color:"rgba(255,255,255,0.7)", letterSpacing:"0.01em" }}>{f.label}</span>
-                  <span style={{ fontSize:10, color:"rgba(255,255,255,0.28)", fontFamily:"'Satoshi',sans-serif", lineHeight:1.5 }}>{f.desc}</span>
+                  <span style={{ fontFamily:"var(--font-geist-sans)", fontWeight:800, fontSize:12, color:"rgba(255,255,255,0.7)", letterSpacing:"0.01em" }}>{f.label}</span>
+                  <span style={{ fontSize:10, color:"rgba(255,255,255,0.28)", fontFamily:"var(--font-geist-sans)", lineHeight:1.5 }}>{f.desc}</span>
                 </div>
               ))}
             </div>
@@ -1228,7 +1226,7 @@ export default function LoginScreen({ supabase }) {
                   <h3 className="phantom-display" style={{ fontSize:20, color:"#fff", marginBottom:14 }}>
                     {f.title}
                   </h3>
-                  <p style={{ fontSize:14, color:"rgba(255,255,255,0.38)", lineHeight:1.75, fontFamily:"'Satoshi',sans-serif" }}>
+                  <p style={{ fontSize:14, color:"rgba(255,255,255,0.38)", lineHeight:1.75, fontFamily:"var(--font-geist-sans)" }}>
                     {f.desc}
                   </p>
                 </div>
@@ -1249,7 +1247,7 @@ export default function LoginScreen({ supabase }) {
               <h2 className="phantom-display phantom-section-h2" style={{ fontSize:44, color:"#fff", marginBottom:12 }}>
                 Your journal thinks with you
               </h2>
-              <p style={{ fontSize:16, color:"rgba(255,255,255,0.35)", maxWidth:480, margin:"0 auto", fontFamily:"'Satoshi',sans-serif", lineHeight:1.7 }}>
+              <p style={{ fontSize:16, color:"rgba(255,255,255,0.35)", maxWidth:480, margin:"0 auto", fontFamily:"var(--font-geist-sans)", lineHeight:1.7 }}>
                 Not just a place to log trades — an AI that actually reads them and tells you what to do next.
               </p>
             </div>
@@ -1268,7 +1266,7 @@ export default function LoginScreen({ supabase }) {
                   <h3 className="phantom-display" style={{ fontSize:20, color:"#fff", marginBottom:14 }}>
                     {f.title}
                   </h3>
-                  <p style={{ fontSize:14, color:"rgba(255,255,255,0.38)", lineHeight:1.75, fontFamily:"'Satoshi',sans-serif" }}>
+                  <p style={{ fontSize:14, color:"rgba(255,255,255,0.38)", lineHeight:1.75, fontFamily:"var(--font-geist-sans)" }}>
                     {f.desc}
                   </p>
                 </div>
@@ -1293,13 +1291,13 @@ export default function LoginScreen({ supabase }) {
                   <h2 className="phantom-display phantom-section-h2" style={{ fontSize:42, color:"#fff", lineHeight:1.1, marginBottom:20 }}>
                     Your AI coach reads every trade you log.
                   </h2>
-                  <p style={{ fontSize:15, color:"rgba(255,255,255,0.38)", lineHeight:1.85, fontFamily:"'Satoshi',sans-serif", marginBottom:32 }}>
+                  <p style={{ fontSize:15, color:"rgba(255,255,255,0.38)", lineHeight:1.85, fontFamily:"var(--font-geist-sans)", marginBottom:32 }}>
                     Every week FXEDGE AI reads through your full trade history and tells you exactly what to fix — which sessions are costing you, which setups are working, and where your emotional leaks are. No guessing. No spreadsheets.
                   </p>
                   {["Detects your losing patterns automatically","Compares this week vs last week","Tells you what to focus on next session","Reads emotions, mistakes, and R:R together"].map((item,i) => (
                     <div key={i} style={{ display:"flex", alignItems:"center", gap:12, marginBottom:12 }}>
                       <div style={{ width:6, height:6, borderRadius:"50%", background:"var(--purple)", flexShrink:0 }}/>
-                      <span style={{ fontSize:14, color:"rgba(255,255,255,0.5)", fontFamily:"'Satoshi',sans-serif" }}>{item}</span>
+                      <span style={{ fontSize:14, color:"rgba(255,255,255,0.5)", fontFamily:"var(--font-geist-sans)" }}>{item}</span>
                     </div>
                   ))}
                 </div>
@@ -1310,7 +1308,7 @@ export default function LoginScreen({ supabase }) {
                   <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:20, paddingBottom:16, borderBottom:"1px solid rgba(255,255,255,0.07)" }}>
                     <div style={{ width:32, height:32, borderRadius:"50%", background:"rgba(177,158,239,0.15)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14 }}>✦</div>
                     <div>
-                      <div style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:900, fontSize:13, color:"#fff" }}>FXEDGE AI</div>
+                      <div style={{ fontFamily:"var(--font-geist-sans)", fontWeight:900, fontSize:13, color:"#fff" }}>FXEDGE AI</div>
                       <div style={{ fontSize:10, color:"#4ade80", display:"flex", alignItems:"center", gap:5 }}>
                         <span style={{ width:5, height:5, borderRadius:"50%", background:"#4ade80", display:"inline-block" }}/>online
                       </div>
@@ -1390,7 +1388,7 @@ export default function LoginScreen({ supabase }) {
                   style={{ display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
                   <div>
                     <div className="phantom-stars">★★★★★</div>
-                    <p style={{ fontSize:14, color:"rgba(255,255,255,0.5)", lineHeight:1.85, fontFamily:"'Satoshi',sans-serif", margin:0 }}>
+                    <p style={{ fontSize:14, color:"rgba(255,255,255,0.5)", lineHeight:1.85, fontFamily:"var(--font-geist-sans)", margin:0 }}>
                       &ldquo;{t.quote}&rdquo;
                     </p>
                   </div>
@@ -1399,13 +1397,13 @@ export default function LoginScreen({ supabase }) {
                       width:38, height:38, borderRadius:"50%", flexShrink:0,
                       background:`rgba(177,158,239,${0.12 + i * 0.04})`,
                       display:"flex", alignItems:"center", justifyContent:"center",
-                      fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:900, fontSize:15, color:"var(--purple)",
+                      fontFamily:"var(--font-geist-sans)", fontWeight:900, fontSize:15, color:"var(--purple)",
                     }}>
                       {t.name[0]}
                     </div>
                     <div>
-                      <div style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:900, fontSize:14, color:"#fff", letterSpacing:"-0.02em" }}>{t.name}</div>
-                      <div style={{ fontSize:11, color:"rgba(255,255,255,0.28)", fontFamily:"'Satoshi',sans-serif", marginTop:3 }}>{t.role}</div>
+                      <div style={{ fontFamily:"var(--font-geist-sans)", fontWeight:900, fontSize:14, color:"#fff", letterSpacing:"-0.02em" }}>{t.name}</div>
+                      <div style={{ fontSize:11, color:"rgba(255,255,255,0.28)", fontFamily:"var(--font-geist-sans)", marginTop:3 }}>{t.role}</div>
                     </div>
                   </div>
                 </div>
@@ -1429,14 +1427,14 @@ export default function LoginScreen({ supabase }) {
                   <h2 className="phantom-display phantom-section-h2" style={{ fontSize:44, color:"#fff", lineHeight:1.1, marginBottom:20 }}>
                     Never get caught by the news again.
                   </h2>
-                  <p style={{ fontSize:16, color:"rgba(255,255,255,0.38)", lineHeight:1.8, marginBottom:36, fontFamily:"'Satoshi',sans-serif" }}>
+                  <p style={{ fontSize:16, color:"rgba(255,255,255,0.38)", lineHeight:1.8, marginBottom:36, fontFamily:"var(--font-geist-sans)" }}>
                     FXEDGE tracks high-impact events — NFP, CPI, FOMC, Interest Rate decisions — and highlights which ones affect your pairs. Know when to be in. Know when to stay out.
                   </p>
                   <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
                     {["High-impact events colour-coded by risk level","Filtered for your specific pairs","Integrated into your daily planning journal"].map(item => (
                       <div key={item} style={{ display:"flex", alignItems:"center", gap:12 }}>
                         <div style={{ width:6, height:6, borderRadius:"50%", background:"var(--purple)", flexShrink:0 }}/>
-                        <span style={{ fontSize:14, color:"rgba(255,255,255,0.55)", fontFamily:"'Satoshi',sans-serif" }}>{item}</span>
+                        <span style={{ fontSize:14, color:"rgba(255,255,255,0.55)", fontFamily:"var(--font-geist-sans)" }}>{item}</span>
                       </div>
                     ))}
                   </div>
@@ -1456,10 +1454,10 @@ export default function LoginScreen({ supabase }) {
                       border:"1px solid rgba(255,255,255,0.07)",
                       borderRadius:14,
                     }}>
-                      <span style={{ fontSize:12, color:"rgba(255,255,255,0.3)", fontFamily:"'Satoshi',sans-serif", minWidth:40 }}>{ev.time}</span>
+                      <span style={{ fontSize:12, color:"rgba(255,255,255,0.3)", fontFamily:"var(--font-geist-sans)", minWidth:40 }}>{ev.time}</span>
                       <div style={{ flex:1 }}>
-                        <p style={{ fontSize:13, color:"#fff", fontFamily:"'Satoshi',sans-serif", margin:0, fontWeight:600 }}>{ev.event}</p>
-                        <p style={{ fontSize:11, color:"rgba(255,255,255,0.3)", fontFamily:"'Satoshi',sans-serif", margin:0, marginTop:2 }}>{ev.pair}</p>
+                        <p style={{ fontSize:13, color:"#fff", fontFamily:"var(--font-geist-sans)", margin:0, fontWeight:600 }}>{ev.event}</p>
+                        <p style={{ fontSize:11, color:"rgba(255,255,255,0.3)", fontFamily:"var(--font-geist-sans)", margin:0, marginTop:2 }}>{ev.pair}</p>
                       </div>
                       <span style={{
                         fontSize:10, fontWeight:700, letterSpacing:"0.12em", padding:"4px 10px",
@@ -1490,7 +1488,7 @@ export default function LoginScreen({ supabase }) {
                 <h2 className="phantom-display phantom-section-h2" style={{ fontSize:44, color:"#fff", lineHeight:1.1, marginBottom:20 }}>
                   Journal from anywhere. Even mid-session.
                 </h2>
-                <p style={{ fontSize:16, color:"rgba(255,255,255,0.38)", lineHeight:1.8, maxWidth:560, margin:"0 auto 48px", fontFamily:"'Satoshi',sans-serif" }}>
+                <p style={{ fontSize:16, color:"rgba(255,255,255,0.38)", lineHeight:1.8, maxWidth:560, margin:"0 auto 48px", fontFamily:"var(--font-geist-sans)" }}>
                   FXEDGE works on your phone, tablet, and desktop — no app download needed. Log a trade between setups. Check your stats on the go. Review your week from your couch.
                 </p>
                 <div className="phantom-stat-pills" style={{ display:"flex", gap:16, justifyContent:"center", flexWrap:"wrap" }}>
@@ -1552,7 +1550,7 @@ export default function LoginScreen({ supabase }) {
             <p style={{
               fontSize:18, color:"rgba(255,255,255,0.38)",
               lineHeight:1.7, marginBottom:52,
-              fontFamily:"'Satoshi',sans-serif",
+              fontFamily:"var(--font-geist-sans)",
             }}>
               Every consistent trader has a journal. This is yours.
             </p>
@@ -1590,7 +1588,7 @@ export default function LoginScreen({ supabase }) {
             ))}
           </div>
 
-          <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.15em", textTransform:"uppercase", color:"rgba(255,255,255,0.15)", fontFamily:"'Satoshi',sans-serif" }}>
+          <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.15em", textTransform:"uppercase", color:"rgba(255,255,255,0.15)", fontFamily:"var(--font-geist-sans)" }}>
             © 2026 FXEDGE. Built for traders who take it seriously.
           </p>
         </footer>

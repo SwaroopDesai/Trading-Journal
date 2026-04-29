@@ -1,4 +1,3 @@
-@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@500,700,800,900&f[]=satoshi@400,500,700,900&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -23,7 +22,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: 'Satoshi', Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
 /* ── Layout: sidebar + main margin ── */

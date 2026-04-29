@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Card, CardTitle, EmptyState, Btn, Badge } from "@/components/ui";
 import EquityCurve from "@/components/EquityCurve";
 import InsightCards from "@/components/InsightCards";
+import MonthlyReturns from "@/components/MonthlyReturns";
 import { fmtDate, fmtRR, getWeeklyPairNotes } from "@/lib/utils";
 
 function useCountUp(target, active, duration=1100) {
@@ -177,8 +178,11 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
         ))}
       </div>
 
-      {/* ── Equity curve (no extra card wrapper — it manages its own chrome) ── */}
+      {/* ── Equity curve + drawdown ── */}
       <EquityCurve T={T} data={stats.equityCurve} />
+
+      {/* ── Monthly returns heatmap ── */}
+      <MonthlyReturns T={T} trades={trades} />
 
       {/* ── Secondary 2-col grid ── */}
       <div style={{
