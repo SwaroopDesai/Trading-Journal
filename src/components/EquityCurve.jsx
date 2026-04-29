@@ -115,7 +115,7 @@ export default function EquityCurve({ T, data = [] }) {
     if (!el) return;
     const ro = new ResizeObserver(([entry]) => {
       const w = entry.contentRect.width;
-      setSize({ w: Math.max(w, 200), h: Math.round(Math.max(w * 0.32, 200)) });
+      setSize({ w: Math.max(w, 200), h: Math.round(Math.max(w * 0.16, 110)) });
     });
     ro.observe(el);
     return () => ro.disconnect();
@@ -174,9 +174,6 @@ export default function EquityCurve({ T, data = [] }) {
 
   // Full path for area fill
   const linePath = smoothPath(pts);
-  const areaPath = pts.length > 1
-    ? `${linePath} L ${pts[pts.length-1].x},${z0} L ${pts[0].x},${z0} Z`
-    : "";
 
   // ── Annotations — peak and trough ────────────────────────────────────────
   const annotations = [];
@@ -213,7 +210,7 @@ export default function EquityCurve({ T, data = [] }) {
 
   const last      = pts[pts.length - 1];
   const lineColor = netPL >= 0 ? T.green : T.red;
-  const gridYs    = [0.2, 0.4, 0.6, 0.8].map(f => PT + cH * f);
+  const gridYs    = [0.33, 0.66].map(f => PT + cH * f);
 
   // Live scrub value — shows hovered cumulative R, else net P&L
   const displayR = tooltip ? tooltip.pt.d.r : netPL;
@@ -264,48 +261,55 @@ export default function EquityCurve({ T, data = [] }) {
       overflow: "hidden",
     }}>
 
-      {/* ── Header: title + live R + range pills ── */}
+      {/* ── Single header row: live R + peak/DD + range pills ── */}
       <div style={{
         display: "flex", alignItems: "center",
         justifyContent: "space-between",
-        padding: "14px 16px 0",
-        gap: 12, flexWrap: "wrap",
+        padding: "10px 14px 8px",
+        gap: 10, flexWrap: "wrap",
+        borderBottom: `1px solid ${T.border}`,
       }}>
-        <div style={{ display:"flex", alignItems:"baseline", gap: 10 }}>
+        {/* Left: live R + peak + dd */}
+        <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
           <span style={{
             fontFamily: "'Cabinet Grotesk','Satoshi',sans-serif",
-            fontSize: 11, fontWeight: 700,
-            color: T.textDim, letterSpacing: "0.08em",
-            textTransform: "uppercase",
-          }}>Equity Curve</span>
-          <span style={{
-            fontFamily: "'Cabinet Grotesk','Satoshi',sans-serif",
-            fontSize: 26, fontWeight: 900,
-            color: displayColor,
-            letterSpacing: "-0.05em", lineHeight: 1,
-            transition: "color 0.15s",
+            fontSize: 20, fontWeight: 900,
+            color: displayColor, letterSpacing: "-0.05em", lineHeight: 1,
+            transition: "color 0.12s",
           }}>
             {fmtStat(displayR)}
           </span>
-          {tooltip && (
-            <span style={{ fontSize: 10, color: T.muted }}>
-              {tooltip.pt.d.date ? fmtDate(tooltip.pt.d.date) : `#${tooltip.idx + 1}`}
-            </span>
-          )}
+          {tooltip
+            ? <span style={{ fontSize: 10, color: T.muted }}>
+                {tooltip.pt.d.date ? fmtDate(tooltip.pt.d.date) : `#${tooltip.idx + 1}`}
+              </span>
+            : <>
+                <span style={{ fontSize: 10, color: T.muted }}>·</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: T.green }}>
+                  pk {fmtStat(peak)}
+                </span>
+                {maxDD < 0 && <>
+                  <span style={{ fontSize: 10, color: T.muted }}>·</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: T.red }}>
+                    dd {fmtStat(maxDD)}
+                  </span>
+                </>}
+              </>
+          }
         </div>
 
-        {/* Range pills */}
+        {/* Right: range pills */}
         <div style={{
           display: "flex", gap: 2,
           background: T.surface2, border: `1px solid ${T.border}`,
-          borderRadius: 8, padding: 2, flexShrink: 0,
+          borderRadius: 7, padding: 2, flexShrink: 0,
         }}>
           {RANGES.map(r => (
             <button key={r.id} onClick={() => setRange(r.id)} style={{
               background: range === r.id ? T.accent : "transparent",
               color: range === r.id ? "#fff" : T.textDim,
-              border: "none", borderRadius: 6,
-              padding: "3px 9px", fontSize: 10, fontWeight: 700,
+              border: "none", borderRadius: 5,
+              padding: "2px 8px", fontSize: 10, fontWeight: 700,
               cursor: "pointer",
               fontFamily: "'Cabinet Grotesk','Satoshi',sans-serif",
               letterSpacing: "0.03em",
@@ -313,58 +317,6 @@ export default function EquityCurve({ T, data = [] }) {
             }}>
               {r.label}
             </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Inline stat strip — no card boxes, just data ── */}
-      <div style={{
-        display: "flex", alignItems: "center",
-        padding: "10px 16px 12px",
-        gap: 0,
-        borderBottom: `1px solid ${T.border}`,
-      }}>
-        {[
-          { label: "Peak",   val: fmtStat(peak),   color: T.green },
-          { label: "Trough", val: fmtStat(trough),  color: trough < 0 ? T.red : T.muted },
-          { label: "Max DD", val: fmtStat(maxDD),   color: maxDD < 0 ? T.red : T.muted },
-          { label: "Trades", val: filtered.length,  color: T.textDim },
-        ].map((s, i, arr) => (
-          <div key={s.label} style={{
-            paddingRight: i < arr.length - 1 ? 16 : 0,
-            marginRight:  i < arr.length - 1 ? 16 : 0,
-            borderRight:  i < arr.length - 1 ? `1px solid ${T.border}` : "none",
-            lineHeight: 1,
-          }}>
-            <div style={{
-              fontSize: 9, fontWeight: 700, color: T.muted,
-              letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 4,
-            }}>{s.label}</div>
-            <div style={{
-              fontFamily: "'Cabinet Grotesk','Satoshi',sans-serif",
-              fontSize: 13, fontWeight: 800,
-              color: s.color, letterSpacing: "-0.02em",
-            }}>{s.val}</div>
-          </div>
-        ))}
-
-        {/* Color legend — right-aligned */}
-        <div style={{
-          marginLeft: "auto", display: "flex",
-          gap: 12, alignItems: "center",
-        }}>
-          {[
-            { color: T.green, label: "New high" },
-            { color: T.amber, label: "Drawdown" },
-            { color: T.red,   label: "Deep DD"  },
-          ].map(l => (
-            <div key={l.label} style={{ display:"flex", alignItems:"center", gap: 4 }}>
-              <span style={{
-                width: 16, height: 2.5, borderRadius: 2,
-                background: l.color, display: "inline-block",
-              }}/>
-              <span style={{ fontSize: 9, color: T.muted, fontWeight: 600 }}>{l.label}</span>
-            </div>
           ))}
         </div>
       </div>
@@ -384,12 +336,6 @@ export default function EquityCurve({ T, data = [] }) {
             }}
           >
             <defs>
-              {/* Area gradient — uses lineColor direction */}
-              <linearGradient id="ec-area" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%"   stopColor={lineColor} stopOpacity="0.15"/>
-                <stop offset="100%" stopColor={lineColor} stopOpacity="0.00"/>
-              </linearGradient>
-
               {/* Glow for curve segments */}
               <filter id="ec-glow" x="-30%" y="-80%" width="160%" height="260%">
                 <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>
@@ -418,9 +364,6 @@ export default function EquityCurve({ T, data = [] }) {
               <line x1={PL} y1={z0} x2={w - PR} y2={z0}
                 stroke={T.border} strokeWidth="1" strokeDasharray="4 8" opacity="0.8"/>
             )}
-
-            {/* Area fill — single gradient under whole curve */}
-            {areaPath && <path d={areaPath} fill="url(#ec-area)"/>}
 
             {/* Segmented colored curve — the line IS the indicator */}
             {segments.map((seg, i) => (
