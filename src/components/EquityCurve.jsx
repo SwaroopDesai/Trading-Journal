@@ -26,13 +26,14 @@ function filterByRange(data, range) {
   return filtered.map(d => { cum += d.rr || 0; return { ...d, r: cum }; });
 }
 
-function smoothPath(pts) {
-  if (pts.length < 2) return pts.length === 1 ? `M ${pts[0].x},${pts[0].y}` : "";
+// ── Compute monotone Hermite tangents ──────────────────────────────────────
+function computeTangents(pts) {
   const n = pts.length;
-  const dx = [], dy = [], slope = [], alpha = [], beta = [];
+  if (n < 2) return new Array(n).fill(0);
+  const dx = [], dy = [], slope = [];
   for (let i = 0; i < n - 1; i++) {
-    dx[i] = pts[i+1].x - pts[i].x;
-    dy[i] = pts[i+1].y - pts[i].y;
+    dx[i]    = pts[i+1].x - pts[i].x;
+    dy[i]    = pts[i+1].y - pts[i].y;
     slope[i] = dy[i] / dx[i];
   }
   const m = new Array(n);
@@ -43,21 +44,64 @@ function smoothPath(pts) {
   m[n-1] = slope[n-2];
   for (let i = 0; i < n - 1; i++) {
     if (Math.abs(slope[i]) < 1e-12) { m[i] = m[i+1] = 0; continue; }
-    alpha[i] = m[i] / slope[i]; beta[i] = m[i+1] / slope[i];
-    const h = Math.hypot(alpha[i], beta[i]);
-    if (h > 3) { const t = 3/h; m[i] = t*alpha[i]*slope[i]; m[i+1] = t*beta[i]*slope[i]; }
+    const a = m[i] / slope[i], b = m[i+1] / slope[i];
+    const h = Math.hypot(a, b);
+    if (h > 3) { const t = 3/h; m[i] = t*a*slope[i]; m[i+1] = t*b*slope[i]; }
   }
+  return { m, dx };
+}
+
+// ── Build one cubic bezier segment string ──────────────────────────────────
+function cubicSeg(pts, m, dx, i) {
+  const x1 = pts[i].x   + dx[i]/3;
+  const y1 = pts[i].y   + (dx[i]/3) * m[i];
+  const x2 = pts[i+1].x - dx[i]/3;
+  const y2 = pts[i+1].y - (dx[i]/3) * m[i+1];
+  return `M ${pts[i].x},${pts[i].y} C ${x1},${y1} ${x2},${y2} ${pts[i+1].x},${pts[i+1].y}`;
+}
+
+// ── Full smooth path for area fill ────────────────────────────────────────
+function smoothPath(pts) {
+  if (pts.length < 2) return pts.length === 1 ? `M ${pts[0].x},${pts[0].y}` : "";
+  const { m, dx } = computeTangents(pts);
   let d = `M ${pts[0].x},${pts[0].y}`;
-  for (let i = 0; i < n - 1; i++) {
-    const x1 = pts[i].x + dx[i]/3, y1 = pts[i].y + (dx[i]/3)*m[i];
-    const x2 = pts[i+1].x - dx[i]/3, y2 = pts[i+1].y - (dx[i]/3)*m[i+1];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const x1 = pts[i].x   + dx[i]/3;
+    const y1 = pts[i].y   + (dx[i]/3) * m[i];
+    const x2 = pts[i+1].x - dx[i]/3;
+    const y2 = pts[i+1].y - (dx[i]/3) * m[i+1];
     d += ` C ${x1},${y1} ${x2},${y2} ${pts[i+1].x},${pts[i+1].y}`;
   }
   return d;
 }
 
+// ── Annotation pill rendered in SVG ───────────────────────────────────────
+function AnnotationPill({ x, y, label, color, above, svgW }) {
+  const PW = Math.max(label.length * 6.5 + 14, 56);
+  const PH = 17;
+  const GAP = 8;
+  const px = Math.max(PW / 2 + 6, Math.min(svgW - PW / 2 - 6, x));
+  const py = above ? y - GAP - PH : y + GAP;
+  const lineY1 = above ? y - GAP + 1 : y + GAP - 1;
+  return (
+    <g>
+      <line x1={x} y1={lineY1} x2={px} y2={above ? py + PH : py}
+        stroke={color} strokeWidth="1" strokeDasharray="2 3" opacity="0.45"/>
+      <rect x={px - PW/2} y={py} width={PW} height={PH} rx={PH/2}
+        fill={`${color}1a`} stroke={color} strokeWidth="0.75" opacity="0.95"/>
+      <text x={px} y={py + PH/2 + 3.5} textAnchor="middle"
+        fill={color} fontSize="9" fontWeight="700"
+        fontFamily="'Cabinet Grotesk','Satoshi',sans-serif"
+        letterSpacing="0.04em">
+        {label}
+      </text>
+    </g>
+  );
+}
+
 const fmtStat = fmtRR;
 
+// ── Main component ─────────────────────────────────────────────────────────
 export default function EquityCurve({ T, data = [] }) {
   const [range, setRange]       = useState("all");
   const [tooltip, setTip]       = useState(null);
@@ -71,7 +115,7 @@ export default function EquityCurve({ T, data = [] }) {
     if (!el) return;
     const ro = new ResizeObserver(([entry]) => {
       const w = entry.contentRect.width;
-      setSize({ w: Math.max(w, 200), h: Math.round(Math.max(w * 0.10, 80)) });
+      setSize({ w: Math.max(w, 200), h: Math.round(Math.max(w * 0.32, 200)) });
     });
     ro.observe(el);
     return () => ro.disconnect();
@@ -79,41 +123,109 @@ export default function EquityCurve({ T, data = [] }) {
 
   const filtered = filterByRange(data, range);
 
+  // ── Stats ────────────────────────────────────────────────────────────────
   const netPL  = filtered.length ? filtered[filtered.length - 1].r : 0;
-  const peak   = filtered.length ? Math.max(0, ...filtered.map(d => d.r)) : 0;
-  const trough = filtered.length ? Math.min(0, ...filtered.map(d => d.r)) : 0;
-  let peakSoFar = -Infinity, maxDD = 0;
+  const allR   = filtered.map(d => d.r);
+  const peak   = filtered.length ? Math.max(0, ...allR) : 0;
+  const trough = filtered.length ? Math.min(0, ...allR) : 0;
+
+  // Running peak + drawdown
+  const peakArr = [];
+  let runPk = -Infinity, maxDD = 0;
   filtered.forEach(d => {
-    if (d.r > peakSoFar) peakSoFar = d.r;
-    const dd = d.r - peakSoFar;
+    if (d.r > runPk) runPk = d.r;
+    peakArr.push(runPk);
+    const dd = d.r - runPk;
     if (dd < maxDD) maxDD = dd;
   });
 
+  // ── Layout ────────────────────────────────────────────────────────────────
   const { w, h } = size;
-  const PL = 0, PR = 0, PT = 8, PB = 8;
+  const PL = 8, PR = 8, PT = 20, PB = 32;
   const cW = w - PL - PR;
   const cH = h - PT - PB;
 
-  const allR = filtered.map(d => d.r);
   const minR = filtered.length ? Math.min(0, ...allR) : 0;
   const maxR = filtered.length ? Math.max(0, ...allR) : 1;
   const rng  = maxR - minR || 1;
 
   const px = i => PL + (i / Math.max(filtered.length - 1, 1)) * cW;
   const py = v => PT + cH - ((v - minR) / rng) * cH;
+  const z0 = py(0);
 
-  const pts  = filtered.map((d, i) => ({ x: px(i), y: py(d.r), d, i }));
-  const line = smoothPath(pts);
-  const last = pts[pts.length - 1];
+  const pts = filtered.map((d, i) => ({ x: px(i), y: py(d.r), d, i }));
+
+  // ── Segment colors — line IS the drawdown indicator ────────────────────
+  const segments = [];
+  if (pts.length >= 2) {
+    const { m, dx } = computeTangents(pts);
+    for (let i = 0; i < pts.length - 1; i++) {
+      const r  = filtered[i + 1].r;
+      const pk = peakArr[i + 1];
+      const dd = r - pk;
+      const ddFrac = maxDD !== 0 ? dd / maxDD : 0;
+      let color;
+      if (dd >= -0.001)        color = T.green;
+      else if (ddFrac < 0.45)  color = T.amber;
+      else                      color = T.red;
+      segments.push({ d: cubicSeg(pts, m, dx, i), color });
+    }
+  }
+
+  // Full path for area fill
+  const linePath = smoothPath(pts);
+  const areaPath = pts.length > 1
+    ? `${linePath} L ${pts[pts.length-1].x},${z0} L ${pts[0].x},${z0} Z`
+    : "";
+
+  // ── Annotations — peak and trough ────────────────────────────────────────
+  const annotations = [];
+  if (filtered.length >= 5) {
+    const peakIdx   = allR.indexOf(Math.max(...allR));
+    const troughIdx = allR.indexOf(Math.min(...allR));
+
+    if (peakIdx >= 0 && peak > 0) {
+      const p = pts[peakIdx];
+      const above = p.y / h > 0.35; // put label above if point is in lower half
+      annotations.push({
+        x: p.x, y: p.y,
+        label: `Peak ${fmtStat(peak)}`,
+        color: T.green,
+        above,
+      });
+    }
+    if (troughIdx >= 0 && trough < 0 && troughIdx !== peakIdx) {
+      const p = pts[troughIdx];
+      // avoid overlap with peak annotation when indices are close
+      const tooClose = annotations.length > 0
+        && Math.abs(annotations[0].x - p.x) < 72;
+      if (!tooClose) {
+        const above = p.y / h < 0.6;
+        annotations.push({
+          x: p.x, y: p.y,
+          label: `Low ${fmtStat(trough)}`,
+          color: T.red,
+          above,
+        });
+      }
+    }
+  }
+
+  const last      = pts[pts.length - 1];
   const lineColor = netPL >= 0 ? T.green : T.red;
+  const gridYs    = [0.2, 0.4, 0.6, 0.8].map(f => PT + cH * f);
+
+  // Live scrub value — shows hovered cumulative R, else net P&L
+  const displayR = tooltip ? tooltip.pt.d.r : netPL;
+  const displayColor = displayR >= 0 ? T.green : T.red;
 
   const onMove = useCallback((e) => {
     if (!svgRef.current || !pts.length) return;
     const rect = svgRef.current.getBoundingClientRect();
-    const rx = e.clientX - rect.left;
+    const rx   = e.clientX - rect.left;
     const step = cW / Math.max(filtered.length - 1, 1);
-    const idx = Math.max(0, Math.min(filtered.length - 1, Math.round((rx - PL) / step)));
-    setTip({ idx, screenX: e.clientX - rect.left, pt: pts[idx] });
+    const idx  = Math.max(0, Math.min(filtered.length - 1, Math.round((rx - PL) / step)));
+    setTip({ idx, screenX: rx, pt: pts[idx] });
   }, [pts, cW, filtered.length]);
 
   const onLeave = () => setTip(null);
@@ -123,21 +235,22 @@ export default function EquityCurve({ T, data = [] }) {
     return (
       <div style={{
         background: T.surface, border: `1px solid ${T.border}`,
-        borderRadius: 16, padding: "32px 24px",
-        display: "flex", alignItems: "center", gap: 16,
+        borderRadius: 16, padding: "48px 24px", textAlign: "center",
       }}>
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none"
+          style={{ margin: "0 auto 16px", display:"block" }}>
+          <rect width="40" height="40" rx="12" fill={`${T.accentBright}18`}/>
+          <polyline points="8,28 16,18 22,22 32,10"
+            stroke={T.accentBright} strokeWidth="2.5"
+            strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
         <div style={{
-          width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-          background: `${T.accentBright}15`, border: `1px solid ${T.accentBright}25`,
-          display: "grid", placeItems: "center",
-        }}>
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-            <polyline points="2,14 6,9 10,11 16,4" stroke={T.accentBright} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </div>
-        <div>
-          <div style={{ fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif", fontSize: 14, fontWeight: 800, color: T.text, letterSpacing:"-0.02em" }}>No trades yet</div>
-          <div style={{ fontSize: 12, color: T.textDim, marginTop: 2 }}>Log a trade to see your equity curve.</div>
+          fontFamily: "'Cabinet Grotesk','Satoshi',sans-serif",
+          fontSize: 16, fontWeight: 900, color: T.text,
+          letterSpacing: "-0.03em", marginBottom: 6,
+        }}>No equity data yet</div>
+        <div style={{ fontSize: 12, color: T.textDim, lineHeight: 1.6 }}>
+          Log your first trade to start building your curve.
         </div>
       </div>
     );
@@ -151,48 +264,52 @@ export default function EquityCurve({ T, data = [] }) {
       overflow: "hidden",
     }}>
 
-      {/* ── Top row: title + P&L + range pills ── */}
+      {/* ── Header: title + live R + range pills ── */}
       <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "14px 16px 10px",
+        display: "flex", alignItems: "center",
+        justifyContent: "space-between",
+        padding: "14px 16px 0",
         gap: 12, flexWrap: "wrap",
       }}>
-        {/* Left: title + live P&L */}
-        <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+        <div style={{ display:"flex", alignItems:"baseline", gap: 10 }}>
           <span style={{
             fontFamily: "'Cabinet Grotesk','Satoshi',sans-serif",
-            fontSize: 13, fontWeight: 700,
-            color: T.textDim, letterSpacing: "0.01em",
-          }}>
-            Equity Curve
-          </span>
+            fontSize: 11, fontWeight: 700,
+            color: T.textDim, letterSpacing: "0.08em",
+            textTransform: "uppercase",
+          }}>Equity Curve</span>
           <span style={{
             fontFamily: "'Cabinet Grotesk','Satoshi',sans-serif",
-            fontSize: 22, fontWeight: 900,
-            color: lineColor, letterSpacing: "-0.05em", lineHeight: 1,
+            fontSize: 26, fontWeight: 900,
+            color: displayColor,
+            letterSpacing: "-0.05em", lineHeight: 1,
+            transition: "color 0.15s",
           }}>
-            {fmtStat(netPL)}
+            {fmtStat(displayR)}
           </span>
-          <span style={{ fontSize: 11, color: T.muted }}>R cumulative</span>
+          {tooltip && (
+            <span style={{ fontSize: 10, color: T.muted }}>
+              {tooltip.pt.d.date ? fmtDate(tooltip.pt.d.date) : `#${tooltip.idx + 1}`}
+            </span>
+          )}
         </div>
 
-        {/* Right: range pills */}
+        {/* Range pills */}
         <div style={{
           display: "flex", gap: 2,
           background: T.surface2, border: `1px solid ${T.border}`,
-          borderRadius: 8, padding: 2,
+          borderRadius: 8, padding: 2, flexShrink: 0,
         }}>
           {RANGES.map(r => (
             <button key={r.id} onClick={() => setRange(r.id)} style={{
               background: range === r.id ? T.accent : "transparent",
               color: range === r.id ? "#fff" : T.textDim,
               border: "none", borderRadius: 6,
-              padding: "3px 9px",
-              fontSize: 10, fontWeight: 700,
+              padding: "3px 9px", fontSize: 10, fontWeight: 700,
               cursor: "pointer",
               fontFamily: "'Cabinet Grotesk','Satoshi',sans-serif",
-              transition: "background .12s, color .12s",
               letterSpacing: "0.03em",
+              transition: "background .12s, color .12s",
             }}>
               {r.label}
             </button>
@@ -200,137 +317,242 @@ export default function EquityCurve({ T, data = [] }) {
         </div>
       </div>
 
-      {/* ── Inline mini stats ── */}
+      {/* ── Inline stat strip — no card boxes, just data ── */}
       <div style={{
-        display: "flex", gap: 0,
-        padding: "0 16px 12px",
-        flexWrap: "wrap",
+        display: "flex", alignItems: "center",
+        padding: "10px 16px 12px",
+        gap: 0,
+        borderBottom: `1px solid ${T.border}`,
       }}>
         {[
-          { label: "Peak",    val: fmtStat(peak),   color: T.green },
-          { label: "Trough",  val: fmtStat(trough), color: trough < 0 ? T.red : T.muted },
-          { label: "Max DD",  val: fmtStat(maxDD),  color: maxDD < 0 ? T.red : T.muted },
-          { label: "Trades",  val: filtered.length, color: T.textDim },
-        ].map((s, i) => (
+          { label: "Peak",   val: fmtStat(peak),   color: T.green },
+          { label: "Trough", val: fmtStat(trough),  color: trough < 0 ? T.red : T.muted },
+          { label: "Max DD", val: fmtStat(maxDD),   color: maxDD < 0 ? T.red : T.muted },
+          { label: "Trades", val: filtered.length,  color: T.textDim },
+        ].map((s, i, arr) => (
           <div key={s.label} style={{
-            paddingRight: 16, marginRight: 16,
-            borderRight: i < 3 ? `1px solid ${T.border}` : "none",
+            paddingRight: i < arr.length - 1 ? 16 : 0,
+            marginRight:  i < arr.length - 1 ? 16 : 0,
+            borderRight:  i < arr.length - 1 ? `1px solid ${T.border}` : "none",
             lineHeight: 1,
           }}>
-            <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, letterSpacing: "0.10em", textTransform: "uppercase", marginBottom: 3 }}>{s.label}</div>
+            <div style={{
+              fontSize: 9, fontWeight: 700, color: T.muted,
+              letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 4,
+            }}>{s.label}</div>
             <div style={{
               fontFamily: "'Cabinet Grotesk','Satoshi',sans-serif",
               fontSize: 13, fontWeight: 800,
-              color: s.color, letterSpacing: "-0.03em",
+              color: s.color, letterSpacing: "-0.02em",
             }}>{s.val}</div>
           </div>
         ))}
+
+        {/* Color legend — right-aligned */}
+        <div style={{
+          marginLeft: "auto", display: "flex",
+          gap: 12, alignItems: "center",
+        }}>
+          {[
+            { color: T.green, label: "New high" },
+            { color: T.amber, label: "Drawdown" },
+            { color: T.red,   label: "Deep DD"  },
+          ].map(l => (
+            <div key={l.label} style={{ display:"flex", alignItems:"center", gap: 4 }}>
+              <span style={{
+                width: 16, height: 2.5, borderRadius: 2,
+                background: l.color, display: "inline-block",
+              }}/>
+              <span style={{ fontSize: 9, color: T.muted, fontWeight: 600 }}>{l.label}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* ── Spark chart ── */}
-      <div ref={wrapRef} style={{ position: "relative", minHeight: w > 0 ? h : 80 }}>
-        {w > 0 && <svg
-          ref={svgRef}
-          width={w} height={h}
-          viewBox={`0 0 ${w} ${h}`}
-          style={{ display: "block", width: "100%", height: "auto", cursor: "crosshair" }}
-          onMouseMove={onMove}
-          onMouseLeave={onLeave}
-          onClick={() => { if (tooltip) setSel(s => s?.i === tooltip.idx ? null : { ...tooltip.pt.d, i: tooltip.idx }); }}
-        >
-          <defs>
-            <filter id="ec-glow" x="-20%" y="-80%" width="140%" height="260%">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>
-              <feColorMatrix in="blur" type="saturate" values="2" result="sat"/>
-              <feMerge>
-                <feMergeNode in="sat"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-            <filter id="ec-dot-glow" x="-100%" y="-100%" width="300%" height="300%">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
+      {/* ── Chart ── */}
+      <div ref={wrapRef} style={{ position: "relative", minHeight: w > 0 ? h : 160 }}>
+        {w > 0 && (
+          <svg
+            ref={svgRef}
+            width={w} height={h}
+            viewBox={`0 0 ${w} ${h}`}
+            style={{ display:"block", width:"100%", height:"auto", cursor:"crosshair" }}
+            onMouseMove={onMove}
+            onMouseLeave={onLeave}
+            onClick={() => {
+              if (tooltip) setSel(s => s?.i === tooltip.idx ? null : { ...tooltip.pt.d, i: tooltip.idx });
+            }}
+          >
+            <defs>
+              {/* Area gradient — uses lineColor direction */}
+              <linearGradient id="ec-area" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%"   stopColor={lineColor} stopOpacity="0.15"/>
+                <stop offset="100%" stopColor={lineColor} stopOpacity="0.00"/>
+              </linearGradient>
 
-          {/* Zero baseline — only if in view */}
-          {(() => { const z0 = py(0); return z0 > PT && z0 < PT + cH ? (
-            <line x1={0} y1={z0} x2={w} y2={z0}
-              stroke={T.border} strokeWidth="1" strokeDasharray="4 8" opacity="0.7"/>
-          ) : null; })()}
+              {/* Glow for curve segments */}
+              <filter id="ec-glow" x="-30%" y="-80%" width="160%" height="260%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>
+                <feColorMatrix in="blur" type="saturate" values="2" result="sat"/>
+                <feMerge>
+                  <feMergeNode in="sat"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
 
-          {/* Spark line */}
-          {line && (
-            <path
-              d={line} fill="none"
-              stroke={lineColor} strokeWidth="2"
-              strokeLinecap="round" strokeLinejoin="round"
-              filter="url(#ec-glow)"
-            />
-          )}
+              {/* Endpoint pulse */}
+              <filter id="ec-dot" x="-120%" y="-120%" width="340%" height="340%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
 
-          {/* Hover crosshair */}
-          {tooltip && (() => {
-            const p = tooltip.pt;
-            return (
+            {/* Grid lines */}
+            {gridYs.map((y, i) => (
+              <line key={i} x1={PL} y1={y} x2={w - PR} y2={y}
+                stroke={T.border} strokeWidth="1" strokeDasharray="2 8" opacity="0.4"/>
+            ))}
+
+            {/* Zero baseline */}
+            {z0 > PT && z0 < PT + cH && (
+              <line x1={PL} y1={z0} x2={w - PR} y2={z0}
+                stroke={T.border} strokeWidth="1" strokeDasharray="4 8" opacity="0.8"/>
+            )}
+
+            {/* Area fill — single gradient under whole curve */}
+            {areaPath && <path d={areaPath} fill="url(#ec-area)"/>}
+
+            {/* Segmented colored curve — the line IS the indicator */}
+            {segments.map((seg, i) => (
+              <path
+                key={i}
+                d={seg.d}
+                fill="none"
+                stroke={seg.color}
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                filter="url(#ec-glow)"
+              />
+            ))}
+
+            {/* Annotation pills */}
+            {annotations.map((ann, i) => (
+              <AnnotationPill key={i} {...ann} svgW={w}/>
+            ))}
+
+            {/* Trade dots (≤80 trades) */}
+            {filtered.length <= 80 && pts.map((p, i) => {
+              const d = p.d;
+              const dotC = d.result === "WIN" ? T.green : d.result === "LOSS" ? T.red : (T.amber || "#f59e0b");
+              const isSel = selectedTrade?.i === i;
+              return (
+                <circle key={i}
+                  cx={p.x} cy={p.y}
+                  r={isSel ? 6 : 2.5}
+                  fill={dotC}
+                  stroke={T.surface}
+                  strokeWidth={isSel ? 2 : 1.5}
+                  opacity={isSel ? 1 : 0.7}
+                />
+              );
+            })}
+
+            {/* Crosshair on hover */}
+            {tooltip && (() => {
+              const p = tooltip.pt;
+              return (
+                <>
+                  <line x1={p.x} y1={PT} x2={p.x} y2={PT + cH}
+                    stroke={T.border} strokeWidth="1" opacity="0.6"/>
+                  <circle cx={p.x} cy={p.y} r="5"
+                    fill={p.d.r >= 0 ? T.green : T.red}
+                    stroke={T.surface} strokeWidth="2.5"/>
+                </>
+              );
+            })()}
+
+            {/* Animated endpoint */}
+            {last && !tooltip && (
               <>
-                <line x1={p.x} y1={PT} x2={p.x} y2={PT + cH}
-                  stroke={lineColor} strokeWidth="1" strokeDasharray="3 4" opacity="0.35"/>
-                <circle cx={p.x} cy={p.y} r="4"
-                  fill={lineColor} stroke={T.surface} strokeWidth="2"/>
+                <circle cx={last.x} cy={last.y} r="12" fill={lineColor} opacity="0.08" filter="url(#ec-dot)">
+                  <animate attributeName="r"       values="10;22;10" dur="3s" repeatCount="indefinite"/>
+                  <animate attributeName="opacity" values="0.08;0;0.08" dur="3s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx={last.x} cy={last.y} r="4.5" fill={lineColor} stroke={T.surface} strokeWidth="2.5"/>
               </>
-            );
-          })()}
+            )}
 
-          {/* Animated endpoint */}
-          {last && !tooltip && (
-            <>
-              <circle cx={last.x} cy={last.y} r="10" fill={lineColor} opacity="0.10" filter="url(#ec-dot-glow)">
-                <animate attributeName="r" values="8;16;8" dur="2.6s" repeatCount="indefinite"/>
-                <animate attributeName="opacity" values="0.10;0;0.10" dur="2.6s" repeatCount="indefinite"/>
-              </circle>
-              <circle cx={last.x} cy={last.y} r="4" fill={lineColor} stroke={T.surface} strokeWidth="2"/>
-            </>
-          )}
-        </svg>}
+            {/* Date labels */}
+            {filtered.length > 1 && (
+              <>
+                <text x={PL + 2} y={h - 10} fill={T.muted}
+                  fontSize="10" fontWeight="600"
+                  fontFamily="'Satoshi',sans-serif">
+                  {filtered[0].date ? fmtDate(filtered[0].date) : "First"}
+                </text>
+                <text x={w - PR - 2} y={h - 10} fill={T.muted}
+                  textAnchor="end" fontSize="10" fontWeight="600"
+                  fontFamily="'Satoshi',sans-serif">
+                  {filtered[filtered.length - 1].date ? fmtDate(filtered[filtered.length - 1].date) : "Latest"}
+                </text>
+              </>
+            )}
+          </svg>
+        )}
 
-        {/* Tooltip */}
+        {/* Hover tooltip — minimal, anchored near crosshair */}
         {tooltip && (() => {
           const { pt, screenX } = tooltip;
           const d = pt.d;
           const r = d.rr || 0;
-          const left = Math.min(Math.max(screenX - 72, 8), w - 160);
-          const above = pt.y / h > 0.5;
+          const left = Math.min(Math.max(screenX - 68, 8), w - 152);
+          const above = pt.y / h > 0.55;
           return (
             <div style={{
               position: "absolute",
-              left, top: above ? 4 : h + 4,
+              left,
+              top: above ? pt.y - 90 : pt.y + 14,
               background: T.surface,
               border: `1px solid ${T.border}`,
-              borderRadius: 10, padding: "9px 12px",
+              borderRadius: 10, padding: "10px 13px",
               pointerEvents: "none", zIndex: 20,
-              boxShadow: `0 12px 32px ${T.bg}bb`,
-              minWidth: 148,
+              boxShadow: `0 16px 40px ${T.bg}cc`,
+              minWidth: 140,
             }}>
-              <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, letterSpacing: "0.08em", marginBottom: 6 }}>
-                {d.date ? fmtDate(d.date) : `Trade #${pt.i + 1}`}
-              </div>
-              {d.pair && <div style={{ fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif", fontSize: 13, fontWeight: 800, color: T.text, marginBottom: 6, letterSpacing:"-0.02em" }}>{d.pair}</div>}
+              {d.pair && (
+                <div style={{
+                  fontFamily: "'Cabinet Grotesk','Satoshi',sans-serif",
+                  fontSize: 13, fontWeight: 800,
+                  color: T.text, marginBottom: 7,
+                  letterSpacing: "-0.02em",
+                }}>{d.pair}</div>
+              )}
               <div style={{ display: "flex", gap: 14 }}>
                 <div>
-                  <div style={{ fontSize: 9, color: T.muted, marginBottom: 2 }}>TRADE</div>
-                  <div style={{ fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif", fontSize: 15, fontWeight: 900, color: r >= 0 ? T.green : T.red, letterSpacing:"-0.04em" }}>{fmtStat(r)}</div>
+                  <div style={{ fontSize: 9, color: T.muted, letterSpacing:"0.08em", marginBottom: 3 }}>TRADE</div>
+                  <div style={{
+                    fontFamily: "'Cabinet Grotesk','Satoshi',sans-serif",
+                    fontSize: 16, fontWeight: 900,
+                    color: r >= 0 ? T.green : T.red,
+                    letterSpacing: "-0.04em",
+                  }}>{fmtStat(r)}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: 9, color: T.muted, marginBottom: 2 }}>TOTAL</div>
-                  <div style={{ fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif", fontSize: 15, fontWeight: 900, color: d.r >= 0 ? T.green : T.red, letterSpacing:"-0.04em" }}>{fmtStat(d.r)}</div>
+                  <div style={{ fontSize: 9, color: T.muted, letterSpacing:"0.08em", marginBottom: 3 }}>TOTAL</div>
+                  <div style={{
+                    fontFamily: "'Cabinet Grotesk','Satoshi',sans-serif",
+                    fontSize: 16, fontWeight: 900,
+                    color: d.r >= 0 ? T.green : T.red,
+                    letterSpacing: "-0.04em",
+                  }}>{fmtStat(d.r)}</div>
                 </div>
               </div>
               {d.result && (
                 <div style={{
-                  marginTop: 7, display: "inline-block",
+                  marginTop: 8, display: "inline-block",
                   padding: "2px 8px", borderRadius: 5, fontSize: 9, fontWeight: 700,
-                  background: d.result === "WIN" ? `${T.green}20` : d.result === "LOSS" ? `${T.red}20` : `${T.amber}20`,
+                  background: d.result === "WIN" ? `${T.green}22` : d.result === "LOSS" ? `${T.red}22` : `${T.amber}22`,
                   color: d.result === "WIN" ? T.green : d.result === "LOSS" ? T.red : T.amber,
                 }}>{d.result}</div>
               )}
@@ -339,50 +561,92 @@ export default function EquityCurve({ T, data = [] }) {
         })()}
       </div>
 
-      {/* Date range labels */}
-      {filtered.length > 1 && (
-        <div style={{
-          display: "flex", justifyContent: "space-between",
-          padding: "6px 14px 10px",
-          fontSize: 10, color: T.muted, fontFamily: "'Satoshi',sans-serif", fontWeight: 600,
-        }}>
-          <span>{filtered[0].date ? fmtDate(filtered[0].date) : "First"}</span>
-          <span>{filtered[filtered.length-1].date ? fmtDate(filtered[filtered.length-1].date) : "Latest"}</span>
-        </div>
-      )}
-
       {/* ── Selected trade panel ── */}
       {selectedTrade && (() => {
         const d = selectedTrade;
         const r = d.rr || 0;
-        const resultColor = d.result === "WIN" ? T.green : d.result === "LOSS" ? T.red : (T.amber || "#f59e0b");
+        const rc = d.result === "WIN" ? T.green : d.result === "LOSS" ? T.red : (T.amber || "#f59e0b");
         return (
-          <div style={{ borderTop: `1px solid ${T.border}`, background: T.surface2, padding: "12px 16px" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <span style={{ fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif", fontSize: 16, fontWeight: 900, color: T.accentBright, letterSpacing:"-0.04em" }}>{d.pair || "Trade"}</span>
-                {d.direction && <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 6, background: d.direction === "LONG" ? `${T.green}20` : `${T.red}20`, color: d.direction === "LONG" ? T.green : T.red }}>{d.direction}</span>}
+          <div style={{
+            borderTop: `1px solid ${T.border}`,
+            background: T.surface2,
+            padding: "12px 16px",
+          }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: 8 }}>
+              <div style={{ display:"flex", alignItems:"center", gap: 8, flexWrap:"wrap" }}>
+                <span style={{
+                  fontFamily: "'Cabinet Grotesk','Satoshi',sans-serif",
+                  fontSize: 17, fontWeight: 900,
+                  color: T.accentBright, letterSpacing: "-0.04em",
+                }}>{d.pair || "Trade"}</span>
+                {d.direction && (
+                  <span style={{
+                    fontSize: 10, fontWeight: 700,
+                    padding: "2px 8px", borderRadius: 6,
+                    background: d.direction === "LONG" ? `${T.green}20` : `${T.red}20`,
+                    color: d.direction === "LONG" ? T.green : T.red,
+                  }}>{d.direction}</span>
+                )}
                 {d.date && <span style={{ fontSize: 11, color: T.muted }}>{fmtDate(d.date)}</span>}
+                {d.session && (
+                  <span style={{
+                    fontSize: 10, color: T.textDim,
+                    background: T.surface, border: `1px solid ${T.border}`,
+                    padding: "2px 7px", borderRadius: 999,
+                  }}>{d.session}</span>
+                )}
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                {d.result && <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 9px", borderRadius: 6, background: `${resultColor}20`, color: resultColor }}>{d.result}</span>}
-                <span style={{ fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif", fontSize: 17, fontWeight: 900, color: r >= 0 ? T.green : T.red, letterSpacing:"-0.05em" }}>{fmtStat(r)}</span>
-                <button onClick={() => setSel(null)} style={{ background:"none", border:`1px solid ${T.border}`, color:T.muted, width:26, height:26, borderRadius:7, cursor:"pointer", fontSize:15, display:"grid", placeItems:"center" }}>×</button>
+              <div style={{ display:"flex", alignItems:"center", gap: 8 }}>
+                {d.result && (
+                  <span style={{
+                    fontSize: 10, fontWeight: 700,
+                    padding: "2px 9px", borderRadius: 6,
+                    background: `${rc}20`, color: rc,
+                  }}>{d.result}</span>
+                )}
+                <span style={{
+                  fontFamily: "'Cabinet Grotesk','Satoshi',sans-serif",
+                  fontSize: 18, fontWeight: 900,
+                  color: r >= 0 ? T.green : T.red, letterSpacing: "-0.05em",
+                }}>{fmtStat(r)}</span>
+                <button onClick={() => setSel(null)} style={{
+                  background: "none", border: `1px solid ${T.border}`,
+                  color: T.muted, width: 26, height: 26,
+                  borderRadius: 7, cursor: "pointer", fontSize: 15,
+                  display: "grid", placeItems: "center",
+                }}>×</button>
               </div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(80px,1fr))", gap: 6 }}>
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit,minmax(80px,1fr))",
+              gap: 6,
+            }}>
               {[
-                { l:"Setup", v:d.setup }, { l:"Emotion", v:d.emotion },
-                { l:"Pips", v:d.pips ? `${d.pips>=0?"+":""}${d.pips}` : null },
-                { l:"Entry", v:d.entry||null },
-              ].filter(x=>x.v).map(x=>(
-                <div key={x.l} style={{ background:T.surface, border:`1px solid ${T.border}`, borderRadius:8, padding:"7px 10px" }}>
-                  <div style={{ fontSize:9, fontWeight:700, color:T.muted, letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:3 }}>{x.l}</div>
-                  <div style={{ fontSize:12, fontWeight:700, color:T.text }}>{x.v}</div>
+                { l:"Setup",   v: d.setup },
+                { l:"Emotion", v: d.emotion },
+                { l:"Pips",    v: d.pips ? `${d.pips >= 0 ? "+" : ""}${d.pips}` : null },
+                { l:"Entry",   v: d.entry || null },
+              ].filter(x => x.v).map(x => (
+                <div key={x.l} style={{
+                  background: T.surface, border: `1px solid ${T.border}`,
+                  borderRadius: 8, padding: "7px 10px",
+                }}>
+                  <div style={{
+                    fontSize: 9, fontWeight: 700, color: T.muted,
+                    letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 3,
+                  }}>{x.l}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: T.text }}>{x.v}</div>
                 </div>
               ))}
             </div>
-            {d.notes && <div style={{ marginTop:8, fontSize:12, color:T.textDim, lineHeight:1.6, background:T.surface, border:`1px solid ${T.border}`, borderRadius:8, padding:"8px 12px" }}>{d.notes}</div>}
+            {d.notes && (
+              <div style={{
+                marginTop: 8, fontSize: 12, color: T.textDim, lineHeight: 1.6,
+                background: T.surface, border: `1px solid ${T.border}`,
+                borderRadius: 8, padding: "8px 12px",
+              }}>{d.notes}</div>
+            )}
           </div>
         );
       })()}
