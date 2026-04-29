@@ -1,130 +1,358 @@
 "use client"
-import { useState } from "react";
+
+import { useMemo, useState } from "react";
 import { PAIRS } from "@/lib/constants";
 import { fmtDate, fmtRR } from "@/lib/utils";
 import { SectionLead, Btn, Chip, EmptyState, Badge } from "@/components/ui";
 
-function Journal({T,filtered,filterPair,setFilterPair,filterResult,setFilterResult,onEdit,onDelete,onViewImg,onNew,onRepeatLast,viewportWidth}) {
-  const isMobile = viewportWidth < 768
+function Journal({
+  T,
+  filtered,
+  filterPair,
+  setFilterPair,
+  filterResult,
+  setFilterResult,
+  onEdit,
+  onDelete,
+  onViewImg,
+  onNew,
+  onRepeatLast,
+  viewportWidth,
+}) {
+  const isMobile = viewportWidth < 768;
   const [filterTag, setFilterTag] = useState(null);
-  const allTags = [...new Set(filtered.flatMap(t => t.tags || []))].filter(Boolean).sort();
-  const displayTrades = filterTag ? filtered.filter(t => (t.tags||[]).includes(filterTag)) : filtered;
+  const [query, setQuery] = useState("");
+
+  const allTags = useMemo(
+    () => [...new Set(filtered.flatMap(t => t.tags || []))].filter(Boolean).sort(),
+    [filtered]
+  );
+
+  const displayTrades = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return filtered.filter(t => {
+      const tagMatch = !filterTag || (t.tags || []).includes(filterTag);
+      if (!tagMatch) return false;
+      if (!q) return true;
+
+      const haystack = [
+        t.pair,
+        t.direction,
+        t.session,
+        t.result,
+        t.dailyBias,
+        t.setup,
+        t.emotion,
+        t.mistakes,
+        t.notes,
+        ...(t.tags || []),
+      ].filter(Boolean).join(" ").toLowerCase();
+
+      return haystack.includes(q);
+    });
+  }, [filtered, filterTag, query]);
+
+  const groups = useMemo(() => {
+    const byDate = {};
+    displayTrades.forEach(t => {
+      const key = (t.date || "").slice(0, 10);
+      if (!byDate[key]) byDate[key] = [];
+      byDate[key].push(t);
+    });
+
+    return Object.entries(byDate).map(([date, trades]) => ({
+      date,
+      trades,
+      dayR: +trades.reduce((sum, t) => sum + (Number(t.rr) || 0), 0).toFixed(2),
+    }));
+  }, [displayTrades]);
+
+  const resultColor = trade =>
+    trade.result === "WIN" ? T.green : trade.result === "LOSS" ? T.red : T.amber;
+
+  const contextItems = trade => [
+    { label: "Bias", value: trade.dailyBias, color: trade.dailyBias === "Bullish" ? T.green : trade.dailyBias === "Bearish" ? T.red : T.textDim },
+    { label: "Setup", value: trade.setup },
+    { label: "Session", value: trade.session },
+    { label: "Emotion", value: trade.emotion },
+    { label: "Mistake", value: trade.mistakes !== "None" ? trade.mistakes : null, color: T.red },
+  ].filter(item => item.value);
+
   return (
     <div>
-      <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:18,padding:"16px 18px",marginBottom:20,boxShadow:`0 10px 28px ${T.cardGlow}`}}>
+      <div style={{
+        background: `linear-gradient(180deg, ${T.surface}, ${T.surface2})`,
+        border: `1px solid ${T.border}`,
+        borderRadius: 22,
+        padding: isMobile ? "14px" : "18px",
+        marginBottom: 20,
+        boxShadow: `0 18px 44px ${T.cardGlow}`,
+      }}>
         <SectionLead
           T={T}
           compact={isMobile}
           eyebrow="Execution Archive"
           title="Trade Journal"
-          copy="Filter by market, result, and screenshots to review what was clean, what drifted, and what deserves repeating."
+          copy="A clean log of what you executed, why it mattered, and what the trade taught you."
           action={
-            <div style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:isMobile?"stretch":"flex-end"}}>
-              {onRepeatLast&&<Btn T={T} ghost onClick={onRepeatLast}>Repeat Last Trade</Btn>}
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: isMobile ? "stretch" : "flex-end" }}>
+              {onRepeatLast && <Btn T={T} ghost onClick={onRepeatLast}>Repeat Last Trade</Btn>}
               <Btn T={T} onClick={onNew}>+ Log Trade</Btn>
             </div>
           }
         />
-        <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:10}}>
-          <div style={{background:T.surface2,border:`1px solid ${T.border}`,borderRadius:14,padding:"12px 12px 10px"}}>
-            <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:10}}>Pairs</div>
-            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-              {["ALL",...PAIRS].map(p=><Chip key={p} T={T} active={filterPair===p} onClick={()=>setFilterPair(p)}>{p}</Chip>)}
-            </div>
+
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: isMobile ? "1fr" : "minmax(240px, 1.2fr) minmax(220px, 1fr) minmax(220px, 1fr)",
+          gap: 10,
+        }}>
+          <div style={{ background: T.surface2, border: `1px solid ${T.border}`, borderRadius: 16, padding: 12 }}>
+            <div style={{ fontSize: 10, fontWeight: 800, color: T.muted, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 10 }}>Search</div>
+            <input
+              value={query}
+              onChange={event => setQuery(event.target.value)}
+              placeholder="Search notes, setup, emotion, tags..."
+              style={{
+                width: "100%",
+                background: T.surface,
+                border: `1px solid ${T.border}`,
+                color: T.text,
+                borderRadius: 12,
+                padding: "10px 12px",
+                outline: "none",
+                fontSize: 13,
+              }}
+            />
           </div>
-          <div style={{background:T.surface2,border:`1px solid ${T.border}`,borderRadius:14,padding:"12px 12px 10px"}}>
-            <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:10}}>Results</div>
-            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-              {["ALL","WIN","LOSS","BREAKEVEN"].map(r=><Chip key={r} T={T} active={filterResult===r} onClick={()=>setFilterResult(r)}>{r}</Chip>)}
-            </div>
-          </div>
+
+          <FilterBlock T={T} title="Pairs">
+            {["ALL", ...PAIRS].map(pair => (
+              <Chip key={pair} T={T} active={filterPair === pair} onClick={() => setFilterPair(pair)}>{pair}</Chip>
+            ))}
+          </FilterBlock>
+
+          <FilterBlock T={T} title="Results">
+            {["ALL", "WIN", "LOSS", "BREAKEVEN"].map(result => (
+              <Chip key={result} T={T} active={filterResult === result} onClick={() => setFilterResult(result)}>{result}</Chip>
+            ))}
+          </FilterBlock>
         </div>
-        {allTags.length>0&&(
-          <div style={{marginTop:10,background:T.surface2,border:`1px solid ${T.border}`,borderRadius:14,padding:"12px 12px 10px"}}>
-            <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:10}}>Tags</div>
-            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-              {allTags.map(tag=><Chip key={tag} T={T} active={filterTag===tag} onClick={()=>setFilterTag(filterTag===tag?null:tag)}>{tag}</Chip>)}
-            </div>
+
+        {allTags.length > 0 && (
+          <div style={{ marginTop: 10 }}>
+            <FilterBlock T={T} title="Tags">
+              {allTags.map(tag => (
+                <Chip key={tag} T={T} active={filterTag === tag} onClick={() => setFilterTag(filterTag === tag ? null : tag)}>{tag}</Chip>
+              ))}
+            </FilterBlock>
           </div>
         )}
       </div>
-      {displayTrades.length===0&&<EmptyState T={T} icon="📓" title="Your journal is still clean" copy="Start with one high-quality trade log and let the stats, screenshots, and reviews build from there." action={<Btn T={T} onClick={onNew}>+ Log Your First Trade</Btn>}/>}
-      {/* ── Date-grouped trade list ── */}
-      {(() => {
-        // group by date descending
-        const groups = [];
-        const seen = {};
-        displayTrades.forEach(t => {
-          const key = (t.date||"").slice(0,10);
-          if (!seen[key]) { seen[key] = []; groups.push({ date: key, trades: seen[key] }); }
-          seen[key].push(t);
-        });
-        return groups.map(({ date, trades: gt }) => {
-          const dayR = +gt.reduce((s,t) => s + (t.rr||0), 0).toFixed(2);
-          return (
-            <div key={date} style={{marginBottom:8}}>
-              {/* Day header */}
-              <div style={{display:"flex",alignItems:"center",gap:10,padding:"6px 4px 8px",borderBottom:`1px solid ${T.border}`,marginBottom:10}}>
-                <span style={{fontSize:12,fontWeight:700,color:T.textDim}}>{fmtDate(date)}</span>
-                <span style={{fontSize:11,color:T.muted}}>{gt.length} trade{gt.length!==1?"s":""}</span>
-                <span style={{marginLeft:"auto",fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:14,fontWeight:800,color:dayR>=0?T.green:T.red}}>{dayR>=0?"+":""}{dayR}R</span>
-              </div>
-              {/* Trades in this day */}
-              <div style={{display:"flex",flexDirection:"column",gap:12}}>
-                {gt.map(t=>(
-          <div key={t._dbid} style={{background:`linear-gradient(180deg,${T.surface},${T.surface2})`,border:`1px solid ${T.border}`,borderRadius:18,padding:isMobile?"16px 16px 14px":"18px 20px",transition:"border-color .15s, transform .15s, box-shadow .15s",boxShadow:`0 10px 26px ${T.cardGlow}`,position:"relative",overflow:"hidden"}} onMouseEnter={e=>{if(!isMobile){e.currentTarget.style.borderColor=T.accent; e.currentTarget.style.transform="translateY(-1px)"; e.currentTarget.style.boxShadow=`0 14px 32px ${T.cardGlow}`}}} onMouseLeave={e=>{e.currentTarget.style.borderColor=T.border; e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow=`0 10px 26px ${T.cardGlow}`}}>
-            <div style={{position:"absolute",left:0,top:0,bottom:0,width:4,background:t.result==="WIN"?`linear-gradient(180deg,${T.green},${T.blue})`:t.result==="LOSS"?`linear-gradient(180deg,${T.red},${T.pink})`:`linear-gradient(180deg,${T.amber},${T.accentBright})`}} />
-            <div style={{display:"flex",alignItems:isMobile?"flex-start":"center",justifyContent:"space-between",marginBottom:12,flexWrap:"wrap",gap:8}}>
-              <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
-                <span style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?18:20,fontWeight:800,color:T.accentBright}}>{t.pair}</span>
-                <Badge color={t.direction==="LONG"?T.green:T.red}>{t.direction}</Badge>
-                <span style={{fontSize:12,color:T.muted}}>{fmtDate(t.date)}</span>
-                <span style={{fontSize:11,color:T.textDim,background:T.surface,padding:"3px 8px",borderRadius:999,border:`1px solid ${T.border}`}}>{t.session}</span>
-              </div>
-              <div style={{display:"flex",alignItems:"center",gap:10}}>
-                <Badge color={t.result==="WIN"?T.green:t.result==="LOSS"?T.red:T.amber}>{t.result}</Badge>
-                <span style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?17:18,fontWeight:800,color:t.rr>=0?T.green:T.red}}>{fmtRR(t.rr||0)}</span>
-              </div>
+
+      {displayTrades.length === 0 && (
+        <EmptyState
+          T={T}
+          icon="JR"
+          title="No trades match this view"
+          copy="Clear a filter or log the next clean execution."
+          action={<Btn T={T} onClick={onNew}>+ Log Trade</Btn>}
+        />
+      )}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+        {groups.map(({ date, trades, dayR }) => (
+          <section key={date}>
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: isMobile ? "0 2px 8px" : "0 4px 10px",
+              borderBottom: `1px solid ${T.border}`,
+              marginBottom: 12,
+            }}>
+              <span style={{ fontSize: 13, fontWeight: 800, color: T.text }}>{fmtDate(date)}</span>
+              <span style={{ fontSize: 11, color: T.muted }}>{trades.length} trade{trades.length !== 1 ? "s" : ""}</span>
+              <span style={{ marginLeft: "auto", fontSize: 14, fontWeight: 900, color: dayR >= 0 ? T.green : T.red }}>
+                {dayR >= 0 ? "+" : ""}{dayR}R
+              </span>
             </div>
-            <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:10}}>
-              {[{l:"D.Bias",v:t.dailyBias,c:t.dailyBias==="Bullish"?T.green:t.dailyBias==="Bearish"?T.red:T.muted},{l:"Manip",v:t.manipulation},{l:"POI",v:t.poi},{l:"Setup",v:t.setup},{l:"Emotion",v:t.emotion},{l:"Mistake",v:t.mistakes!=="None"?t.mistakes:null,c:T.red}].filter(x=>x.v).map((x,i)=>(
-                <div key={i} style={{display:"flex",alignItems:"center",gap:4,background:T.surface,border:`1px solid ${T.border}`,padding:"4px 9px",borderRadius:999,maxWidth:"100%"}}>
-                  <span style={{fontSize:9,fontWeight:700,color:T.muted,letterSpacing:"0.1em"}}>{x.l}</span>
-                  <span style={{fontSize:11,color:x.c||T.textDim,fontWeight:600}}>{x.v}</span>
-                </div>
+
+            <div style={{ display: "grid", gap: 12 }}>
+              {trades.map(trade => (
+                <article
+                  key={trade._dbid}
+                  style={{
+                    background: `linear-gradient(135deg, ${T.surface} 0%, ${T.surface2} 100%)`,
+                    border: `1px solid ${resultColor(trade)}55`,
+                    borderRadius: 22,
+                    padding: isMobile ? "14px" : "18px",
+                    boxShadow: `0 16px 40px ${T.cardGlow}`,
+                    position: "relative",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: `radial-gradient(circle at 12% 0%, ${resultColor(trade)}18, transparent 34%)`,
+                    pointerEvents: "none",
+                  }} />
+
+                  <div style={{ position: "relative" }}>
+                    <div style={{
+                      display: "grid",
+                      gridTemplateColumns: isMobile ? "1fr" : "1fr auto",
+                      gap: 12,
+                      alignItems: "start",
+                      marginBottom: 12,
+                    }}>
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+                          <span style={{ fontSize: isMobile ? 20 : 24, fontWeight: 900, color: T.accentBright, letterSpacing: "-0.03em" }}>
+                            {trade.pair}
+                          </span>
+                          <Badge color={trade.direction === "LONG" ? T.green : T.red}>{trade.direction}</Badge>
+                          <span style={{ fontSize: 12, color: T.textDim }}>{fmtDate(trade.date)}</span>
+                        </div>
+
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                          {contextItems(trade).map(item => (
+                            <span key={`${trade._dbid}-${item.label}`} style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 6,
+                              background: `${item.color || T.accent}12`,
+                              border: `1px solid ${item.color || T.border}44`,
+                              color: item.color || T.textDim,
+                              padding: "5px 9px",
+                              borderRadius: 999,
+                              fontSize: 11,
+                              fontWeight: 750,
+                              maxWidth: "100%",
+                            }}>
+                              <span style={{ color: T.muted, fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase" }}>{item.label}</span>
+                              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.value}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div style={{
+                        display: "flex",
+                        alignItems: isMobile ? "flex-start" : "flex-end",
+                        justifyContent: isMobile ? "space-between" : "flex-start",
+                        gap: 8,
+                        flexDirection: isMobile ? "row" : "column",
+                      }}>
+                        <Badge color={resultColor(trade)}>{trade.result}</Badge>
+                        <span style={{ fontSize: isMobile ? 24 : 28, fontWeight: 950, color: Number(trade.rr) >= 0 ? T.green : T.red, letterSpacing: "-0.04em" }}>
+                          {fmtRR(trade.rr || 0)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {trade.notes && (
+                      <div style={{
+                        color: T.textDim,
+                        lineHeight: 1.7,
+                        fontSize: 13,
+                        padding: isMobile ? "11px 12px" : "13px 14px",
+                        borderRadius: 16,
+                        border: `1px solid ${T.border}`,
+                        background: `${T.bg}55`,
+                        marginBottom: 12,
+                      }}>
+                        {trade.notes}
+                      </div>
+                    )}
+
+                    {trade.tags?.length > 0 && (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+                        {trade.tags.map(tag => (
+                          <span key={tag} style={{
+                            background: `${T.blue}16`,
+                            border: `1px solid ${T.blue}45`,
+                            color: T.blue,
+                            padding: "4px 10px",
+                            fontSize: 11,
+                            borderRadius: 999,
+                            fontWeight: 800,
+                          }}>
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <div style={{
+                      display: "flex",
+                      alignItems: isMobile ? "stretch" : "center",
+                      justifyContent: "space-between",
+                      gap: 10,
+                      flexWrap: "wrap",
+                    }}>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        {trade.preScreenshot && <JournalAction T={T} onClick={() => onViewImg(trade.preScreenshot)}>Pre Chart</JournalAction>}
+                        {trade.postScreenshot && <JournalAction T={T} onClick={() => onViewImg(trade.postScreenshot)}>Post Chart</JournalAction>}
+                      </div>
+
+                      <div style={{ display: "flex", gap: 6, marginLeft: isMobile ? 0 : "auto" }}>
+                        <button onClick={() => onEdit(trade)} style={smallButton(T)}>Edit</button>
+                        <button onClick={() => onDelete(trade)} style={{ ...smallButton(T), color: T.red }}>Delete</button>
+                      </div>
+                    </div>
+                  </div>
+                </article>
               ))}
             </div>
-            {t.notes&&<div style={{fontSize:12,color:T.textDim,lineHeight:1.7,marginBottom:12,padding:"12px 14px",background:T.surface,borderRadius:12,border:`1px solid ${T.border}`}}>{t.notes}</div>}
-            {t.tags?.length>0&&<div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:12}}>{t.tags.map(tag=><span key={tag} style={{background:`${T.blue}18`,border:`1px solid ${T.blue}40`,color:T.blue,padding:"3px 10px",fontSize:11,borderRadius:20,fontWeight:700}}>{tag}</span>)}</div>}
-            <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:8,marginBottom:12}}>
-              {[{l:"Entry",v:t.entry,c:T.text},{l:"Stop",v:t.sl,c:T.red},{l:"Target",v:t.tp,c:T.green},{l:"Pips",v:`${t.pips>=0?"+":""}${t.pips}`,c:T.text}].map(item=>(
-                <div key={item.l} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:"10px 12px"}}>
-                  <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:5}}>{item.l}</div>
-                  <div style={{fontSize:13,fontWeight:700,color:item.c,wordBreak:"break-word"}}>{item.v}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{display:"flex",alignItems:isMobile?"stretch":"center",justifyContent:"space-between",gap:10,flexWrap:"wrap"}}>
-              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                {t.preScreenshot&&<button onClick={()=>onViewImg(t.preScreenshot)} style={{background:`linear-gradient(135deg,${T.accent}16,${T.blue}12)`,border:`1px solid ${T.accent}40`,color:T.accentBright,padding:"6px 12px",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:700}}>Pre Chart</button>}
-                {t.postScreenshot&&<button onClick={()=>onViewImg(t.postScreenshot)} style={{background:`linear-gradient(135deg,${T.accent}16,${T.blue}12)`,border:`1px solid ${T.accent}40`,color:T.accentBright,padding:"6px 12px",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:700}}>Post Chart</button>}
-              </div>
-              <div style={{display:"flex",gap:6,marginLeft:isMobile?0:"auto"}}>
-                <button onClick={()=>onEdit(t)} style={{background:"none",border:`1px solid ${T.border}`,color:T.textDim,padding:"6px 12px",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:700}}>Edit</button>
-                <button onClick={()=>onDelete(t)} style={{background:"none",border:`1px solid ${T.border}`,color:T.red,padding:"6px 10px",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:700}}>Delete</button>
-              </div>
-            </div>
-          </div>
-                ))}
-              </div>
-            </div>
-          );
-        })
-      })()}
+          </section>
+        ))}
+      </div>
     </div>
-  )
+  );
 }
 
-// ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ Daily Tab ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬
+function FilterBlock({ T, title, children }) {
+  return (
+    <div style={{ background: T.surface2, border: `1px solid ${T.border}`, borderRadius: 16, padding: "12px 12px 10px" }}>
+      <div style={{ fontSize: 10, fontWeight: 800, color: T.muted, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 10 }}>{title}</div>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{children}</div>
+    </div>
+  );
+}
+
+function JournalAction({ T, onClick, children }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        background: `linear-gradient(135deg, ${T.accent}18, ${T.blue}12)`,
+        border: `1px solid ${T.accent}45`,
+        color: T.accentBright,
+        padding: "7px 12px",
+        borderRadius: 12,
+        cursor: "pointer",
+        fontSize: 12,
+        fontWeight: 800,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function smallButton(T) {
+  return {
+    background: "transparent",
+    border: `1px solid ${T.border}`,
+    color: T.textDim,
+    padding: "7px 12px",
+    borderRadius: 12,
+    cursor: "pointer",
+    fontSize: 12,
+    fontWeight: 800,
+  };
+}
 
 export default Journal;
