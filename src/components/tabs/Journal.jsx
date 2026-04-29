@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { PAIRS } from "@/lib/constants";
 import { fmtDate, fmtRR } from "@/lib/utils";
-import { SectionLead, Btn, Chip, EmptyState, Badge } from "@/components/ui";
+import { SectionLead, Btn, Chip, EmptyState, Badge, Sel } from "@/components/ui";
 
 function Journal({
   T,
@@ -24,14 +24,17 @@ function Journal({
   const [query, setQuery] = useState("");
 
   const allTags = useMemo(
-    () => [...new Set(filtered.flatMap(t => t.tags || []))].filter(Boolean).sort(),
+    () => [...new Map(filtered
+      .flatMap(t => t.tags || [])
+      .map(tag => [normalizeTag(tag), normalizeTag(tag)])
+    ).values()].filter(Boolean).sort(),
     [filtered]
   );
 
   const displayTrades = useMemo(() => {
     const q = query.trim().toLowerCase();
     return filtered.filter(t => {
-      const tagMatch = !filterTag || (t.tags || []).includes(filterTag);
+      const tagMatch = !filterTag || (t.tags || []).some(tag => normalizeTag(tag) === filterTag);
       if (!tagMatch) return false;
       if (!q) return true;
 
@@ -45,7 +48,7 @@ function Journal({
         t.emotion,
         t.mistakes,
         t.notes,
-        ...(t.tags || []),
+        ...(t.tags || []).map(normalizeTag),
       ].filter(Boolean).join(" ").toLowerCase();
 
       return haystack.includes(q);
@@ -126,11 +129,10 @@ function Journal({
             />
           </div>
 
-          <FilterBlock T={T} title="Pairs">
-            {["ALL", ...PAIRS].map(pair => (
-              <Chip key={pair} T={T} active={filterPair === pair} onClick={() => setFilterPair(pair)}>{pair}</Chip>
-            ))}
-          </FilterBlock>
+          <div style={{ background: T.surface2, border: `1px solid ${T.border}`, borderRadius: 16, padding: 12 }}>
+            <div style={{ fontSize: 10, fontWeight: 800, color: T.muted, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 10 }}>Pair</div>
+            <Sel T={T} val={filterPair} opts={["ALL", ...PAIRS]} on={setFilterPair} label="Filter by pair" />
+          </div>
 
           <FilterBlock T={T} title="Results">
             {["ALL", "WIN", "LOSS", "BREAKEVEN"].map(result => (
@@ -269,8 +271,8 @@ function Journal({
 
                     {trade.tags?.length > 0 && (
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
-                        {trade.tags.map(tag => (
-                          <span key={tag} style={{
+                        {[...new Map(trade.tags.map(tag => [normalizeTag(tag), normalizeTag(tag)])).values()].map(tag => (
+                          <span key={tag} title={tag} style={{
                             background: `${T.blue}16`,
                             border: `1px solid ${T.blue}45`,
                             color: T.blue,
@@ -353,6 +355,15 @@ function smallButton(T) {
     fontSize: 12,
     fontWeight: 800,
   };
+}
+
+function normalizeTag(tag) {
+  const clean = String(tag || "").trim();
+  const lower = clean.toLowerCase();
+  if (!clean) return "";
+  if (lower.includes("htf") && (lower.includes("align") || lower.includes("bias") || lower.includes("profile"))) return "HTF aligned";
+  if (lower.includes("a+") || lower.includes("a plus")) return "A+ setup";
+  return clean;
 }
 
 export default Journal;
