@@ -96,40 +96,39 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,
   return (
     <div>
       <InsightCards T={T} trades={trades} />
-      <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:isMobile?10:14,marginBottom:20}}>
+      <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:isMobile?8:10,marginBottom:12}}>
         {kpis.map(k=>(
-          <div key={k.label} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:isMobile?14:16,padding:isMobile?"16px 14px 14px":"22px 20px 18px",boxShadow:`0 10px 28px ${T.cardGlow}`,position:"relative",overflow:"hidden",minWidth:0}}>
+          <div key={k.label} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:isMobile?12:14,padding:isMobile?"12px 12px 10px":"14px 16px 12px",boxShadow:`0 6px 18px ${T.cardGlow}`,position:"relative",overflow:"hidden",minWidth:0}}>
             <HudCorners color={k.color}/>
-            {/* Ambient glow top-left */}
-            <div style={{position:"absolute",top:0,left:0,width:80,height:80,background:`radial-gradient(circle, ${k.color}14 0%, transparent 70%)`,pointerEvents:"none"}} />
+            <div style={{position:"absolute",top:0,left:0,width:60,height:60,background:`radial-gradient(circle, ${k.color}12 0%, transparent 70%)`,pointerEvents:"none"}} />
             <div style={{position:"relative"}}>
               {/* Eyebrow */}
-              <div style={{fontSize:isMobile?9:10,fontWeight:700,color:k.color,letterSpacing:"0.22em",textTransform:"uppercase",marginBottom:isMobile?10:12,display:"flex",alignItems:"center",gap:6}}>
-                <span style={{width:5,height:5,background:k.color,display:"inline-block",flexShrink:0,boxShadow:`0 0 6px ${k.color}`}} />
+              <div style={{fontSize:9,fontWeight:700,color:k.color,letterSpacing:"0.18em",textTransform:"uppercase",marginBottom:6,display:"flex",alignItems:"center",gap:5}}>
+                <span style={{width:4,height:4,background:k.color,display:"inline-block",flexShrink:0,boxShadow:`0 0 5px ${k.color}`}} />
                 {k.eyebrow}
               </div>
               {/* Label */}
-              <div style={{fontSize:isMobile?9:10,fontWeight:700,color:T.muted,letterSpacing:"0.18em",textTransform:"uppercase",marginBottom:isMobile?6:8}}>{k.label}</div>
-              {/* Value — monospace for numbers */}
-              <div style={{fontFamily:"'JetBrains Mono','Fira Code',monospace",fontSize:isMobile?20:26,fontWeight:700,color:k.color,lineHeight:1.0,letterSpacing:"-0.01em",wordBreak:"break-word"}}>{k.value}</div>
+              <div style={{fontSize:9,fontWeight:700,color:T.muted,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:4}}>{k.label}</div>
+              {/* Value */}
+              <div style={{fontFamily:"'JetBrains Mono','Fira Code',monospace",fontSize:isMobile?18:22,fontWeight:700,color:k.color,lineHeight:1.0,letterSpacing:"-0.01em",wordBreak:"break-word"}}>{k.value}</div>
               {/* Sub */}
-              <div style={{fontSize:isMobile?10:11,color:T.textDim,marginTop:8,lineHeight:1.5}}>{k.sub}</div>
-              {/* Progress bar — 2px with glow */}
-              <div style={{height:2,background:T.surface2,marginTop:isMobile?14:16,overflow:"hidden"}}>
-                <div style={{width:k.barWidth,height:"100%",background:`linear-gradient(90deg,${k.color},${T.pink})`,boxShadow:`0 0 8px ${k.color}80`,transition:"width 0.9s cubic-bezier(0.16,1,0.3,1)"}} />
+              <div style={{fontSize:10,color:T.textDim,marginTop:5,lineHeight:1.4}}>{k.sub}</div>
+              {/* Progress bar */}
+              <div style={{height:2,background:T.surface2,marginTop:10,overflow:"hidden"}}>
+                <div style={{width:k.barWidth,height:"100%",background:`linear-gradient(90deg,${k.color},${T.pink})`,boxShadow:`0 0 6px ${k.color}80`,transition:"width 0.9s cubic-bezier(0.16,1,0.3,1)"}} />
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(2,minmax(0,1fr))",gap:14}}>
-        <Card T={T} style={{gridColumn:"1/-1",borderRadius:18,padding:"20px 22px"}} glow>
+      <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(2,minmax(0,1fr))",gap:10}}>
+        <Card T={T} style={{gridColumn:"1/-1",borderRadius:14,padding:"14px 16px"}} glow>
           <CardTitle T={T}>Equity Curve (R)</CardTitle>
           <EquityCurve T={T} data={stats.equityCurve}/>
         </Card>
 
-        <Card T={T} style={{borderRadius:18,padding:"20px 22px"}}>
+        <Card T={T} style={{borderRadius:14,padding:"14px 16px"}}>
           <CardTitle T={T}>Today&apos;s Trades</CardTitle>
           {todayTrades.length===0
             ?<EmptyState T={T} icon="🎯" compact title="No trades logged today" copy="Capture the first execution, keep the notes sharp, and the day starts to tell a story." action={<Btn T={T} onClick={onNewTrade}>+ Log Trade</Btn>}/>
@@ -145,7 +144,7 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,
           }
         </Card>
 
-        <Card T={T} style={{borderRadius:18,padding:"20px 22px"}}>
+        <Card T={T} style={{borderRadius:14,padding:"14px 16px"}}>
           <CardTitle T={T}>Daily Bias {latestDaily&&<span style={{color:T.accent,fontWeight:400}}>{fmtDate(latestDaily.date)}</span>}</CardTitle>
           {latestDaily
             ?<div>{latestDaily.pairs?.map(p=>(
@@ -159,7 +158,7 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,
           }
         </Card>
 
-        <Card T={T} style={{borderRadius:18,padding:"20px 22px"}}>
+        <Card T={T} style={{borderRadius:14,padding:"14px 16px"}}>
           <CardTitle T={T}>Weekly Theme {latestWeekly&&<span style={{color:T.accent,fontWeight:400}}>{latestWeekly.weekStart}</span>}</CardTitle>
           {latestWeekly
             ?<div>
@@ -180,7 +179,7 @@ function Dashboard({T,stats,trades,dailyPlans,weeklyPlans,onNewTrade,onNewDaily,
           }
         </Card>
 
-        <Card T={T} style={{gridColumn:"1/-1",borderRadius:18,padding:"20px 22px"}}>
+        <Card T={T} style={{gridColumn:"1/-1",borderRadius:14,padding:"14px 16px"}}>
           <CardTitle T={T}>Asset Efficiency Matrix</CardTitle>
           {stats.byPair.filter(p=>p.count>0).length===0
             ?<div style={{color:T.muted,fontSize:13,textAlign:"center",padding:20}}>Log trades to see pair performance</div>
