@@ -29,68 +29,83 @@ export const STORAGE_BUCKET         = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_B
 export const TAB_STORAGE_KEY        = "fxedge_active_tab";
 export const DAILY_PAIR_NOTES_MARKER = "__FXEDGE_PAIR_NOTES__::";
 
-// Color themes
-export const DARK_GREEN = {
-  bg:"#0b0f0e", surface:"#131a18", surface2:"#1a2420", border:"#243330",
-  text:"#e8f5f0", textDim:"#7aa898", muted:"#4a6b60",
-  accent:"#059669", accentBright:"#10b981", green:"#22c55e", red:"#ef4444", amber:"#f59e0b",
-  blue:"#3b82f6", pink:"#06b6d4",
-  cardGlow:"rgba(16,185,129,0.07)", isDark:true,
-  glowRgb:"16,185,129",
+// ── Color themes ──────────────────────────────────────────────────────────────
+
+// Dark: "Void" — near-black surfaces, indigo-violet accent (Linear 2025 style)
+export const VOID = {
+  bg:"#09090d",
+  surface:"#111118",
+  surface2:"#18181f",
+  border:"#24242e",
+  text:"#eeeef5",
+  textDim:"#70709a",
+  muted:"#404058",
+  accent:"#5b5bd6",
+  accentBright:"#818cf8",
+  green:"#22c55e",
+  red:"#ef4444",
+  amber:"#f59e0b",
+  blue:"#60a5fa",
+  pink:"#c084fc",
+  cardGlow:"rgba(91,91,214,0.09)",
+  isDark:true,
+  glowRgb:"129,140,248",
 };
-export const DARK_BLUE = {
-  bg:"#080c14", surface:"#0f1623", surface2:"#151e30", border:"#1e2d47",
-  text:"#e8f0ff", textDim:"#7090b8", muted:"#3d5070",
-  accent:"#0369a1", accentBright:"#0ea5e9", green:"#22c55e", red:"#ef4444", amber:"#f59e0b",
-  blue:"#38bdf8", pink:"#818cf8",
-  cardGlow:"rgba(14,165,233,0.07)", isDark:true,
-  glowRgb:"14,165,233",
+
+// Light: "Paper" — warm white, zinc neutrals, emerald accent (Vercel / Notion feel)
+export const PAPER = {
+  bg:"#f9f9f7",
+  surface:"#ffffff",
+  surface2:"#f2f2ef",
+  border:"#e8e8e5",
+  text:"#18181b",
+  textDim:"#6b6b72",
+  muted:"#a0a0a8",
+  accent:"#047857",
+  accentBright:"#059669",
+  green:"#16a34a",
+  red:"#dc2626",
+  amber:"#ca8a04",
+  blue:"#2563eb",
+  pink:"#7c3aed",
+  cardGlow:"rgba(5,150,105,0.05)",
+  isDark:false,
+  glowRgb:"5,150,105",
 };
-export const DARK_AMBER = {
-  bg:"#0f0d07", surface:"#1a1608", surface2:"#231f0d", border:"#352e10",
-  text:"#fdf8e8", textDim:"#b89860", muted:"#7a6438",
-  accent:"#b45309", accentBright:"#f59e0b", green:"#22c55e", red:"#ef4444", amber:"#fbbf24",
-  blue:"#38bdf8", pink:"#fb923c",
-  cardGlow:"rgba(245,158,11,0.07)", isDark:true,
-  glowRgb:"245,158,11",
-};
-export const LIGHT = {
-  bg:"#f8fafc", surface:"#ffffff", surface2:"#f1f5f9", border:"#e2e8f0",
-  text:"#0f172a", textDim:"#64748b", muted:"#94a3b8",
-  accent:"#0369a1", accentBright:"#0ea5e9", green:"#16a34a", red:"#dc2626", amber:"#d97706",
-  blue:"#2563eb", pink:"#7c3aed",
-  cardGlow:"rgba(14,165,233,0.04)", isDark:false,
-  glowRgb:"14,165,233",
-};
+
+// DIY: "Brutal" — neo-brutalist, keep as-is
 export const BRUTALIST = {
   bg:"#f7f5ef", surface:"#ffffff", surface2:"#efece3", border:"#000000",
   text:"#171e19", textDim:"#4a5048", muted:"#7a8a82",
   accent:"#cc9900", accentBright:"#171e19", green:"#059669", red:"#dc2626", amber:"#d97706",
   blue:"#2563eb", pink:"#b7c6c2",
   cardGlow:"transparent", isDark:false,
-  // Brutalist-specific tokens
   hardShadow:"4px 4px 0px 0px #000000",
   sidebarBg:"#ffe17c",
   accentFill:"#ffe17c",
 };
 
-// Keep DARK as alias so any existing imports still work
-export const DARK = DARK_GREEN;
+// Keep legacy aliases so any existing imports still work
+export const DARK       = VOID;
+export const DARK_GREEN = VOID;
+export const DARK_BLUE  = VOID;
+export const DARK_AMBER = VOID;
+export const LIGHT      = PAPER;
 
 export const THEMES = {
-  "dark-green": DARK_GREEN,
-  "dark-blue":  DARK_BLUE,
-  "dark-amber": DARK_AMBER,
-  "light":      LIGHT,
-  "brutalist":  BRUTALIST,
+  "dark":      VOID,
+  "light":     PAPER,
+  "brutalist": BRUTALIST,
+  // legacy keys → map to new themes so saved prefs still resolve
+  "dark-green": VOID,
+  "dark-blue":  VOID,
+  "dark-amber": VOID,
 };
 
 export const THEME_META = [
-  { id:"dark-green", label:"Forest",  swatch:"#10b981", border:false },
-  { id:"dark-blue",  label:"Ocean",   swatch:"#0ea5e9", border:false },
-  { id:"dark-amber", label:"Ember",   swatch:"#f59e0b", border:false },
-  { id:"light",      label:"Light",   swatch:"#f8fafc", border:true  },
-  { id:"brutalist",  label:"Brutal",  swatch:"#ffe17c", border:true  },
+  { id:"dark",      label:"Void",   swatch:"#818cf8", border:false },
+  { id:"light",     label:"Paper",  swatch:"#f9f9f7", border:true  },
+  { id:"brutalist", label:"DIY",    swatch:"#ffe17c", border:true  },
 ];
 
 // Pre-trade checklist rules

@@ -9,8 +9,8 @@ export function Spinner({T,label}) {
   const th = T||DARK
   return (
     <div style={{minHeight:"100vh",background:th.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:20}} role="status" aria-label="Loading">
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@800&display=swap'); @keyframes pulse{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1)}} @media(prefers-reduced-motion:reduce){.fx-pulse{animation:none!important;opacity:1!important}}`}</style>
-      <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:32,fontWeight:800,color:th.accentBright,letterSpacing:"-0.04em"}}>FXEDGE</div>
+      <style>{`@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800,900&f[]=satoshi@400,700&display=swap'); @keyframes pulse{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1)}} @media(prefers-reduced-motion:reduce){.fx-pulse{animation:none!important;opacity:1!important}}`}</style>
+      <div style={{fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif",fontSize:34,fontWeight:900,color:th.accentBright,letterSpacing:"-0.06em"}}>FXEDGE</div>
       <div style={{display:"flex",gap:8}}>{[0,1,2].map(i=><div key={i} className="fx-pulse" style={{width:8,height:8,borderRadius:"50%",background:th.accentBright,animation:`pulse 1.2s ${i*0.2}s infinite ease-in-out`}}/>)}</div>
       {label&&<div style={{fontSize:12,color:th.muted,letterSpacing:"0.15em"}}>{label.toUpperCase()}</div>}
     </div>
@@ -36,7 +36,7 @@ export function AppShellSkeleton({T}) {
           [style*="skeletonPulse"] { animation: none !important; opacity: 0.5; }
         }
       `}</style>
-      <nav style={{width:200,background:th.surface,borderRight:`1px solid ${th.border}`,padding:"22px 16px",display:"flex",flexDirection:"column",gap:12}}>
+      <nav style={{width:224,background:th.surface,borderRight:`1px solid ${th.border}`,padding:"22px 16px",display:"flex",flexDirection:"column",gap:12}}>
         {block({width:96,height:24,borderRadius:10})}
         {block({width:52,height:10,borderRadius:999,opacity:.7,marginBottom:8})}
         {[...Array(9)].map((_,i)=>(
@@ -134,7 +134,7 @@ export function TabPanel({active,children}) {
 export function BottomNav({T,tab,setTab,TABS,MOBILE_PRIMARY}){
   const tabs = MOBILE_PRIMARY||TABS.slice(0,5)
   return (
-    <nav className="bottom-nav" aria-label="Main navigation" style={{background:T.surface,borderTop:`1px solid ${T.border}`,paddingBottom:"env(safe-area-inset-bottom)"}}>
+    <nav className="bottom-nav" aria-label="Main navigation" style={{background:`linear-gradient(180deg,${T.surface}e8,${T.surface2}f4)`,borderTop:`1px solid ${T.border}`,paddingBottom:"env(safe-area-inset-bottom)",boxShadow:`0 -18px 44px ${T.bg}aa`}}>
       {tabs.map(t=>{
         const isActive = t.id==="more" ? tab==="more" : (t.id===tab || (t.id==="more" && !tabs.find(x=>x.id===tab&&x.mobile)))
         return (
@@ -147,7 +147,7 @@ export function BottomNav({T,tab,setTab,TABS,MOBILE_PRIMARY}){
               flex:1,display:"flex",flexDirection:"column",alignItems:"center",
               padding:"10px 2px 8px",background:"none",border:"none",
               color:isActive?T.accentBright:T.muted,
-              cursor:"pointer",fontFamily:"Inter,sans-serif",fontSize:9,gap:3,
+              cursor:"pointer",fontFamily:"'Satoshi',sans-serif",fontSize:9,gap:3,
               fontWeight:isActive?700:400,transition:"color .15s",
               minHeight:44,
             }}
@@ -179,9 +179,10 @@ export function Btn({T,onClick,children,ghost,danger,disabled,ariaLabel}){
   const baseStyle = {
     background:bg, color, border,
     padding:"9px 18px",
-    fontFamily: brutal ? "'Cabinet Grotesk','Plus Jakarta Sans',sans-serif" : "'Plus Jakarta Sans',sans-serif",
-    fontWeight:700, fontSize:13,
-    borderRadius: brutal ? 3 : 10,
+    fontFamily: "'Cabinet Grotesk','Satoshi',sans-serif",
+    fontWeight:800, fontSize:13,
+    letterSpacing:"0.01em",
+    borderRadius: brutal ? 3 : 999,
     cursor:disabled?"not-allowed":"pointer",
     whiteSpace:"nowrap", opacity:disabled?0.6:1,
     minHeight:36,
@@ -226,11 +227,11 @@ export function Card({T,children,style={},glow}){
   const brutalOverrides = brutal ? { borderRadius:3, border:`2px solid ${T.border}`, boxShadow:T.hardShadow } : {}
   return (
     <div style={{
-      background:T.surface,
+      background:brutal ? T.surface : `linear-gradient(160deg,${T.surface},${T.surface2})`,
       border:`1px solid ${T.border}`,
-      borderRadius:14,
-      padding:"18px 20px",
-      boxShadow:glow?`0 4px 30px ${T.cardGlow}`:"none",
+      borderRadius:20,
+      padding:"20px 22px",
+      boxShadow:glow?`0 22px 54px ${T.cardGlow}`:`0 12px 34px ${T.cardGlow}`,
       position:"relative",
       overflow:"hidden",
       ...style,
@@ -245,8 +246,8 @@ export function Card({T,children,style={},glow}){
 export function CardTitle({T,children,meta}) {
   return (
     <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,marginBottom:14}}>
-      <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:11,fontWeight:700,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",display:"flex",alignItems:"center",gap:8}}>{children}</div>
-      {meta&&<div style={{fontSize:11,color:T.textDim}}>{meta}</div>}
+      <div style={{fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif",fontSize:11,fontWeight:900,color:T.muted,letterSpacing:"0.15em",textTransform:"uppercase",display:"flex",alignItems:"center",gap:8}}>{children}</div>
+      {meta&&<div style={{fontSize:11,color:T.textDim,fontFamily:"'Satoshi',sans-serif"}}>{meta}</div>}
     </div>
   )
 }
@@ -257,7 +258,7 @@ export function SectionLead({T,eyebrow,title,copy,action,compact}) {
     <div style={{display:"flex",alignItems:compact?"flex-start":"center",justifyContent:"space-between",gap:16,flexWrap:"wrap",marginBottom:compact?14:18}}>
       <div style={{maxWidth:620}}>
         {eyebrow&&<div style={{fontSize:11,fontWeight:700,color:T.muted,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:7}}>{eyebrow}</div>}
-        <h2 style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:compact?18:22,fontWeight:800,color:T.text,letterSpacing:"-0.04em",lineHeight:1.04,margin:0}}>{title}</h2>
+        <h2 style={{fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif",fontSize:compact?20:26,fontWeight:900,color:T.text,letterSpacing:"-0.055em",lineHeight:0.98,margin:0}}>{title}</h2>
         {copy&&<div style={{fontSize:13,color:T.textDim,marginTop:7,lineHeight:1.7}}>{copy}</div>}
       </div>
       {action&&<div style={{flexShrink:0}}>{action}</div>}
@@ -270,7 +271,7 @@ export function HeaderMeta({T,eyebrow,title,subtitle,actions}) {
     <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:16}}>
       <div style={{minWidth:0}}>
         {eyebrow&&<div style={{fontSize:11,color:T.muted,letterSpacing:"0.18em",textTransform:"uppercase",fontWeight:700,marginBottom:10}}>{eyebrow}</div>}
-        <h1 style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:28,fontWeight:800,color:T.text,letterSpacing:"-0.04em",lineHeight:1,margin:0}}>{title}</h1>
+        <h1 style={{fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif",fontSize:34,fontWeight:900,color:T.text,letterSpacing:"-0.06em",lineHeight:0.95,margin:0}}>{title}</h1>
         {subtitle&&<div style={{fontSize:13,color:T.textDim,marginTop:10,lineHeight:1.7,maxWidth:620}}>{subtitle}</div>}
       </div>
       {actions&&<div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",justifyContent:"flex-end"}}>{actions}</div>}
@@ -308,7 +309,7 @@ export function SessionPill({T,session,compact,mobile,open,onToggle}) {
         </div>
         <div style={{lineHeight:1.1,minWidth:0}}>
           {!compact&&<div style={{fontSize:11,fontWeight:700,color:T.muted,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:5}}>Current Session</div>}
-          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:compact?13:15,fontWeight:800,color:T.text,letterSpacing:"-0.03em",whiteSpace:mobile?"normal":"nowrap"}}>{session?.label}</div>
+          <div style={{fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif",fontSize:compact?14:16,fontWeight:900,color:T.text,letterSpacing:"-0.04em",whiteSpace:mobile?"normal":"nowrap"}}>{session?.label}</div>
           {!compact&&<div style={{fontSize:11,color:T.textDim,marginTop:4,whiteSpace:mobile?"normal":"nowrap"}}>{session?.detail} · Next {session?.nextLabel} in {session?.nextIn}</div>}
         </div>
         {!mobile&&<div style={{marginLeft:"auto",fontSize:11,color:T.textDim}}>{open?"Hide":"Open"}</div>}
@@ -318,7 +319,7 @@ export function SessionPill({T,session,compact,mobile,open,onToggle}) {
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,gap:12}}>
             <div>
               <div style={{fontSize:11,fontWeight:700,color:T.muted,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:5}}>Session Pulse</div>
-              <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:17,fontWeight:800,color:T.text}}>{session?.label}</div>
+              <div style={{fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif",fontSize:19,fontWeight:900,color:T.text,letterSpacing:"-0.04em"}}>{session?.label}</div>
             </div>
             <div style={{fontSize:12,color:T.textDim,textAlign:"right"}}>
               <div>{session?.detail}</div>
@@ -336,7 +337,7 @@ export function SessionPill({T,session,compact,mobile,open,onToggle}) {
                   </div>
                 </div>
                 <div style={{textAlign:"right"}}>
-                  <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:13,fontWeight:800,color:T.text}}>{market.time}</div>
+                  <div style={{fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif",fontSize:14,fontWeight:900,color:T.text,letterSpacing:"-0.03em"}}>{market.time}</div>
                   <div style={{fontSize:11,color:market.active?tone.dot:T.textDim}}>{market.active?"Live now":`Opens in ${market.opensIn}`}</div>
                 </div>
               </div>
@@ -388,7 +389,7 @@ export function EmptyState({T, title, copy, action, compact, icon}) {
         }}>{iconEl}</div>
 
         <div style={{
-          fontFamily:"'Plus Jakarta Sans',sans-serif",
+          fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif",
           fontSize: compact ? 18 : 22,
           fontWeight: 800, color: T.text,
           marginBottom: 10, letterSpacing:"-0.02em",
@@ -410,10 +411,10 @@ export function EmptyState({T, title, copy, action, compact, icon}) {
 export function ModalShell({T,title,subtitle,onClose,children,footer,width=640}) {
   return (
     <Overlay onClose={onClose}>
-      <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${T.border}`,borderRadius:22,width:`min(${width}px,96vw)`,maxHeight:"92vh",display:"flex",flexDirection:"column",boxShadow:`0 36px 80px ${T.bg}a0`,overflow:"hidden"}}>
+      <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${T.border}`,borderRadius:26,width:`min(${width}px,96vw)`,maxHeight:"92vh",display:"flex",flexDirection:"column",boxShadow:`0 44px 110px ${T.bg}b0`,overflow:"hidden"}}>
         <div style={{padding:"20px 24px 18px",borderBottom:`1px solid ${T.border}`,background:`linear-gradient(180deg,${T.surface} 0%,${T.surface}dd 100%)`,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:16}}>
           <div>
-            <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,fontWeight:800,color:T.text,letterSpacing:"-0.04em",lineHeight:1.05}}>{title}</div>
+            <div style={{fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif",fontSize:26,fontWeight:900,color:T.text,letterSpacing:"-0.055em",lineHeight:1}}>{title}</div>
             {subtitle&&<div style={{fontSize:12,color:T.textDim,marginTop:8,lineHeight:1.6,maxWidth:420}}>{subtitle}</div>}
           </div>
           <button
@@ -438,7 +439,7 @@ export function Chip({T,active,onClick,children,ariaLabel}){
       aria-label={ariaLabel}
       aria-pressed={active}
       className="fx-btn"
-      style={{background:active?`${T.accent}20`:"none",border:`1px solid ${active?T.accentBright:T.border}`,color:active?T.accentBright:T.textDim,padding:"6px 14px",borderRadius:20,fontSize:12,fontWeight:active?700:400,cursor:"pointer",fontFamily:"Inter,sans-serif",transition:"all .15s",minHeight:32}}
+      style={{background:active?`linear-gradient(135deg,${T.accent}24,${T.pink}10)`:`${T.surface2}70`,border:`1px solid ${active?T.accentBright:T.border}`,color:active?T.accentBright:T.textDim,padding:"7px 14px",borderRadius:999,fontSize:12,fontWeight:active?800:700,cursor:"pointer",fontFamily:"'Satoshi',sans-serif",transition:"all .15s",minHeight:34,boxShadow:active?`0 10px 24px ${T.accentBright}18`:"none"}}
     >{children}</button>
   )
 }
@@ -461,7 +462,7 @@ export function Toggle({T,value,opts,onChange}){
           onClick={()=>onChange(o.v||o)}
           aria-pressed={(o.v||o)===value}
           className="fx-btn"
-          style={{background:(o.v||o)===value?`${T.accentBright}25`:"none",border:`1px solid ${(o.v||o)===value?T.accentBright:T.border}`,color:(o.v||o)===value?T.accentBright:T.textDim,padding:"6px 12px",borderRadius:8,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif",minHeight:32}}
+          style={{background:(o.v||o)===value?`linear-gradient(135deg,${T.accentBright}24,${T.pink}10)`:`${T.surface2}70`,border:`1px solid ${(o.v||o)===value?T.accentBright:T.border}`,color:(o.v||o)===value?T.accentBright:T.textDim,padding:"7px 12px",borderRadius:999,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Satoshi',sans-serif",minHeight:34}}
         >{o.l||o}</button>
       ))}
     </div>
@@ -473,7 +474,7 @@ export function Inp({T,type="text",label,...props}){
     <input
       type={type}
       aria-label={label}
-      style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.text,fontFamily:"Inter,sans-serif",fontSize:13,padding:"10px 12px",width:"100%",outline:"none",borderRadius:10,transition:"border .15s, box-shadow .15s"}}
+      style={{background:`${T.surface2}cc`,border:`1px solid ${T.border}`,color:T.text,fontFamily:"'Satoshi',sans-serif",fontSize:13,padding:"12px 13px",width:"100%",outline:"none",borderRadius:14,transition:"border .15s, box-shadow .15s, background .15s"}}
       onFocus={e=>{e.target.style.borderColor=T.accentBright;e.target.style.boxShadow=`0 0 0 3px ${T.accentBright}22`}}
       onBlur={e=>{e.target.style.borderColor=T.border;e.target.style.boxShadow="none"}}
       {...props}
@@ -487,7 +488,7 @@ export function Sel({T,val,opts,on,label}){
       value={val}
       onChange={e=>on(e.target.value)}
       aria-label={label}
-      style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.text,fontFamily:"Inter,sans-serif",fontSize:13,padding:"10px 12px",width:"100%",outline:"none",borderRadius:10,transition:"border .15s, box-shadow .15s"}}
+      style={{background:`${T.surface2}cc`,border:`1px solid ${T.border}`,color:T.text,fontFamily:"'Satoshi',sans-serif",fontSize:13,padding:"12px 13px",width:"100%",outline:"none",borderRadius:14,transition:"border .15s, box-shadow .15s, background .15s"}}
       onFocus={e=>{e.target.style.borderColor=T.accentBright;e.target.style.boxShadow=`0 0 0 3px ${T.accentBright}22`}}
       onBlur={e=>{e.target.style.borderColor=T.border;e.target.style.boxShadow="none"}}
     >
@@ -499,7 +500,7 @@ export function Sel({T,val,opts,on,label}){
 export function Textarea({T,...props}){
   return (
     <textarea
-      style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.text,fontFamily:"Inter,sans-serif",fontSize:13,padding:"10px 12px",width:"100%",outline:"none",borderRadius:10,resize:"vertical",transition:"border .15s, box-shadow .15s"}}
+      style={{background:`${T.surface2}cc`,border:`1px solid ${T.border}`,color:T.text,fontFamily:"'Satoshi',sans-serif",fontSize:13,padding:"12px 13px",width:"100%",outline:"none",borderRadius:14,resize:"vertical",transition:"border .15s, box-shadow .15s, background .15s"}}
       onFocus={e=>{e.target.style.borderColor=T.accentBright;e.target.style.boxShadow=`0 0 0 3px ${T.accentBright}22`}}
       onBlur={e=>{e.target.style.borderColor=T.border;e.target.style.boxShadow="none"}}
       {...props}

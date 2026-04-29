@@ -84,13 +84,17 @@ function Journal({
   return (
     <div>
       <div style={{
-        background: `linear-gradient(180deg, ${T.surface}, ${T.surface2})`,
+        background: `linear-gradient(145deg, ${T.surface}f5, ${T.surface2}f2)`,
         border: `1px solid ${T.border}`,
-        borderRadius: 22,
-        padding: isMobile ? "14px" : "18px",
+        borderRadius: 28,
+        padding: isMobile ? "16px" : "22px",
         marginBottom: 20,
-        boxShadow: `0 18px 44px ${T.cardGlow}`,
+        boxShadow: `0 24px 68px ${T.cardGlow}`,
+        position: "relative",
+        overflow: "hidden",
       }}>
+        <div aria-hidden="true" style={{ position:"absolute", right:-80, top:-100, width:260, height:260, borderRadius:"50%", background:`radial-gradient(circle,${T.accentBright}1f,transparent 70%)`, pointerEvents:"none" }} />
+        <div style={{ position:"relative" }}>
         <SectionLead
           T={T}
           compact={isMobile}
@@ -110,7 +114,7 @@ function Journal({
           gridTemplateColumns: isMobile ? "1fr" : "minmax(240px, 1.2fr) minmax(220px, 1fr) minmax(220px, 1fr)",
           gap: 10,
         }}>
-          <div style={{ background: T.surface2, border: `1px solid ${T.border}`, borderRadius: 16, padding: 12 }}>
+          <div style={{ background: `${T.surface2}cc`, border: `1px solid ${T.border}`, borderRadius: 18, padding: 12 }}>
             <div style={{ fontSize: 10, fontWeight: 800, color: T.muted, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 10 }}>Search</div>
             <input
               value={query}
@@ -118,18 +122,19 @@ function Journal({
               placeholder="Search notes, setup, emotion, tags..."
               style={{
                 width: "100%",
-                background: T.surface,
+                background: `${T.surface}cc`,
                 border: `1px solid ${T.border}`,
                 color: T.text,
-                borderRadius: 12,
-                padding: "10px 12px",
+                borderRadius: 14,
+                padding: "12px 13px",
                 outline: "none",
                 fontSize: 13,
+                fontFamily: "'Satoshi',sans-serif",
               }}
             />
           </div>
 
-          <div style={{ background: T.surface2, border: `1px solid ${T.border}`, borderRadius: 16, padding: 12 }}>
+          <div style={{ background: `${T.surface2}cc`, border: `1px solid ${T.border}`, borderRadius: 18, padding: 12 }}>
             <div style={{ fontSize: 10, fontWeight: 800, color: T.muted, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 10 }}>Pair</div>
             <Sel T={T} val={filterPair} opts={["ALL", ...PAIRS]} on={setFilterPair} label="Filter by pair" />
           </div>
@@ -150,6 +155,7 @@ function Journal({
             </FilterBlock>
           </div>
         )}
+        </div>
       </div>
 
       {displayTrades.length === 0 && (
@@ -164,7 +170,7 @@ function Journal({
 
       <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
         {groups.map(({ date, trades, dayR }) => (
-          <section key={date}>
+          <section key={date} className="fade-up">
             <div style={{
               display: "flex",
               alignItems: "center",
@@ -185,11 +191,11 @@ function Journal({
                 <article
                   key={trade._dbid}
                   style={{
-                    background: `linear-gradient(135deg, ${T.surface} 0%, ${T.surface2} 100%)`,
+                    background: `linear-gradient(145deg, ${T.surface}f8 0%, ${T.surface2}f0 100%)`,
                     border: `1px solid ${resultColor(trade)}55`,
-                    borderRadius: 22,
-                    padding: isMobile ? "14px" : "18px",
-                    boxShadow: `0 16px 40px ${T.cardGlow}`,
+                    borderRadius: 26,
+                    padding: isMobile ? "15px" : "20px",
+                    boxShadow: `0 22px 58px ${T.cardGlow}`,
                     position: "relative",
                     overflow: "hidden",
                   }}
@@ -317,7 +323,7 @@ function Journal({
 
 function FilterBlock({ T, title, children }) {
   return (
-    <div style={{ background: T.surface2, border: `1px solid ${T.border}`, borderRadius: 16, padding: "12px 12px 10px" }}>
+    <div style={{ background: `${T.surface2}cc`, border: `1px solid ${T.border}`, borderRadius: 18, padding: "12px 12px 10px" }}>
       <div style={{ fontSize: 10, fontWeight: 800, color: T.muted, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 10 }}>{title}</div>
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{children}</div>
     </div>

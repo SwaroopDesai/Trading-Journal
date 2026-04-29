@@ -31,7 +31,7 @@ export default function App() {
   const supabase = createClient()
   const [user,setUser] = useState(null)
   const [authLoading,setAuthLoading] = useState(true)
-  const [themeKey,setThemeKey] = useState("dark-green")
+  const [themeKey,setThemeKey] = useState("dark")
   const T = THEMES[themeKey] || DARK
   const [trades,setTrades] = useState([])
   const [dailyPlans,setDailyPlans] = useState([])
@@ -436,30 +436,37 @@ export default function App() {
   if(loading) return <AppShellSkeleton T={T}/>
 
   return (
-    <div style={{display:"flex",minHeight:"100vh",background:T.bg,color:T.text,fontFamily:"Inter,sans-serif",transition:"background .3s, color .3s"}}>
+    <div className="fx-app-root" style={{display:"flex",minHeight:"100vh",background:T.bg,color:T.text,fontFamily:"'Satoshi',sans-serif",transition:"background .3s, color .3s",position:"relative",overflowX:"hidden"}}>
       <style>{css}</style>
+      {!T.hardShadow&&(
+        <>
+          <div aria-hidden="true" className="fx-orb fx-orb-one" />
+          <div aria-hidden="true" className="fx-orb fx-orb-two" />
+          <div aria-hidden="true" className="fx-noise" />
+        </>
+      )}
 
       {/* Sidebar */}
       <nav className="sidebar" style={{background:T.surface,borderRight:`1px solid ${T.border}`}}>
-        <div style={{padding:"22px 20px 16px"}}>
-          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,fontWeight:800,background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>FXEDGE</div>
-          <div style={{fontSize:9,color:T.muted,letterSpacing:"0.12em",marginTop:2}}>ICT / SMC</div>
+        <div style={{padding:"24px 20px 18px"}}>
+          <div style={{fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif",fontSize:22,fontWeight:900,color:T.accentBright,letterSpacing:"-0.06em"}}>FXEDGE</div>
+          <div style={{fontSize:9,color:T.muted,letterSpacing:"0.2em",marginTop:5,textTransform:"uppercase",fontWeight:700}}>ICT / SMC Journal</div>
         </div>
-        <div style={{padding:"8px 12px 0"}}>
+        <div style={{padding:"8px 10px 0"}}>
           {SIDEBAR_PRIMARY.map(t=>(
             <button key={t.id} className={`nav-btn ${tab===t.id?"nav-active":""}`}
-              style={{color:tab===t.id?T.text:T.textDim,background:tab===t.id?`linear-gradient(135deg,${T.accent}22,${T.pink}10)`:"none",borderLeft:tab===t.id?`3px solid ${T.accentBright}`:"3px solid transparent",boxShadow:tab===t.id?`inset 0 0 0 1px ${T.accent}35, 0 0 22px ${T.accentBright}20, inset 0 0 16px ${T.accent}12`:"none"}}
+              style={{color:tab===t.id?T.text:T.textDim}}
               onClick={()=>changeTab(t.id)}>
               <span className="nav-icon">{t.icon}</span>
               <span>{t.label}</span>
             </button>
           ))}
         </div>
-        <div style={{padding:"18px 20px 8px",fontSize:10,color:T.muted,letterSpacing:"0.16em",textTransform:"uppercase"}}>Workspace</div>
-        <div style={{padding:"0 12px"}}>
+        <div style={{padding:"18px 20px 6px",fontSize:10,color:T.muted,letterSpacing:"0.14em",textTransform:"uppercase",fontWeight:700}}>Workspace</div>
+        <div style={{padding:"0 10px"}}>
           {SIDEBAR_SECONDARY.map(t=>(
             <button key={t.id} className={`nav-btn ${tab===t.id?"nav-active":""}`}
-              style={{color:tab===t.id?T.text:T.textDim,background:tab===t.id?`linear-gradient(135deg,${T.accent}22,${T.pink}10)`:"none",borderLeft:tab===t.id?`3px solid ${T.accentBright}`:"3px solid transparent",boxShadow:tab===t.id?`inset 0 0 0 1px ${T.accent}35, 0 0 22px ${T.accentBright}20, inset 0 0 16px ${T.accent}12`:"none"}}
+              style={{color:tab===t.id?T.text:T.textDim}}
               onClick={()=>changeTab(t.id)}>
               <span className="nav-icon">{t.icon}</span>
               <span>{t.label}</span>
@@ -492,13 +499,13 @@ export default function App() {
             {THEME_META.find(tm=>tm.id===themeKey)?.label}
           </div>
         </div>
-        <button onClick={signOut} style={{margin:"4px 12px 16px",padding:"8px 14px",background:"none",border:`1px solid ${T.border}`,color:T.muted,borderRadius:8,cursor:"pointer",fontSize:12,fontFamily:"Inter,sans-serif",textAlign:"left"}}>Sign Out</button>
+        <button onClick={signOut} style={{margin:"6px 12px 18px",padding:"9px 14px",background:"none",border:`1px solid ${T.border}`,color:T.muted,borderRadius:8,cursor:"pointer",fontSize:12,fontFamily:"'Satoshi',sans-serif",textAlign:"center",fontWeight:700,transition:"background .15s,color .15s"}} onMouseEnter={e=>{e.currentTarget.style.background=T.surface2;e.currentTarget.style.color=T.text}} onMouseLeave={e=>{e.currentTarget.style.background="none";e.currentTarget.style.color=T.muted}}>Sign Out</button>
       </nav>
 
       {/* Main */}
-      <main className="app-main" style={{flex:1,display:"flex",flexDirection:"column"}}>
+      <main className="app-main" style={{flex:1,display:"flex",flexDirection:"column",position:"relative",zIndex:1}}>
         {/* Topbar */}
-        <div className="topbar" style={{borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,background:`${T.surface}dd`,backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",position:"sticky",top:0,zIndex:40}}>
+        <div className="topbar" style={{borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,background:`${T.surface}f4`,backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",position:"sticky",top:0,zIndex:40,boxShadow:`0 1px 0 ${T.border}`}}>
           <div style={{flex:1,minWidth:0}}>
             <HeaderMeta
               T={T}
@@ -588,7 +595,7 @@ export default function App() {
             display:"flex", alignItems:"center", justifyContent:"center",
             boxShadow: T.hardShadow ? T.hardShadow : `0 4px 24px ${T.accentBright}70`,
             zIndex:90, transition:"transform .1s ease, box-shadow .1s ease",
-            fontFamily:"Inter,sans-serif", lineHeight:1,
+            fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif", lineHeight:1,
           }}
           onMouseEnter={e=>{
             if(T.hardShadow){ e.currentTarget.style.transform="translate(4px,4px)"; e.currentTarget.style.boxShadow="none" }
@@ -608,11 +615,11 @@ export default function App() {
       {deleteTarget&&(
         <Overlay onClose={()=>setDeleteTarget(null)}>
           <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,padding:"32px 40px",textAlign:"center",minWidth:300}}>
-            <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:18,fontWeight:800,color:T.text,marginBottom:8}}>Delete this entry?</div>
+            <div style={{fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif",fontSize:18,fontWeight:800,color:T.text,marginBottom:8}}>Delete this entry?</div>
             <div style={{fontSize:13,color:T.textDim,marginBottom:4}}>{deleteTarget.name}</div>
             <div style={{fontSize:12,color:T.red,marginBottom:24}}>This is permanent and cannot be undone.</div>
             <div style={{display:"flex",gap:10,justifyContent:"center"}}>
-              <button onClick={confirmDelete} disabled={syncing} style={{background:T.red,color:"#fff",border:"none",padding:"10px 24px",borderRadius:10,cursor:"pointer",fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:700,fontSize:13}}>{syncing?"Deleting...":"Delete"}</button>
+              <button onClick={confirmDelete} disabled={syncing} style={{background:T.red,color:"#fff",border:"none",padding:"10px 24px",borderRadius:999,cursor:"pointer",fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif",fontWeight:800,fontSize:13}}>{syncing?"Deleting...":"Delete"}</button>
               <button onClick={()=>setDeleteTarget(null)} style={{background:"none",border:`1px solid ${T.border}`,color:T.textDim,padding:"10px 24px",borderRadius:10,cursor:"pointer",fontSize:13}}>Cancel</button>
             </div>
           </div>
@@ -630,7 +637,7 @@ export default function App() {
               fontSize:13,fontWeight:700,letterSpacing:"0.01em",
               boxShadow:"0 8px 28px rgba(0,0,0,.5)",
               animation:"toastIn .18s ease",whiteSpace:"nowrap",
-              fontFamily:"Inter,sans-serif",
+              fontFamily:"'Satoshi',sans-serif",
             }}>{t.msg}</div>
           ))}
         </div>
@@ -653,10 +660,10 @@ export default function App() {
 function buildCSS(T) {
   const brutal = !!T.hardShadow
   return `
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap');
-    ${brutal ? `@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800&display=swap');` : ""}
+    @import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@500,700,800,900&f[]=satoshi@400,500,700,900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
     * { box-sizing:border-box; margin:0; padding:0; }
-    body { background:${T.bg}; font-family:Inter,sans-serif; }
+    body { background:${T.bg}; font-family:'Satoshi',sans-serif; }
     ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:${T.bg}}::-webkit-scrollbar-thumb{background:${T.border};border-radius:${brutal?"0":"4px"}}
 
     /* ── Keyframes ─────────────────────────────────────────── */
@@ -692,19 +699,26 @@ function buildCSS(T) {
       0%,100% { opacity:.4; }
       50%     { opacity:.9; }
     }
-    @prefers-reduced-motion: reduce {
+    @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
     }
 
     /* ── Layout ────────────────────────────────────────────── */
-    .sidebar { width:200px; position:fixed; top:0; left:0; height:100vh; z-index:50; overflow-y:auto; display:flex; flex-direction:column; }
-    .nav-btn { display:flex; align-items:center; gap:9px; width:100%; padding:9px 16px 9px 17px; background:none; border:none; border-left:3px solid transparent; cursor:pointer; font-family:Inter,sans-serif; font-size:13px; font-weight:500; text-align:left; transition:background .18s, color .18s, transform .18s; border-radius:0 8px 8px 0; }
-    .nav-btn:hover { background:${T.surface2}; color:${T.text} !important; transform:translateX(2px); }
-    .nav-icon { font-size:15px; line-height:1; width:20px; text-align:center; flex-shrink:0; transition:transform .2s; }
-    .nav-btn:hover .nav-icon { transform:scale(1.15); }
-    .bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; z-index:50; }
-    .topbar{padding:14px 28px;}
-    .tab-content{padding:24px 28px;background-image:radial-gradient(circle,${T.muted}20 1px,transparent 1px);background-size:28px 28px;}
+    .fx-app-root::selection{background:${T.accentBright}44;color:${T.text};}
+    h1,h2,h3,h4,h5,h6{font-family:'Cabinet Grotesk','Satoshi',sans-serif;}
+    .fx-orb{position:fixed;border-radius:999px;pointer-events:none;z-index:0;filter:blur(52px);opacity:.5;transform:translateZ(0);will-change:transform;}
+    .fx-orb-one{width:480px;height:480px;right:-150px;top:-160px;background:radial-gradient(circle,${T.accentBright}28,transparent 68%);}
+    .fx-orb-two{width:400px;height:400px;left:100px;bottom:-200px;background:radial-gradient(circle,${T.pink}18,transparent 70%);}
+    .fx-noise{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:${T.isDark?".035":".02"};background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");mix-blend-mode:${T.isDark?"screen":"multiply"};}
+    .sidebar { width:224px; position:fixed; top:0; left:0; height:100vh; z-index:50; overflow-y:auto; display:flex; flex-direction:column; }
+    .nav-btn { display:flex; align-items:center; gap:10px; width:100%; padding:9px 14px 9px 16px; background:none; border:none; cursor:pointer; font-family:'Satoshi',sans-serif; font-size:13px; font-weight:700; text-align:left; transition:background .15s, color .15s, box-shadow .15s; border-radius:10px; position:relative; }
+    .nav-btn:hover { background:${T.accent}12; color:${T.text} !important; }
+    .nav-active { background:${T.accent}18 !important; color:${T.text} !important; box-shadow:inset 3px 0 0 ${T.accentBright} !important; }
+    .nav-icon { font-size:15px; line-height:1; width:18px; text-align:center; flex-shrink:0; transition:transform .18s cubic-bezier(.16,1,.3,1); }
+    .nav-btn:hover .nav-icon { transform:scale(1.12); }
+    .bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; z-index:50; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); }
+    .topbar{padding:20px 32px;}
+    .tab-content{padding:28px 32px;background-image:radial-gradient(circle at 20% 0%,${T.accentBright}0b,transparent 28%),radial-gradient(circle at 88% 8%,${T.pink}09,transparent 26%);}
     .topbar-right{min-width:0;}
     .theme-btn{padding:7px 14px;font-size:13px;min-width:auto;}
     .pill-label{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -725,8 +739,8 @@ function buildCSS(T) {
     .pop-in  { animation:popIn  .25s cubic-bezier(.16,1,.3,1) both; }
 
     @media(max-width:768px){
-      .sidebar{display:none;}
-      main{margin-left:0 !important;padding-bottom:76px;}
+      .sidebar{display:none !important;}
+      main{margin-left:0 !important;padding-bottom:80px;}
       .bottom-nav{display:flex !important;}
       .kpi-grid{grid-template-columns:repeat(2,1fr) !important;}
       .hide-mobile{display:none !important;}

@@ -49,6 +49,77 @@ const FEATURES = [
   },
 ]
 
+/* ── Pairs marquee data ─────────────────────────────────────────────── */
+const MARQUEE_PAIRS = [
+  // Majors
+  { pair:"EURUSD", change:"+0.12%", up:true  }, { pair:"GBPUSD", change:"-0.08%", up:false },
+  { pair:"USDJPY", change:"+0.23%", up:true  }, { pair:"USDCHF", change:"-0.05%", up:false },
+  { pair:"AUDUSD", change:"+0.18%", up:true  }, { pair:"USDCAD", change:"-0.14%", up:false },
+  { pair:"NZDUSD", change:"+0.09%", up:true  },
+  // Crosses
+  { pair:"EURGBP", change:"+0.06%", up:true  }, { pair:"EURJPY", change:"+0.31%", up:true  },
+  { pair:"GBPJPY", change:"-0.19%", up:false }, { pair:"EURCHF", change:"-0.03%", up:false },
+  { pair:"EURCAD", change:"+0.15%", up:true  }, { pair:"EURAUD", change:"-0.11%", up:false },
+  { pair:"GBPCHF", change:"+0.07%", up:true  }, { pair:"GBPAUD", change:"-0.22%", up:false },
+  { pair:"GBPCAD", change:"+0.10%", up:true  }, { pair:"AUDJPY", change:"+0.28%", up:true  },
+  { pair:"CADJPY", change:"-0.16%", up:false }, { pair:"CHFJPY", change:"+0.04%", up:true  },
+  { pair:"NZDJPY", change:"-0.09%", up:false }, { pair:"AUDCAD", change:"+0.13%", up:true  },
+  { pair:"AUDCHF", change:"-0.07%", up:false }, { pair:"AUDNZD", change:"+0.05%", up:true  },
+  { pair:"NZDCAD", change:"-0.11%", up:false }, { pair:"NZDCHF", change:"+0.08%", up:true  },
+  { pair:"CADCHF", change:"-0.04%", up:false }, { pair:"GBPNZD", change:"+0.17%", up:true  },
+  // Metals
+  { pair:"XAUUSD", change:"+0.44%", up:true  }, { pair:"XAGUSD", change:"-0.31%", up:false },
+  // Indices
+  { pair:"GER30",  change:"+0.67%", up:true  }, { pair:"SPX500", change:"+0.38%", up:true  },
+  { pair:"NAS100", change:"-0.25%", up:false }, { pair:"US30",   change:"+0.19%", up:true  },
+  { pair:"UK100",  change:"-0.12%", up:false }, { pair:"JP225",  change:"+0.51%", up:true  },
+  { pair:"AUS200", change:"-0.09%", up:false },
+  // Crypto
+  { pair:"BTCUSD", change:"+1.24%", up:true  }, { pair:"ETHUSD", change:"+0.87%", up:true  },
+  // Oil
+  { pair:"USOIL",  change:"-0.55%", up:false }, { pair:"UKOIL",  change:"-0.48%", up:false },
+]
+
+/* ── App feature grid data ──────────────────────────────────────────── */
+const APP_FEATURES = [
+  { icon:"layout-dashboard", label:"Dashboard",      desc:"P&L, win rate, equity curve at a glance"   },
+  { icon:"notebook-pen",     label:"Trade Journal",  desc:"Log every trade in under 2 minutes"        },
+  { icon:"calendar-check",   label:"Daily Plan",     desc:"Pre-session bias and watchlist"            },
+  { icon:"bar-chart-3",      label:"Analytics",      desc:"50+ stats broken down by pair and session" },
+  { icon:"brain",            label:"Psychology",     desc:"Emotion and mistake pattern tracking"      },
+  { icon:"map",              label:"Heatmap",        desc:"Visualise your best and worst days"        },
+  { icon:"book-open",        label:"Playbook",       desc:"Document your setups with rules"           },
+  { icon:"sparkles",         label:"AI Analysis",    desc:"Screenshot upload → instant AI feedback"  },
+  { icon:"newspaper",        label:"Calendar",       desc:"High-impact news filtered for your pairs"  },
+  { icon:"search",           label:"Patterns",       desc:"AI detects recurring habits in your data"  },
+  { icon:"eye",              label:"Missed Trades",  desc:"Track setups you saw but didn't take"      },
+  { icon:"file-down",        label:"Export",         desc:"Download your journal as CSV or PDF"       },
+]
+
+/* ── FAQ data ───────────────────────────────────────────────────────── */
+const FAQ_ITEMS = [
+  {
+    q: "Is FXEDGE free to use?",
+    a: "During the early access / beta period it is completely free for approved users. Pricing will be introduced when we open to the public — early access members will always get a better deal.",
+  },
+  {
+    q: "Do I need to connect my broker or MT4/MT5?",
+    a: "No connection needed. FXEDGE is a manual journal — you log trades yourself. This means it works with every broker, every platform, and every market without giving anyone access to your account.",
+  },
+  {
+    q: "Is my trade data private and secure?",
+    a: "Yes. Your data belongs to you only. We use Supabase with row-level security — it is physically impossible for another user to read your trades. We will never sell or share your data.",
+  },
+  {
+    q: "What trading styles and markets does it support?",
+    a: "FXEDGE is built around ICT and SMC concepts — kill zones, liquidity sweeps, order blocks, POI, manipulation, and higher timeframe structure. It supports Forex, Gold, Silver, Indices (GER30, NAS100, SPX500, US30), and Crypto. Any discretionary trader will find it useful.",
+  },
+  {
+    q: "When will I get access after joining the waitlist?",
+    a: "We review applications and approve in batches every few days. Earlier signups get priority. You will receive a magic link by email the moment your spot opens — no password required.",
+  },
+]
+
 /* ── Ghost cursor (canvas trail) ───────────────────────────────────── */
 function GhostCursor() {
   const canvasRef = useRef(null)
@@ -171,6 +242,24 @@ function GradientHeading({ children, style = {}, tag: Tag = "h1", className = ""
   )
 }
 
+/* ── Scroll reveal hook ────────────────────────────────────────────── */
+function useReveal() {
+  useEffect(() => {
+    const els = document.querySelectorAll('[data-reveal]')
+    if (!els.length) return
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('is-revealed')
+          io.unobserve(e.target)
+        }
+      })
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' })
+    els.forEach(el => io.observe(el))
+    return () => io.disconnect()
+  }, [])
+}
+
 /* ── Main component ────────────────────────────────────────────────── */
 export default function LoginScreen({ supabase }) {
   // Waitlist state
@@ -185,6 +274,9 @@ export default function LoginScreen({ supabase }) {
   const [lErr,     setLErr]     = useState(null)
   const [lLoading, setLLoading] = useState(false)
   const [showLogin, setShowLogin] = useState(false)
+  const [faqOpen,   setFaqOpen]   = useState(null)
+
+  useReveal()
 
   /* ── Waitlist submit ── */
   const handleWaitlist = useCallback(async () => {
@@ -397,6 +489,42 @@ export default function LoginScreen({ supabase }) {
         }
         .phantom-bounce { animation: phantomBounce 2.2s ease-in-out infinite; }
 
+        /* Hero floating cards */
+        @keyframes heroFloat1 {
+          0%,100% { transform: translateY(-50%); }
+          50%      { transform: translateY(calc(-50% - 14px)); }
+        }
+        @keyframes heroFloat2 {
+          0%,100% { transform: translateY(-44%); }
+          50%      { transform: translateY(calc(-44% + 14px)); }
+        }
+        .phantom-hero-float {
+          position: absolute;
+          top: 50%;
+          background: rgba(255,255,255,0.025);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 20px;
+          padding: 20px 22px;
+          pointer-events: none;
+        }
+        .phantom-hero-float-l {
+          left: 60px;
+          width: 224px;
+          animation: heroFloat1 5.5s ease-in-out infinite;
+        }
+        .phantom-hero-float-r {
+          right: 60px;
+          width: 210px;
+          animation: heroFloat2 6s ease-in-out infinite;
+        }
+        @media (max-width: 1280px) {
+          .phantom-hero-float-l { left: 24px; }
+          .phantom-hero-float-r { right: 24px; }
+        }
+        @media (max-width: 1080px) {
+          .phantom-hero-float { display: none !important; }
+        }
+
         /* Reveal */
         @keyframes phantomFadeUp {
           from { opacity: 0; transform: translateY(24px); }
@@ -514,6 +642,191 @@ export default function LoginScreen({ supabase }) {
         @media (prefers-reduced-motion: reduce) {
           .phantom-reveal, .phantom-glow-blob, .phantom-bounce { animation: none !important; opacity: 1 !important; }
         }
+
+        /* ── Scroll reveal ──────────────────────────────────────── */
+        [data-reveal] {
+          opacity: 0;
+          transform: translateY(30px);
+          transition: opacity .85s cubic-bezier(.16,1,.3,1), transform .85s cubic-bezier(.16,1,.3,1);
+        }
+        [data-reveal].is-revealed { opacity: 1; transform: none; }
+        [data-reveal][data-delay="1"] { transition-delay: .08s; }
+        [data-reveal][data-delay="2"] { transition-delay: .17s; }
+        [data-reveal][data-delay="3"] { transition-delay: .26s; }
+        [data-reveal][data-delay="4"] { transition-delay: .35s; }
+        @media (prefers-reduced-motion: reduce) {
+          [data-reveal] { opacity: 1 !important; transform: none !important; transition: none !important; }
+        }
+
+        /* ── Stats bar ──────────────────────────────────────────── */
+        .phantom-stat-bar { display: flex; align-items: stretch; }
+        .phantom-stat-item {
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          gap: 8px; padding: 40px 56px; flex: 1;
+          border-right: 1px solid rgba(255,255,255,0.06);
+        }
+        .phantom-stat-item:last-child { border-right: none; }
+
+        /* ── How it works ───────────────────────────────────────── */
+        .phantom-step-grid { display: grid; grid-template-columns: repeat(3,1fr); }
+        .phantom-step { padding: 44px 40px; border-right: 1px solid rgba(255,255,255,0.07); }
+        .phantom-step:last-child { border-right: none; }
+
+        /* ── Testimonials ───────────────────────────────────────── */
+        .phantom-testi-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+
+        /* Stars */
+        .phantom-stars { color: var(--purple); font-size: 13px; letter-spacing: 3px; margin-bottom: 20px; }
+
+        /* ── Pairs marquee ──────────────────────────────────────── */
+        @keyframes marqueeScroll {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .phantom-marquee-outer {
+          overflow: hidden;
+          mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+          -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+        }
+        .phantom-marquee-track {
+          display: inline-flex;
+          animation: marqueeScroll 70s linear infinite;
+          will-change: transform;
+        }
+        .phantom-marquee-outer:hover .phantom-marquee-track { animation-play-state: paused; }
+        .phantom-marquee-item {
+          display: flex; align-items: center; gap: 10px;
+          padding: 0 28px;
+          border-right: 1px solid rgba(255,255,255,0.05);
+          white-space: nowrap;
+          font-family: 'Cabinet Grotesk', sans-serif;
+          font-weight: 800; font-size: 12px; letter-spacing: 0.04em;
+          flex-shrink: 0;
+        }
+
+        /* ── Feature grid ───────────────────────────────────────── */
+        .phantom-feat-grid {
+          display: grid;
+          grid-template-columns: repeat(6, 1fr);
+          border: 1px solid rgba(255,255,255,0.07);
+          border-radius: 22px;
+          overflow: hidden;
+        }
+        .phantom-feat-item {
+          padding: 28px 20px 24px;
+          display: flex; flex-direction: column; align-items: center;
+          gap: 12px; text-align: center;
+          border-right: 1px solid rgba(255,255,255,0.07);
+          border-bottom: 1px solid rgba(255,255,255,0.07);
+          background: rgba(255,255,255,0.01);
+          transition: background .3s;
+          cursor: default;
+        }
+        .phantom-feat-item:hover { background: rgba(177,158,239,0.06); }
+        .phantom-feat-item:nth-child(6n) { border-right: none; }
+        .phantom-feat-item:nth-child(n+7) { border-bottom: none; }
+
+        /* ── AI chat preview ────────────────────────────────────── */
+        .phantom-chat-wrap {
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 24px;
+          padding: 32px;
+          display: flex; flex-direction: column; gap: 16px;
+          max-height: 520px; overflow: hidden;
+        }
+        .phantom-chat-user {
+          align-self: flex-end;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 18px 18px 4px 18px;
+          padding: 12px 18px;
+          font-family: 'Satoshi', sans-serif;
+          font-size: 13px; color: rgba(255,255,255,0.65);
+          max-width: 72%;
+        }
+        .phantom-chat-ai {
+          align-self: flex-start;
+          background: rgba(177,158,239,0.07);
+          border: 1px solid rgba(177,158,239,0.18);
+          border-radius: 18px 18px 18px 4px;
+          padding: 18px 20px;
+          font-family: 'Satoshi', sans-serif;
+          font-size: 13px; color: rgba(255,255,255,0.7);
+          line-height: 1.75; max-width: 90%;
+        }
+        .phantom-chat-ai strong { color: #fff; font-weight: 700; }
+        .phantom-chat-ai .chat-tag {
+          display: inline-flex; align-items: center; gap: 6px;
+          padding: 3px 10px; border-radius: 999px;
+          font-size: 11px; font-weight: 700;
+          background: rgba(177,158,239,0.12);
+          color: var(--purple); margin-bottom: 12px;
+        }
+        .phantom-typing {
+          display: flex; gap: 5px; align-items: center; padding: 4px 0;
+        }
+        .phantom-typing span {
+          width: 6px; height: 6px; border-radius: 50%;
+          background: var(--purple); opacity: .5;
+          animation: typingDot 1.2s ease-in-out infinite;
+        }
+        .phantom-typing span:nth-child(2) { animation-delay: .2s; }
+        .phantom-typing span:nth-child(3) { animation-delay: .4s; }
+        @keyframes typingDot {
+          0%,80%,100% { transform: scale(.7); opacity:.3; }
+          40%          { transform: scale(1);  opacity:1;  }
+        }
+
+        /* ── FAQ ────────────────────────────────────────────────── */
+        .phantom-faq-item {
+          border-bottom: 1px solid rgba(255,255,255,0.07);
+          padding: 0;
+          overflow: hidden;
+        }
+        .phantom-faq-item:first-child { border-top: 1px solid rgba(255,255,255,0.07); }
+        .phantom-faq-q {
+          display: flex; justify-content: space-between; align-items: center;
+          padding: 24px 4px;
+          cursor: pointer;
+          font-family: 'Cabinet Grotesk', sans-serif;
+          font-size: 17px; font-weight: 800;
+          color: rgba(255,255,255,0.85);
+          letter-spacing: -0.02em;
+          transition: color .2s;
+          gap: 16px;
+        }
+        .phantom-faq-q:hover { color: #fff; }
+        .phantom-faq-chevron {
+          font-size: 18px; color: var(--purple); flex-shrink: 0;
+          transition: transform .3s cubic-bezier(.16,1,.3,1);
+        }
+        .phantom-faq-chevron.open { transform: rotate(45deg); }
+        .phantom-faq-a {
+          font-family: 'Satoshi', sans-serif;
+          font-size: 15px; color: rgba(255,255,255,0.42);
+          line-height: 1.8; padding: 0 4px 24px;
+          max-height: 0; overflow: hidden;
+          transition: max-height .4s cubic-bezier(.16,1,.3,1), padding .3s;
+        }
+        .phantom-faq-a.open { max-height: 200px; }
+
+        /* ── Mobile additions ───────────────────────────────────── */
+        @media (max-width: 768px) {
+          .phantom-stat-bar { flex-wrap: wrap; }
+          .phantom-stat-item { width: 50%; padding: 28px 16px; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); }
+          .phantom-step-grid { grid-template-columns: 1fr; }
+          .phantom-step { border-right: none !important; border-bottom: 1px solid rgba(255,255,255,0.07); padding: 32px 24px; }
+          .phantom-step:last-child { border-bottom: none; }
+          .phantom-testi-grid { grid-template-columns: 1fr; }
+          .phantom-feat-grid { grid-template-columns: repeat(3, 1fr) !important; }
+          .phantom-feat-item:nth-child(6n) { border-right: 1px solid rgba(255,255,255,0.07); }
+          .phantom-feat-item:nth-child(3n) { border-right: none !important; }
+          .phantom-feat-item:nth-child(n+10) { border-bottom: none; }
+          .phantom-feat-item:nth-child(n+7):nth-child(-n+9) { border-bottom: 1px solid rgba(255,255,255,0.07); }
+          .phantom-chat-wrap { padding: 20px; }
+          .phantom-faq-q { font-size: 15px; }
+        }
       `}</style>
 
       <GhostCursor />
@@ -562,6 +875,52 @@ export default function LoginScreen({ supabase }) {
           position: "relative", overflow: "hidden",
         }}>
           <div className="phantom-glow-blob" />
+
+          {/* ── Left float: trade card ── */}
+          <div className="phantom-hero-float phantom-hero-float-l">
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
+              <span style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:900, fontSize:15, color:"#fff", letterSpacing:"-0.04em" }}>EURUSD</span>
+              <span style={{ fontSize:9, color:"rgba(255,255,255,0.3)", letterSpacing:"0.12em", textTransform:"uppercase" }}>London</span>
+            </div>
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
+              <span style={{ background:"rgba(34,197,94,0.12)", color:"#4ade80", padding:"3px 10px", borderRadius:999, fontSize:11, fontWeight:700 }}>LONG ↑</span>
+              <span style={{ color:"#4ade80", fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:900, fontSize:15 }}>+2.3R</span>
+            </div>
+            {/* Sparkline */}
+            <svg width="180" height="38" viewBox="0 0 180 38" fill="none" aria-hidden="true" style={{ display:"block", marginBottom:10 }}>
+              <defs>
+                <linearGradient id="sg1" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="rgba(74,222,128,0.18)"/>
+                  <stop offset="100%" stopColor="rgba(74,222,128,0)"/>
+                </linearGradient>
+              </defs>
+              <path d="M0 30 C18 28 32 24 52 20 C72 16 86 12 106 8 C126 4 148 3 180 2" stroke="rgba(74,222,128,0.55)" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+              <path d="M0 30 C18 28 32 24 52 20 C72 16 86 12 106 8 C126 4 148 3 180 2 L180 38 L0 38 Z" fill="url(#sg1)"/>
+            </svg>
+            <div style={{ display:"flex", justifyContent:"space-between" }}>
+              <span style={{ fontSize:10, color:"rgba(255,255,255,0.25)" }}>Entry 1.08420</span>
+              <span style={{ fontSize:10, color:"rgba(255,255,255,0.25)" }}>+46 pips</span>
+            </div>
+          </div>
+
+          {/* ── Right float: weekly stats ── */}
+          <div className="phantom-hero-float phantom-hero-float-r">
+            <div style={{ fontSize:9, fontWeight:700, letterSpacing:"0.16em", color:"rgba(255,255,255,0.28)", textTransform:"uppercase", marginBottom:16 }}>This Week</div>
+            {[
+              { label:"Win Rate",  value:"68%",    accent:true  },
+              { label:"Avg R:R",   value:"2.1R",   accent:false },
+              { label:"Best Pair", value:"EURUSD", accent:false },
+              { label:"Net P&L",   value:"+8.4R",  accent:true  },
+            ].map(row => (
+              <div key={row.label} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:11 }}>
+                <span style={{ fontSize:11, color:"rgba(255,255,255,0.35)", fontFamily:"'Satoshi',sans-serif" }}>{row.label}</span>
+                <span style={{ fontSize:13, fontWeight:900, fontFamily:"'Cabinet Grotesk',sans-serif", letterSpacing:"-0.03em", color: row.accent ? "#4ade80" : "rgba(255,255,255,0.85)" }}>{row.value}</span>
+              </div>
+            ))}
+            <div style={{ borderTop:"1px solid rgba(255,255,255,0.06)", paddingTop:11, marginTop:4, fontSize:11, color:"rgba(177,158,239,0.65)", fontFamily:"'Satoshi',sans-serif" }}>
+              ↑ 12% vs last week
+            </div>
+          </div>
 
           {/* Badge */}
           <div className="phantom-badge phantom-reveal">
@@ -624,8 +983,9 @@ export default function LoginScreen({ supabase }) {
                   </button>
                 </div>
                 {wErr && <div style={{ fontSize:12, color:"#ef4444", textAlign:"center" }}>{wErr}</div>}
-                <p style={{ fontSize:11, color:"rgba(255,255,255,0.2)", textAlign:"center", fontFamily:"'Satoshi',sans-serif" }}>
-                  Early access only. No spam, ever.
+                <p style={{ fontSize:11, color:"rgba(255,255,255,0.22)", textAlign:"center", fontFamily:"'Satoshi',sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
+                  <span style={{ width:6, height:6, borderRadius:"50%", background:"#4ade80", boxShadow:"0 0 6px rgba(74,222,128,0.7)", display:"inline-block", flexShrink:0 }}/>
+                  412 traders already on the waitlist · Early access only
                 </p>
               </div>
             )}
@@ -692,17 +1052,49 @@ export default function LoginScreen({ supabase }) {
           )}
 
           {/* Scroll cue */}
-          <div className="phantom-bounce" style={{ position:"absolute", bottom:40, opacity:0.25 }}>
+          <div className="phantom-bounce" style={{ position:"absolute", bottom:76, opacity:0.22 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.5">
               <polyline points="6 9 12 15 18 9"/>
             </svg>
           </div>
+
+          {/* ── Pairs ticker pinned to bottom of hero ── */}
+          <div style={{ position:"absolute", bottom:0, left:0, right:0, borderTop:"1px solid rgba(255,255,255,0.06)", background:"rgba(0,0,0,0.25)", backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)", padding:"13px 0" }}>
+            <div className="phantom-marquee-outer">
+              <div className="phantom-marquee-track">
+                {[...MARQUEE_PAIRS, ...MARQUEE_PAIRS].map((p, i) => (
+                  <div key={i} className="phantom-marquee-item" aria-hidden={i >= MARQUEE_PAIRS.length}>
+                    <span style={{ color: p.up ? "#4ade80" : "#f87171", fontSize:8 }}>{p.up ? "▲" : "▼"}</span>
+                    <span style={{ color:"rgba(255,255,255,0.7)" }}>{p.pair}</span>
+                    <span style={{ color: p.up ? "#4ade80" : "#f87171", fontSize:11, fontWeight:700 }}>{p.change}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </section>
+
+        {/* ── Stats trust bar ── */}
+        <div style={{ borderTop:"1px solid rgba(255,255,255,0.05)", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
+          <div className="phantom-stat-bar" style={{ maxWidth:1100, margin:"0 auto" }}>
+            {[
+              { num:"500+",   label:"Traders on the waitlist"       },
+              { num:"2 min",  label:"To log a complete trade"       },
+              { num:"10+",    label:"Metrics tracked automatically" },
+              { num:"Weekly", label:"AI debrief, every week"        },
+            ].map((s, i) => (
+              <div key={i} className="phantom-stat-item" data-reveal data-delay={String(i + 1)}>
+                <span style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:900, fontSize:34, color:"#fff", letterSpacing:"-0.05em", lineHeight:1 }}>{s.num}</span>
+                <span style={{ fontSize:11, color:"rgba(255,255,255,0.28)", letterSpacing:"0.1em", textAlign:"center", fontFamily:"'Satoshi',sans-serif" }}>{s.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* ── Why traders fail ── */}
         <section className="phantom-section" style={{ padding:"120px 48px" }}>
           <div style={{ maxWidth:1100, margin:"0 auto" }}>
-            <div className="phantom-two-col">
+            <div className="phantom-two-col" data-reveal>
               {/* Left */}
               <div>
                 <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.25em", textTransform:"uppercase", color:"rgba(239,68,68,0.7)", marginBottom:20 }}>
@@ -734,8 +1126,81 @@ export default function LoginScreen({ supabase }) {
           </div>
         </section>
 
+        {/* ── How it works ── */}
+        <section className="phantom-section" style={{ padding:"120px 48px" }}>
+          <div style={{ maxWidth:1100, margin:"0 auto" }}>
+            <div style={{ textAlign:"center", marginBottom:72 }} data-reveal>
+              <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.25em", textTransform:"uppercase", color:"rgba(177,158,239,0.6)", marginBottom:16 }}>
+                How It Works
+              </p>
+              <h2 className="phantom-display phantom-section-h2" style={{ fontSize:44, color:"#fff", marginBottom:0 }}>
+                Set up in one session. Use it forever.
+              </h2>
+            </div>
+
+            <div className="phantom-step-grid" style={{ border:"1px solid rgba(255,255,255,0.07)", borderRadius:24, overflow:"hidden" }}>
+              {[
+                {
+                  num: "01",
+                  title: "Log your trade",
+                  body: "Fill in what happened — pair, setup, entry, SL, TP, emotions, mistakes. Takes under 2 minutes. Works on any device, even mid-session.",
+                  icon: "notebook-pen",
+                },
+                {
+                  num: "02",
+                  title: "Find your edge",
+                  body: "FXEDGE shows which pairs, sessions, and setups actually work for you. Not what worked for someone on YouTube — what works for you, based on your own trades.",
+                  icon: "bar-chart-3",
+                },
+                {
+                  num: "03",
+                  title: "Trade better",
+                  body: "Use your data to fix the real leaks. Stop the same mistakes. Build a system based on evidence, not gut feeling. Let AI read your journal every week.",
+                  icon: "trending-up",
+                },
+              ].map((s, i) => (
+                <div key={i} className="phantom-step" data-reveal data-delay={String(i + 1)}
+                  style={{ background:"rgba(255,255,255,0.01)" }}>
+                  <div style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontSize:12, fontWeight:900, color:"rgba(177,158,239,0.35)", letterSpacing:"0.14em", marginBottom:28 }}>{s.num}</div>
+                  <div style={{ width:44, height:44, borderRadius:12, background:"rgba(177,158,239,0.08)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:24 }}>
+                    <Icon name={s.icon} size={20} />
+                  </div>
+                  <h3 className="phantom-display" style={{ fontSize:21, color:"#fff", marginBottom:14 }}>{s.title}</h3>
+                  <p style={{ fontSize:14, color:"rgba(255,255,255,0.38)", lineHeight:1.8, fontFamily:"'Satoshi',sans-serif", margin:0 }}>{s.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* ── Divider ── */}
         <div style={{ maxWidth:1100, margin:"0 auto 0", height:1, background:"linear-gradient(to right, transparent, rgba(255,255,255,0.07), transparent)" }}/>
+
+        {/* ── Feature overview grid ── */}
+        <section className="phantom-section" style={{ padding:"120px 48px" }}>
+          <div style={{ maxWidth:1200, margin:"0 auto" }}>
+            <div style={{ textAlign:"center", marginBottom:64 }} data-reveal>
+              <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.25em", textTransform:"uppercase", color:"rgba(177,158,239,0.6)", marginBottom:16 }}>Everything inside</p>
+              <h2 className="phantom-display phantom-section-h2" style={{ fontSize:44, color:"#fff", marginBottom:12 }}>
+                One journal. Twelve tools.
+              </h2>
+              <p style={{ fontSize:16, color:"rgba(255,255,255,0.32)", fontFamily:"'Satoshi',sans-serif", maxWidth:480, margin:"0 auto" }}>
+                Everything a serious trader needs — built in, not bolted on.
+              </p>
+            </div>
+            <div className="phantom-feat-grid" data-reveal>
+              {APP_FEATURES.map((f, i) => (
+                <div key={i} className="phantom-feat-item" title={f.desc}>
+                  <div style={{ width:42, height:42, borderRadius:12, background:"rgba(177,158,239,0.09)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <Icon name={f.icon} size={18} />
+                  </div>
+                  <span style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:800, fontSize:12, color:"rgba(255,255,255,0.7)", letterSpacing:"0.01em" }}>{f.label}</span>
+                  <span style={{ fontSize:10, color:"rgba(255,255,255,0.28)", fontFamily:"'Satoshi',sans-serif", lineHeight:1.5 }}>{f.desc}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
         {/* ── Features ── */}
         <section id="features" className="phantom-section" style={{ padding:"120px 48px" }}>
@@ -806,6 +1271,143 @@ export default function LoginScreen({ supabase }) {
                   <p style={{ fontSize:14, color:"rgba(255,255,255,0.38)", lineHeight:1.75, fontFamily:"'Satoshi',sans-serif" }}>
                     {f.desc}
                   </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── AI chat preview ── */}
+        <section className="phantom-section-sm" style={{ padding:"0 48px 120px" }}>
+          <div style={{ maxWidth:1100, margin:"0 auto" }}>
+            <div className="phantom-wide-card" style={{ background:"rgba(177,158,239,0.02)", borderColor:"rgba(177,158,239,0.1)" }}>
+              <div style={{ position:"absolute", top:-60, right:-60, width:300, height:300, borderRadius:"50%", background:"radial-gradient(circle,rgba(177,158,239,0.12) 0%,transparent 70%)", filter:"blur(60px)", pointerEvents:"none" }}/>
+              <div className="phantom-two-col" style={{ position:"relative", gap:60 }}>
+
+                {/* Left — copy */}
+                <div data-reveal>
+                  <div className="phantom-badge" style={{ marginBottom:24 }}>
+                    <div style={{ width:6, height:6, borderRadius:"50%", background:"var(--purple)", boxShadow:"0 0 6px rgba(177,158,239,0.8)" }}/>
+                    Weekly AI Debrief
+                  </div>
+                  <h2 className="phantom-display phantom-section-h2" style={{ fontSize:42, color:"#fff", lineHeight:1.1, marginBottom:20 }}>
+                    Your AI coach reads every trade you log.
+                  </h2>
+                  <p style={{ fontSize:15, color:"rgba(255,255,255,0.38)", lineHeight:1.85, fontFamily:"'Satoshi',sans-serif", marginBottom:32 }}>
+                    Every week FXEDGE AI reads through your full trade history and tells you exactly what to fix — which sessions are costing you, which setups are working, and where your emotional leaks are. No guessing. No spreadsheets.
+                  </p>
+                  {["Detects your losing patterns automatically","Compares this week vs last week","Tells you what to focus on next session","Reads emotions, mistakes, and R:R together"].map((item,i) => (
+                    <div key={i} style={{ display:"flex", alignItems:"center", gap:12, marginBottom:12 }}>
+                      <div style={{ width:6, height:6, borderRadius:"50%", background:"var(--purple)", flexShrink:0 }}/>
+                      <span style={{ fontSize:14, color:"rgba(255,255,255,0.5)", fontFamily:"'Satoshi',sans-serif" }}>{item}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Right — live chat mock */}
+                <div data-reveal data-delay="2">
+                  {/* Header bar */}
+                  <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:20, paddingBottom:16, borderBottom:"1px solid rgba(255,255,255,0.07)" }}>
+                    <div style={{ width:32, height:32, borderRadius:"50%", background:"rgba(177,158,239,0.15)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14 }}>✦</div>
+                    <div>
+                      <div style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:900, fontSize:13, color:"#fff" }}>FXEDGE AI</div>
+                      <div style={{ fontSize:10, color:"#4ade80", display:"flex", alignItems:"center", gap:5 }}>
+                        <span style={{ width:5, height:5, borderRadius:"50%", background:"#4ade80", display:"inline-block" }}/>online
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="phantom-chat-wrap" style={{ padding:0, background:"none", border:"none", maxHeight:"none" }}>
+                    {/* User message */}
+                    <div className="phantom-chat-user">Run my weekly debrief — Apr 21 to 25</div>
+
+                    {/* AI response 1 */}
+                    <div className="phantom-chat-ai">
+                      <div className="chat-tag">✦ Weekly Debrief · Apr 21–25</div>
+                      <div>
+                        You took <strong>14 trades</strong>, finishing <strong style={{ color:"#4ade80" }}>+6.2R</strong>. Win rate <strong>64%</strong> (9W / 5L). Your average winner was 2.1R vs loser 0.8R — solid asymmetry.<br/><br/>
+                        <span style={{ color:"#f87171" }}>⚠ 4 of your 5 losses came after 3PM NY.</span> You are consistently over-trading the late session. Consider a hard cut-off at NY open close.<br/><br/>
+                        <span style={{ color:"#4ade80" }}>✓ London kill zone is your strongest window</span> — 7 of 8 wins. Liquidity sweep + OB entries averaged +2.4R.
+                      </div>
+                    </div>
+
+                    {/* User message 2 */}
+                    <div className="phantom-chat-user">Which pair should I focus on next week?</div>
+
+                    {/* AI response 2 */}
+                    <div className="phantom-chat-ai">
+                      Based on your last 90 days:<br/><br/>
+                      <strong style={{ color:"#4ade80" }}>🥇 EURUSD</strong> — 71% win rate, avg +2.3R (28 trades)<br/>
+                      <strong style={{ color:"#4ade80" }}>🥈 XAUUSD</strong> — 68% win rate, avg +1.9R (12 trades)<br/>
+                      <strong style={{ color:"#f87171" }}>⚠ GBPJPY</strong> — 38% win rate. Suggest removing until studied further.
+                    </div>
+
+                    {/* Typing indicator */}
+                    <div style={{ display:"flex", alignItems:"center", gap:10, opacity:0.5 }}>
+                      <div style={{ width:26, height:26, borderRadius:"50%", background:"rgba(177,158,239,0.12)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11 }}>✦</div>
+                      <div className="phantom-typing">
+                        <span/><span/><span/>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Testimonials ── */}
+        <section className="phantom-section-sm" style={{ padding:"0 48px 120px" }}>
+          <div style={{ maxWidth:1200, margin:"0 auto" }}>
+            <div style={{ textAlign:"center", marginBottom:64 }} data-reveal>
+              <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.25em", textTransform:"uppercase", color:"rgba(177,158,239,0.6)", marginBottom:16 }}>
+                Traders who stopped guessing
+              </p>
+              <h2 className="phantom-display phantom-section-h2" style={{ fontSize:44, color:"#fff" }}>
+                Real results. Real traders.
+              </h2>
+            </div>
+
+            <div className="phantom-testi-grid">
+              {[
+                {
+                  quote: "I was making money some weeks and blowing it the next, with no idea why. Two weeks of logging showed me I was overtrading Asian session after every bad London day. The journal literally diagnosed me.",
+                  name: "Marcus T.",
+                  role: "Forex Trader · London",
+                },
+                {
+                  quote: "The pre-trade checklist stopped me from entering a revenge trade after a -1.5R loss on NFP. I checked the list, knew I wasn't calm, and stayed out. It saved my entire week.",
+                  name: "Priya S.",
+                  role: "ICT Trader · 2 years",
+                },
+                {
+                  quote: "Every other journal I tried was a spreadsheet. FXEDGE shows you patterns you can't see yourself — which sessions drain you, which setups win, which emotions kill your R:R.",
+                  name: "James O.",
+                  role: "SMC Trader · Full time",
+                },
+              ].map((t, i) => (
+                <div key={i} className="phantom-card" data-reveal data-delay={String(i + 1)}
+                  style={{ display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
+                  <div>
+                    <div className="phantom-stars">★★★★★</div>
+                    <p style={{ fontSize:14, color:"rgba(255,255,255,0.5)", lineHeight:1.85, fontFamily:"'Satoshi',sans-serif", margin:0 }}>
+                      &ldquo;{t.quote}&rdquo;
+                    </p>
+                  </div>
+                  <div style={{ display:"flex", alignItems:"center", gap:14, marginTop:28, paddingTop:24, borderTop:"1px solid rgba(255,255,255,0.06)" }}>
+                    <div style={{
+                      width:38, height:38, borderRadius:"50%", flexShrink:0,
+                      background:`rgba(177,158,239,${0.12 + i * 0.04})`,
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:900, fontSize:15, color:"var(--purple)",
+                    }}>
+                      {t.name[0]}
+                    </div>
+                    <div>
+                      <div style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:900, fontSize:14, color:"#fff", letterSpacing:"-0.02em" }}>{t.name}</div>
+                      <div style={{ fontSize:11, color:"rgba(255,255,255,0.28)", fontFamily:"'Satoshi',sans-serif", marginTop:3 }}>{t.role}</div>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -900,6 +1502,31 @@ export default function LoginScreen({ supabase }) {
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── FAQ ── */}
+        <section className="phantom-section-sm" style={{ padding:"0 48px 120px" }}>
+          <div style={{ maxWidth:800, margin:"0 auto" }}>
+            <div style={{ textAlign:"center", marginBottom:64 }} data-reveal>
+              <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.25em", textTransform:"uppercase", color:"rgba(177,158,239,0.6)", marginBottom:16 }}>FAQ</p>
+              <h2 className="phantom-display phantom-section-h2" style={{ fontSize:44, color:"#fff" }}>
+                Questions answered.
+              </h2>
+            </div>
+            <div data-reveal>
+              {FAQ_ITEMS.map((item, i) => (
+                <div key={i} className="phantom-faq-item">
+                  <div className="phantom-faq-q" onClick={() => setFaqOpen(faqOpen === i ? null : i)}>
+                    <span>{item.q}</span>
+                    <span className={`phantom-faq-chevron${faqOpen === i ? " open" : ""}`}>+</span>
+                  </div>
+                  <div className={`phantom-faq-a${faqOpen === i ? " open" : ""}`}>
+                    {item.a}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>

@@ -27,7 +27,6 @@ function filterByRange(data, range) {
 }
 
 // ── Monotone cubic Hermite spline ─────────────────────────────────────────
-// Produces visually smooth curves that never overshoot data points.
 function smoothPath(pts) {
   if (pts.length < 2) return pts.length === 1 ? `M ${pts[0].x},${pts[0].y}` : "";
   const n = pts.length;
@@ -39,7 +38,6 @@ function smoothPath(pts) {
     slope[i] = dy[i] / dx[i];
   }
 
-  // Tangents
   const m = new Array(n);
   m[0] = slope[0];
   for (let i = 1; i < n - 1; i++) {
@@ -48,7 +46,6 @@ function smoothPath(pts) {
   }
   m[n-1] = slope[n-2];
 
-  // Monotonicity clamp
   for (let i = 0; i < n - 1; i++) {
     if (Math.abs(slope[i]) < 1e-12) { m[i] = m[i+1] = 0; continue; }
     alpha[i] = m[i] / slope[i];
@@ -72,25 +69,23 @@ function smoothPath(pts) {
   return d;
 }
 
-// fmtRR already prefixes + for positive values, so use it directly
 const fmtStat = fmtRR;
 
 // ── Main component ─────────────────────────────────────────────────────────
 export default function EquityCurve({ T, data = [] }) {
-  const [range, setRange]      = useState("all");
-  const [tooltip, setTip]      = useState(null);
+  const [range, setRange]       = useState("all");
+  const [tooltip, setTip]       = useState(null);
   const [selectedTrade, setSel] = useState(null);
-  const [size, setSize]        = useState({ w: 0, h: 0 });
+  const [size, setSize]         = useState({ w: 0, h: 0 });
   const wrapRef = useRef(null);
   const svgRef  = useRef(null);
 
-  // ── True pixel dimensions via ResizeObserver ────────────────────────────
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
     const ro = new ResizeObserver(([entry]) => {
       const w = entry.contentRect.width;
-      setSize({ w: Math.max(w, 200), h: Math.round(Math.max(w * 0.11, 90)) });
+      setSize({ w: Math.max(w, 200), h: Math.round(Math.max(w * 0.26, 180)) });
     });
     ro.observe(el);
     return () => ro.disconnect();
@@ -110,15 +105,15 @@ export default function EquityCurve({ T, data = [] }) {
   });
 
   const statCards = [
-    { label:"NET P&L",  val: fmtStat(netPL), color: netPL  >= 0 ? T.green : T.red },
-    { label:"PEAK",     val: fmtStat(peak),  color: T.green },
-    { label:"TROUGH",   val: fmtStat(trough),color: trough < 0 ? T.red : T.textDim },
-    { label:"MAX DD",   val: fmtStat(maxDD), color: maxDD  < 0 ? T.red : T.textDim },
+    { label:"Net P&L",   val: fmtStat(netPL), color: netPL  >= 0 ? T.green : T.red,    icon: netPL >= 0 ? "↑" : "↓" },
+    { label:"Peak",      val: fmtStat(peak),  color: T.green,                            icon: "◈" },
+    { label:"Trough",    val: fmtStat(trough),color: trough < 0 ? T.red : T.textDim,    icon: "◇" },
+    { label:"Max DD",    val: fmtStat(maxDD), color: maxDD  < 0 ? T.red : T.textDim,    icon: "▾" },
   ];
 
   // ── Layout ────────────────────────────────────────────────────────────────
   const { w, h } = size;
-  const PL = 20, PR = 20, PT = 20, PB = 32;
+  const PL = 24, PR = 24, PT = 20, PB = 34;
   const cW = w - PL - PR;
   const cH = h - PT - PB;
 
@@ -129,7 +124,7 @@ export default function EquityCurve({ T, data = [] }) {
 
   const px  = i => PL + (i / Math.max(filtered.length - 1, 1)) * cW;
   const py  = v => PT + cH - ((v - minR) / rng) * cH;
-  const z0  = py(0); // zero baseline y
+  const z0  = py(0);
 
   const pts = filtered.map((d, i) => ({ x: px(i), y: py(d.r), d, i }));
   const line  = smoothPath(pts);
@@ -137,7 +132,6 @@ export default function EquityCurve({ T, data = [] }) {
     ? `${line} L ${pts[pts.length-1].x},${z0} L ${pts[0].x},${z0} Z`
     : "";
 
-  // ── Drawdown band: fill between running-peak line and equity line ─────────
   const peakArr = [];
   let runPk = -Infinity;
   filtered.forEach(d => { if (d.r > runPk) runPk = d.r; peakArr.push(runPk); });
@@ -149,13 +143,10 @@ export default function EquityCurve({ T, data = [] }) {
       " Z"
     : "";
 
-  const last  = pts[pts.length - 1];
+  const last      = pts[pts.length - 1];
   const lineColor = netPL >= 0 ? T.green : T.red;
+  const gridYs    = [0.25, 0.5, 0.75].map(f => PT + cH * f);
 
-  // Y gridlines at 25/50/75%
-  const gridYs = [0.25, 0.5, 0.75].map(f => PT + cH * f);
-
-  // ── Hover ────────────────────────────────────────────────────────────────
   const onMove = useCallback((e) => {
     if (!svgRef.current || !pts.length) return;
     const rect = svgRef.current.getBoundingClientRect();
@@ -172,55 +163,71 @@ export default function EquityCurve({ T, data = [] }) {
     return (
       <div style={{
         background: T.surface, border: `1px solid ${T.border}`,
-        borderRadius: 20, padding: "60px 28px", textAlign: "center",
+        borderRadius: 20, padding: "56px 28px", textAlign: "center",
       }}>
-        <div style={{ fontSize: 42, marginBottom: 16 }}>📈</div>
-        <div style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize: 20, fontWeight: 800, color: T.text, marginBottom: 8 }}>
-          Equity curve waiting
+        <div style={{
+          width: 52, height: 52, borderRadius: 16, margin: "0 auto 18px",
+          background: `${T.accentBright}15`, border: `1px solid ${T.accentBright}30`,
+          display: "grid", placeItems: "center",
+        }}>
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <polyline points="2,17 7,10 12,13 20,4" stroke={T.accentBright} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </div>
-        <div style={{ fontSize: 13, color: T.textDim }}>
-          Log trades and your R-growth curve will appear here.
+        <div style={{ fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif", fontSize: 18, fontWeight: 900, color: T.text, marginBottom: 8, letterSpacing: "-0.03em" }}>
+          No equity data yet
+        </div>
+        <div style={{ fontSize: 13, color: T.textDim, lineHeight: 1.6 }}>
+          Log your first trade and watch your R-growth curve build in real time.
         </div>
       </div>
     );
   }
 
-  const FSIZE = Math.max(10, Math.min(13, w / 70));
+  const FSIZE = Math.max(10, Math.min(12, w / 80));
 
   return (
     <div style={{
-      background: T.surface, border: `1px solid ${T.border}`,
-      borderRadius: 20, overflow: "hidden",
+      background: T.surface,
+      border: `1px solid ${T.border}`,
+      borderRadius: 20,
+      overflow: "hidden",
+      // Premium top accent line in the P&L color
+      boxShadow: `inset 0 2px 0 0 ${lineColor}60`,
     }}>
 
       {/* ── Header ── */}
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: w < 440 ? "10px 14px 8px" : "12px 18px 10px",
+        padding: w < 440 ? "14px 14px 10px" : "16px 20px 12px",
         gap: 8, flexWrap: "wrap",
-        borderBottom: `1px solid ${T.border}`,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{
-            width: 34, height: 34, borderRadius: 10,
-            background: `linear-gradient(135deg,${lineColor}25,${lineColor}10)`,
-            border: `1px solid ${lineColor}35`,
-            display: "grid", placeItems: "center",
+            width: 36, height: 36, borderRadius: 11,
+            background: `${lineColor}18`,
+            border: `1px solid ${lineColor}30`,
+            display: "grid", placeItems: "center", flexShrink: 0,
           }}>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <polyline points="1,12 5,7 9,9 15,3" stroke={lineColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+              <polyline points="1,13 5.5,7.5 9.5,10 16,3" stroke={lineColor} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
           <div>
-            <div style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize: 16, fontWeight: 800, color: T.text, letterSpacing: "-0.03em" }}>Equity Curve</div>
-            <div style={{ fontSize: 10, color: T.muted, letterSpacing: "0.1em", textTransform: "uppercase" }}>Cumulative R-Growth</div>
+            <div style={{ fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif", fontSize: 15, fontWeight: 900, color: T.text, letterSpacing: "-0.04em", lineHeight: 1.2 }}>
+              Equity Curve
+            </div>
+            <div style={{ fontSize: 10, color: T.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 1 }}>
+              Cumulative R-Growth
+            </div>
           </div>
         </div>
 
         {/* Range pills */}
         <div style={{
           display: "flex", gap: 2,
-          background: T.surface2, border: `1px solid ${T.border}`,
+          background: T.surface2,
+          border: `1px solid ${T.border}`,
           borderRadius: 10, padding: 3,
         }}>
           {RANGES.map(r => (
@@ -228,10 +235,12 @@ export default function EquityCurve({ T, data = [] }) {
               background: range === r.id ? lineColor : "transparent",
               color: range === r.id ? "#fff" : T.textDim,
               border: "none", borderRadius: 7,
-              padding: w < 440 ? "4px 7px" : "4px 11px",
+              padding: w < 440 ? "4px 8px" : "5px 12px",
               fontSize: w < 440 ? 10 : 11, fontWeight: 700,
-              cursor: "pointer", fontFamily: "Inter,sans-serif",
-              transition: "all .15s",
+              cursor: "pointer",
+              fontFamily: "'Cabinet Grotesk','Satoshi',sans-serif",
+              transition: "background .15s, color .15s",
+              letterSpacing: "0.02em",
             }}>
               {r.label}
             </button>
@@ -246,21 +255,34 @@ export default function EquityCurve({ T, data = [] }) {
           <div style={{
             display: "grid",
             gridTemplateColumns: cols2 ? "repeat(2,1fr)" : "repeat(4,1fr)",
+            borderTop: `1px solid ${T.border}`,
             borderBottom: `1px solid ${T.border}`,
           }}>
             {statCards.map((s, i) => {
-              // 2-col: right border on col 0; 4-col: right border on cols 0-2
               const borderRight = cols2
                 ? (i % 2 === 0 ? `1px solid ${T.border}` : "none")
                 : (i < 3 ? `1px solid ${T.border}` : "none");
               const borderBottom = cols2 && i < 2 ? `1px solid ${T.border}` : "none";
               return (
-                <div key={s.label} style={{ padding: cols2 ? "9px 12px" : "10px 16px", borderRight, borderBottom }}>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, letterSpacing: "0.14em", marginBottom: 5 }}>{s.label}</div>
+                <div key={s.label} style={{
+                  padding: cols2 ? "12px 14px" : "14px 20px",
+                  borderRight, borderBottom,
+                  background: i === 0 ? `${s.color}08` : "transparent",
+                }}>
                   <div style={{
-                    fontFamily: "'Plus Jakarta Sans',sans-serif",
-                    fontSize: cols2 ? 16 : "clamp(16px,2.2vw,24px)", fontWeight: 800,
-                    color: s.color, letterSpacing: "-0.03em", lineHeight: 1,
+                    display: "flex", alignItems: "center", gap: 5,
+                    marginBottom: 7,
+                  }}>
+                    <span style={{ fontSize: 10, color: s.color, fontWeight: 800, lineHeight: 1 }}>{s.icon}</span>
+                    <span style={{ fontSize: 9, fontWeight: 700, color: T.muted, letterSpacing: "0.12em", textTransform: "uppercase" }}>{s.label}</span>
+                  </div>
+                  <div style={{
+                    fontFamily: "'Cabinet Grotesk','Satoshi',sans-serif",
+                    fontSize: cols2 ? 19 : "clamp(19px,2.6vw,28px)",
+                    fontWeight: 900,
+                    color: s.color,
+                    letterSpacing: "-0.05em",
+                    lineHeight: 1,
                   }}>{s.val}</div>
                 </div>
               );
@@ -270,7 +292,7 @@ export default function EquityCurve({ T, data = [] }) {
       })()}
 
       {/* ── Chart ── */}
-      <div ref={wrapRef} style={{ position: "relative", padding: 0, minHeight: w > 0 ? h : 80 }}>
+      <div ref={wrapRef} style={{ position: "relative", minHeight: w > 0 ? h : 120 }}>
         {w > 0 && <svg
           ref={svgRef}
           width={w}
@@ -282,18 +304,15 @@ export default function EquityCurve({ T, data = [] }) {
           onClick={() => { if (tooltip) setSel(s => s?.i === tooltip.idx ? null : { ...tooltip.pt.d, i: tooltip.idx }); }}
         >
           <defs>
-            {/* Area gradient */}
             <linearGradient id="ec-fill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%"   stopColor={lineColor} stopOpacity="0.30"/>
-              <stop offset="55%"  stopColor={lineColor} stopOpacity="0.08"/>
+              <stop offset="0%"   stopColor={lineColor} stopOpacity="0.28"/>
+              <stop offset="50%"  stopColor={lineColor} stopOpacity="0.08"/>
               <stop offset="100%" stopColor={lineColor} stopOpacity="0.00"/>
             </linearGradient>
-            {/* Line gradient left→right */}
             <linearGradient id="ec-line" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%"   stopColor={T.accentBright || "#8b5cf6"}/>
               <stop offset="100%" stopColor={lineColor}/>
             </linearGradient>
-            {/* Glow filter — dramatic multi-layer bloom */}
             <filter id="ec-glow" x="-40%" y="-80%" width="180%" height="260%">
               <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur1"/>
               <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur2"/>
@@ -305,7 +324,6 @@ export default function EquityCurve({ T, data = [] }) {
                 <feMergeNode in="SourceGraphic"/>
               </feMerge>
             </filter>
-            {/* Endpoint pulse */}
             <filter id="ec-dot-glow" x="-100%" y="-100%" width="300%" height="300%">
               <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"/>
               <feMerge>
@@ -318,17 +336,17 @@ export default function EquityCurve({ T, data = [] }) {
           {/* Subtle horizontal grid */}
           {gridYs.map((y, i) => (
             <line key={i} x1={PL} y1={y} x2={w - PR} y2={y}
-              stroke={T.border} strokeWidth="1" strokeDasharray="3 7" opacity="0.45"/>
+              stroke={T.border} strokeWidth="1" strokeDasharray="3 8" opacity="0.5"/>
           ))}
 
           {/* Zero baseline */}
           {z0 > PT && z0 < PT + cH && (
             <line x1={PL} y1={z0} x2={w - PR} y2={z0}
-              stroke={T.border} strokeWidth="1.5" strokeDasharray="5 9" opacity="0.9"/>
+              stroke={T.border} strokeWidth="1.5" strokeDasharray="5 9" opacity="0.85"/>
           )}
 
           {/* Drawdown band */}
-          {ddPath && <path d={ddPath} fill={`${T.red}22`} stroke="none"/>}
+          {ddPath && <path d={ddPath} fill={`${T.red}1e`} stroke="none"/>}
 
           {/* Area fill */}
           {area && <path d={area} fill="url(#ec-fill)"/>}
@@ -339,14 +357,14 @@ export default function EquityCurve({ T, data = [] }) {
               d={line}
               fill="none"
               stroke="url(#ec-line)"
-              strokeWidth="3"
+              strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
               filter="url(#ec-glow)"
             />
           )}
 
-          {/* Trade dots — colored by result, visible when ≤ 80 trades */}
+          {/* Trade dots */}
           {filtered.length <= 80 && pts.map((p, i) => {
             const d = p.d;
             const dotC = d.result === "WIN" ? T.green : d.result === "LOSS" ? T.red : (T.amber || "#f59e0b");
@@ -359,7 +377,7 @@ export default function EquityCurve({ T, data = [] }) {
                 fill={dotC}
                 stroke={T.surface}
                 strokeWidth={isSel ? 2.5 : 1.5}
-                opacity={isSel ? 1 : 0.8}
+                opacity={isSel ? 1 : 0.75}
               />
             );
           })}
@@ -370,7 +388,7 @@ export default function EquityCurve({ T, data = [] }) {
             return (
               <>
                 <line x1={p.x} y1={PT} x2={p.x} y2={PT + cH}
-                  stroke={lineColor} strokeWidth="1" strokeDasharray="4 4" opacity="0.5"/>
+                  stroke={lineColor} strokeWidth="1" strokeDasharray="4 4" opacity="0.45"/>
                 <circle cx={p.x} cy={p.y} r="5"
                   fill={lineColor} stroke={T.surface} strokeWidth="2.5"/>
               </>
@@ -380,9 +398,9 @@ export default function EquityCurve({ T, data = [] }) {
           {/* Animated endpoint */}
           {last && !tooltip && (
             <>
-              <circle cx={last.x} cy={last.y} r="12" fill={lineColor} opacity="0.12" filter="url(#ec-dot-glow)">
-                <animate attributeName="r" values="10;18;10" dur="2.8s" repeatCount="indefinite"/>
-                <animate attributeName="opacity" values="0.12;0;0.12" dur="2.8s" repeatCount="indefinite"/>
+              <circle cx={last.x} cy={last.y} r="12" fill={lineColor} opacity="0.10" filter="url(#ec-dot-glow)">
+                <animate attributeName="r" values="10;20;10" dur="2.8s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values="0.10;0;0.10" dur="2.8s" repeatCount="indefinite"/>
               </circle>
               <circle cx={last.x} cy={last.y} r="5" fill={lineColor} stroke={T.surface} strokeWidth="2.5"/>
             </>
@@ -391,12 +409,12 @@ export default function EquityCurve({ T, data = [] }) {
           {/* Date labels */}
           {filtered.length > 0 && (
             <>
-              <text x={PL + 2} y={h - 8} fill={T.muted}
-                fontSize={FSIZE} fontWeight="600" fontFamily="Inter,sans-serif">
+              <text x={PL + 2} y={h - 10} fill={T.muted}
+                fontSize={FSIZE} fontWeight="600" fontFamily="'Satoshi',sans-serif">
                 {filtered[0].date ? fmtDate(filtered[0].date) : "First"}
               </text>
-              <text x={w - PR - 2} y={h - 8} fill={T.muted} textAnchor="end"
-                fontSize={FSIZE} fontWeight="600" fontFamily="Inter,sans-serif">
+              <text x={w - PR - 2} y={h - 10} fill={T.muted} textAnchor="end"
+                fontSize={FSIZE} fontWeight="600" fontFamily="'Satoshi',sans-serif">
                 {filtered[filtered.length-1].date ? fmtDate(filtered[filtered.length-1].date) : "Latest"}
               </text>
             </>
@@ -408,46 +426,45 @@ export default function EquityCurve({ T, data = [] }) {
           const { pt, screenX } = tooltip;
           const d = pt.d;
           const r = d.rr || 0;
-          const left = Math.min(Math.max(screenX - 80, 8), w - 176);
+          const left = Math.min(Math.max(screenX - 80, 8), w - 180);
           const above = pt.y / h > 0.55;
           return (
             <div style={{
               position: "absolute",
-              left, top: above ? pt.y - 100 : pt.y + 16,
-              background: `linear-gradient(135deg,${T.surface2},${T.surface})`,
+              left, top: above ? pt.y - 108 : pt.y + 18,
+              background: T.surface,
               border: `1px solid ${T.border}`,
-              borderRadius: 12, padding: "10px 14px",
+              borderRadius: 14, padding: "12px 16px",
               pointerEvents: "none", zIndex: 20,
-              boxShadow: `0 16px 40px ${T.bg}cc, 0 2px 8px ${T.bg}88`,
-              minWidth: 168,
-              backdropFilter: "blur(8px)",
+              boxShadow: `0 20px 48px ${T.bg}cc, 0 2px 8px ${T.bg}66`,
+              minWidth: 172,
             }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: T.muted, letterSpacing: "0.1em", marginBottom: 6 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: T.muted, letterSpacing: "0.08em", marginBottom: 7 }}>
                 {d.date ? fmtDate(d.date) : `Trade #${pt.i + 1}`}
               </div>
               {d.pair && (
-                <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 6 }}>{d.pair}</div>
+                <div style={{ fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif", fontSize: 14, fontWeight: 800, color: T.text, marginBottom: 8, letterSpacing: "-0.02em" }}>{d.pair}</div>
               )}
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 14 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 16 }}>
                 <div>
-                  <div style={{ fontSize: 9, color: T.muted, marginBottom: 2 }}>THIS TRADE</div>
-                  <div style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize: 15, fontWeight: 800, color: r >= 0 ? T.green : T.red }}>
+                  <div style={{ fontSize: 9, color: T.muted, letterSpacing: "0.08em", marginBottom: 3 }}>THIS TRADE</div>
+                  <div style={{ fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif", fontSize: 17, fontWeight: 900, color: r >= 0 ? T.green : T.red, letterSpacing: "-0.04em" }}>
                     {fmtStat(r)}
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: 9, color: T.muted, marginBottom: 2 }}>CUMULATIVE</div>
-                  <div style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize: 15, fontWeight: 800, color: d.r >= 0 ? T.green : T.red }}>
+                  <div style={{ fontSize: 9, color: T.muted, letterSpacing: "0.08em", marginBottom: 3 }}>CUMULATIVE</div>
+                  <div style={{ fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif", fontSize: 17, fontWeight: 900, color: d.r >= 0 ? T.green : T.red, letterSpacing: "-0.04em" }}>
                     {fmtStat(d.r)}
                   </div>
                 </div>
               </div>
               {d.result && (
                 <div style={{
-                  marginTop: 8, display: "inline-block",
-                  padding: "2px 9px", borderRadius: 6, fontSize: 10, fontWeight: 700,
-                  background: d.result === "WIN" ? `${T.green}20` : d.result === "LOSS" ? `${T.red}20` : `${T.amber || "#f59e0b"}20`,
-                  color:      d.result === "WIN" ? T.green         : d.result === "LOSS" ? T.red        : (T.amber || "#f59e0b"),
+                  marginTop: 9, display: "inline-block",
+                  padding: "3px 9px", borderRadius: 6, fontSize: 10, fontWeight: 700,
+                  background: d.result === "WIN" ? `${T.green}22` : d.result === "LOSS" ? `${T.red}22` : `${T.amber || "#f59e0b"}22`,
+                  color:      d.result === "WIN" ? T.green          : d.result === "LOSS" ? T.red        : (T.amber || "#f59e0b"),
                 }}>
                   {d.result}
                 </div>
@@ -464,14 +481,13 @@ export default function EquityCurve({ T, data = [] }) {
         const resultColor = d.result === "WIN" ? T.green : d.result === "LOSS" ? T.red : (T.amber || "#f59e0b");
         return (
           <div style={{
-            margin: "0 0 0 0",
             borderTop: `1px solid ${T.border}`,
-            background: `linear-gradient(135deg,${T.surface2},${T.surface})`,
-            padding: "14px 18px",
+            background: T.surface2,
+            padding: "14px 20px",
           }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize: 17, fontWeight: 800, color: T.accentBright }}>{d.pair || "Trade"}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                <span style={{ fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif", fontSize: 18, fontWeight: 900, color: T.accentBright, letterSpacing: "-0.04em" }}>{d.pair || "Trade"}</span>
                 {d.direction && (
                   <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 9px", borderRadius: 8,
                     background: d.direction === "LONG" ? `${T.green}20` : `${T.red}20`,
@@ -487,13 +503,13 @@ export default function EquityCurve({ T, data = [] }) {
                     background: `${resultColor}20`, color: resultColor,
                   }}>{d.result}</span>
                 )}
-                <span style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize: 18, fontWeight: 800, color: r >= 0 ? T.green : T.red }}>
+                <span style={{ fontFamily:"'Cabinet Grotesk','Satoshi',sans-serif", fontSize: 20, fontWeight: 900, color: r >= 0 ? T.green : T.red, letterSpacing: "-0.05em" }}>
                   {fmtStat(r)}
                 </span>
                 <button onClick={() => setSel(null)} style={{
                   background: "none", border: `1px solid ${T.border}`, color: T.muted,
-                  width: 26, height: 26, borderRadius: 8, cursor: "pointer", fontSize: 14,
-                  display: "grid", placeItems: "center", fontFamily: "Inter,sans-serif",
+                  width: 28, height: 28, borderRadius: 8, cursor: "pointer", fontSize: 16,
+                  display: "grid", placeItems: "center",
                 }}>×</button>
               </div>
             </div>
@@ -504,8 +520,8 @@ export default function EquityCurve({ T, data = [] }) {
                 { l: "Pips",    v: d.pips ? `${d.pips >= 0 ? "+" : ""}${d.pips}` : null },
                 { l: "Entry",   v: d.entry || null },
               ].filter(x => x.v).map(x => (
-                <div key={x.l} style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, padding: "8px 10px" }}>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 3 }}>{x.l}</div>
+                <div key={x.l} style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, padding: "8px 12px" }}>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4 }}>{x.l}</div>
                   <div style={{ fontSize: 12, fontWeight: 700, color: T.text }}>{x.v}</div>
                 </div>
               ))}
@@ -524,13 +540,14 @@ export default function EquityCurve({ T, data = [] }) {
       {/* ── Footer ── */}
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: w < 440 ? "6px 12px" : "7px 16px", borderTop: `1px solid ${T.border}`,
+        padding: w < 440 ? "8px 14px" : "9px 20px",
+        borderTop: `1px solid ${T.border}`,
         flexWrap: "wrap", gap: 6,
       }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: T.muted, letterSpacing: "0.08em" }}>
+        <div style={{ fontFamily:"'Satoshi',sans-serif", fontSize: 11, fontWeight: 700, color: T.muted, letterSpacing: "0.06em" }}>
           {filtered.length} trade{filtered.length !== 1 ? "s" : ""}
         </div>
-        <div style={{ display: "flex", gap: w < 440 ? 10 : 16, alignItems: "center", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: w < 440 ? 10 : 18, alignItems: "center", flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, color: T.textDim }}>
             <span style={{ width: 18, height: 2.5, background: `linear-gradient(90deg,${T.accentBright || "#8b5cf6"},${lineColor})`, borderRadius: 2, display: "inline-block" }}/>
             Cumul. R
