@@ -126,6 +126,31 @@ export const clearDraft = (userId, type) => {
 // ─── Plan data helpers ─────────────────────────────────────────────────────
 export const getDailyPlanImages  = (plan) => normalizeImageList(plan?.chartImage);
 export const getWeeklyPlanImages = (plan) => normalizeImageList(plan?.premiumDiscount?.__screenshots);
+export const parseMissedTradeNotes = (value) => {
+  if(!value || typeof value !== "string") return { text:"", screenshots:[] };
+  const trimmed = value.trim();
+  if(!trimmed.startsWith("{")) return { text:value, screenshots:[] };
+  try {
+    const parsed = JSON.parse(trimmed);
+    if(!parsed || typeof parsed !== "object") return { text:value, screenshots:[] };
+    return {
+      text: typeof parsed.__notes === "string" ? parsed.__notes : "",
+      screenshots: normalizeImageList(parsed.__screenshots),
+    };
+  } catch {
+    return { text:value, screenshots:[] };
+  }
+};
+export const serializeMissedTradeNotes = ({ text, screenshots } = {}) => {
+  const cleanText = String(text || "");
+  const images = normalizeImageList(screenshots);
+  if(images.length === 0) return cleanText;
+  return JSON.stringify({ __notes:cleanText, __screenshots:images });
+};
+export const getMissedTradeNote   = (trade) => parseMissedTradeNotes(trade?.notes).text;
+export const getMissedTradeImages = (trade) => normalizeImageList(trade?.screenshots).length
+  ? normalizeImageList(trade?.screenshots)
+  : parseMissedTradeNotes(trade?.notes).screenshots;
 export const getWeeklyPairNotes  = (plan) => plan?.premiumDiscount?.__pairNotes || {};
 export const getDailyPairNotes   = (plan) => {
   const value = plan?.watchlist;

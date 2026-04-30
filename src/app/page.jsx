@@ -2,7 +2,7 @@
 import { createClient } from "@/lib/supabase";
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { THEMES, THEME_META, DARK, LIGHT, PAIRS, SESSIONS, TAB_STORAGE_KEY, TRADE_BOOT_FIELDS, DAILY_BOOT_FIELDS, WEEKLY_BOOT_FIELDS, MISSED_BOOT_FIELDS } from "@/lib/constants";
-import { getCurrentSessionInfo, uploadImageValue, uploadImageList, deleteStoredImages, getDailyPlanImages, getWeeklyPlanImages, clearDraft, serializeImageList, getAutoSession } from "@/lib/utils";
+import { getCurrentSessionInfo, uploadImageValue, uploadImageList, deleteStoredImages, getDailyPlanImages, getWeeklyPlanImages, getMissedTradeImages, serializeMissedTradeNotes, clearDraft, serializeImageList, getAutoSession } from "@/lib/utils";
 import { Spinner, AppShellSkeleton, TabPanel, BottomNav, Overlay, HeaderMeta, SessionPill } from "@/components/ui";
 import DateRangeBar from "@/components/DateRangeBar";
 import TradeModal from "@/components/TradeModal";
@@ -28,7 +28,7 @@ import PatternDetector from "@/components/tabs/PatternDetector"
 import OnboardingFlow from "@/components/OnboardingFlow"
 
 export default function App() {
-  const supabase = createClient()
+  const supabase = useMemo(()=>createClient(),[])
   const [user,setUser] = useState(null)
   const [authLoading,setAuthLoading] = useState(true)
   const [themeKey,setThemeKey] = useState(()=>{
@@ -273,18 +273,31 @@ export default function App() {
   const saveMissedTrade = async(m)=>{
     setSyncing(true)
     try {
-      const payload = { ...m, user_id:user.id }
+      const previous = m._dbid ? missedTrades.find(x=>x._dbid===m._dbid) : null
+      const screenshots = await uploadImageList(supabase, user.id, "missed-trades", getMissedTradeImages(m))
+      const payload = {
+        ...m,
+        notes: serializeMissedTradeNotes({ text:m.notes, screenshots }),
+        user_id:user.id,
+      }
       delete payload._dbid; delete payload.id; delete payload.created_at
+      delete payload.screenshots
       // Coerce empty strings to null for numeric columns
       ;["entry","sl","tp","rr"].forEach(k=>{ if(payload[k]==="") payload[k]=null })
+      delete payload.entry; delete payload.sl; delete payload.tp
       const isEdit = !!m._dbid
       if(m._dbid){
-        await supabase.from("missed_trades").update(payload).eq("id",m._dbid).eq("user_id",user.id)
+        const { error } = await supabase.from("missed_trades").update(payload).eq("id",m._dbid).eq("user_id",user.id)
+        if(error)throw error
         setMissedTrades(ms=>ms.map(x=>x._dbid===m._dbid?{...payload,_dbid:m._dbid}:x))
       } else {
         const {data,error}=await supabase.from("missed_trades").insert([payload]).select()
         if(error)throw error
         setMissedTrades(ms=>[{...data[0],_dbid:data[0].id},...ms])
+      }
+      if(previous){
+        const removed = getMissedTradeImages(previous).filter(src=>!screenshots.includes(src))
+        await deleteStoredImages(supabase, removed)
       }
       setMissedTradeModal(null)
       showToast(isEdit?"Missed trade updated ✓":"Missed trade logged ✓")
@@ -299,13 +312,15 @@ export default function App() {
       const current =
         deleteTarget.type==="trade" ? trades.find(x=>x._dbid===deleteTarget.dbid) :
         deleteTarget.type==="daily" ? dailyPlans.find(x=>x._dbid===deleteTarget.dbid) :
-        weeklyPlans.find(x=>x._dbid===deleteTarget.dbid)
+        deleteTarget.type==="weekly" ? weeklyPlans.find(x=>x._dbid===deleteTarget.dbid) :
+        missedTrades.find(x=>x._dbid===deleteTarget.dbid)
       const {error}=await supabase.from(tbl).delete().eq("id",deleteTarget.dbid).eq("user_id",user.id)
       if(error)throw error
       if(current){
         if(deleteTarget.type==="trade") await deleteStoredImages(supabase, [current.preScreenshot, current.postScreenshot])
         if(deleteTarget.type==="daily") await deleteStoredImages(supabase, getDailyPlanImages(current))
         if(deleteTarget.type==="weekly") await deleteStoredImages(supabase, getWeeklyPlanImages(current))
+        if(deleteTarget.type==="missed") await deleteStoredImages(supabase, getMissedTradeImages(current))
       }
       if(deleteTarget.type==="trade")   setTrades(ts=>ts.filter(x=>x._dbid!==deleteTarget.dbid))
       if(deleteTarget.type==="daily")   setDailyPlans(ps=>ps.filter(x=>x._dbid!==deleteTarget.dbid))
@@ -437,8 +452,6 @@ export default function App() {
 
   if(authLoading) return <Spinner T={T}/>
   if(!user) return <LoginScreen supabase={supabase}/>
-  if(loading) return <AppShellSkeleton T={T}/>
-
   return (
     <div className="fx-app-root" style={{display:"flex",minHeight:"100vh",background:T.bg,color:T.text,fontFamily:"var(--font-geist-sans)",transition:"background .3s, color .3s",position:"relative",overflowX:"hidden"}}>
       <style>{css}</style>
@@ -470,7 +483,7 @@ export default function App() {
         </div>
         <div style={{flex:1}}/>
         <div style={{padding:"8px 20px",fontSize:11,color:T.muted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.email}</div>
-        <div style={{padding:"4px 20px 4px",fontSize:11,color:syncing?T.amber:T.green,cursor:"pointer"}} onClick={loadAll}>{syncing?"Saving...":"Synced"}</div>
+        <div style={{padding:"4px 20px 4px",fontSize:11,color:loading?T.amber:syncing?T.amber:T.green,cursor:"pointer"}} onClick={loadAll}>{loading?"Loading latest...":syncing?"Saving...":"Synced"}</div>
         <div style={{margin:"6px 16px 2px"}}>
           <div style={{fontSize:9,color:T.muted,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:8}}>Theme</div>
           <div style={{display:"flex",gap:8,alignItems:"center"}}>
@@ -533,6 +546,10 @@ export default function App() {
           </div>
         </div>
         {error&&<div style={{background:`${T.red}14`,borderBottom:`1px solid ${T.red}44`,color:T.red,padding:"10px 28px",fontSize:13,display:"flex",alignItems:"center"}}>Alert: {error}<button onClick={()=>setError(null)} style={{marginLeft:12,background:"none",border:"none",color:"inherit",cursor:"pointer",fontWeight:700,minWidth:32,minHeight:32}}>x</button></div>}
+        {loading&&!error&&<div style={{background:`${T.amber}10`,borderBottom:`1px solid ${T.amber}33`,color:T.textDim,padding:"8px 24px",fontSize:12,display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
+          <span>Loading latest journal data in the background...</span>
+          <span style={{fontFamily:"'JetBrains Mono','Fira Code',monospace",fontSize:11,color:T.amber}}>SYNC</span>
+        </div>}
         {streakAlert && dismissedStreak !== `${streakAlert.type}-${streakAlert.count}` && (
           <div style={{
             background: streakAlert.type === "LOSS" ? `${T.red}18` : `${T.green}18`,
@@ -567,7 +584,7 @@ export default function App() {
           {mountedTabs.includes("heatmap")&&<TabPanel active={tab==="heatmap"}><Heatmap T={T} trades={dateFiltered} viewportWidth={viewportWidth} onViewImg={setImgViewer}/></TabPanel>}
           {mountedTabs.includes("playbook")&&<TabPanel active={tab==="playbook"}><Playbook T={T} trades={dateFiltered}/></TabPanel>}
           {mountedTabs.includes("ai")&&<TabPanel active={tab==="ai"}><AIAnalysis T={T} trades={dateFiltered} dailyPlans={dailyPlans}/></TabPanel>}
-          {mountedTabs.includes("missed")&&<TabPanel active={tab==="missed"}><MissedTrades T={T} trades={dateFiltered} missedTrades={missedTrades} onNew={()=>setMissedTradeModal("new")} onEdit={m=>setMissedTradeModal(m)} onDelete={m=>setDeleteTarget({type:"missed",dbid:m._dbid,name:`${m.pair} ${m.direction} – ${m.reason}`})} viewportWidth={viewportWidth}/></TabPanel>}
+          {mountedTabs.includes("missed")&&<TabPanel active={tab==="missed"}><MissedTrades T={T} trades={dateFiltered} missedTrades={missedTrades} onNew={()=>setMissedTradeModal("new")} onEdit={m=>setMissedTradeModal(m)} onDelete={m=>setDeleteTarget({type:"missed",dbid:m._dbid,name:`${m.pair} ${m.direction} – ${m.reason}`})} onViewImg={setImgViewer} viewportWidth={viewportWidth}/></TabPanel>}
           {mountedTabs.includes("calendar")&&<TabPanel active={tab==="calendar"}><EconomicCalendar T={T} viewportWidth={viewportWidth}/></TabPanel>}
           {mountedTabs.includes("patterns")&&<TabPanel active={tab==="patterns"}><PatternDetector T={T} trades={dateFiltered} viewportWidth={viewportWidth}/></TabPanel>}
           {mountedTabs.includes("export")&&<TabPanel active={tab==="export"}><ExportTab T={T} trades={dateFiltered} dailyPlans={dailyPlans} weeklyPlans={weeklyPlans}/></TabPanel>}
