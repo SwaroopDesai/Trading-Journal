@@ -138,7 +138,7 @@ function getColor(T, type, key) {
 
 const DISMISS_KEY = "fx_dismissed_insights"
 
-export default function InsightCards({ T, trades }) {
+export default function InsightCards({ T, trades, collapseEmpty = false }) {
   const [dismissed, setDismissed] = useState([])
   const [aiInsight, setAiInsight] = useState(null)
   const [aiLoading, setAiLoading] = useState(false)
@@ -163,6 +163,8 @@ export default function InsightCards({ T, trades }) {
 
   const insights = useMemo(() => computeInsights(trades), [trades])
   const visible = insights.filter(i => !dismissed.includes(i.id))
+
+  if (collapseEmpty && visible.length === 0 && !aiInsight) return null
 
   const dismiss = (id) => {
     const next = [...dismissed, id]

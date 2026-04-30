@@ -113,9 +113,6 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
       width: "100%",
     }}>
 
-      {/* ── Insight strip (only when insights exist) ── */}
-      <InsightCards T={T} trades={trades} />
-
       {/* ── KPI strip — one surface, four cells ── */}
       <div style={{
         display: "grid",
@@ -219,7 +216,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28, delay: 0.06 }}
-          style={{ gridColumn: isMobile ? "auto" : `span ${isWide ? 10 : 8}`, minWidth: 0 }}
+          style={{ gridColumn: isMobile ? "auto" : `span ${isWide ? 11 : 8}`, minWidth: 0 }}
         >
           <EquityCurve T={T} data={stats.equityCurve} />
         </motion.div>
@@ -228,7 +225,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28, delay: 0.1 }}
-          style={{ gridColumn: isMobile ? "auto" : `span ${isWide ? 6 : 4}`, minWidth: 0 }}
+          style={{ gridColumn: isMobile ? "auto" : `span ${isWide ? 5 : 4}`, minWidth: 0 }}
         >
           <MonthlyReturns T={T} trades={trades} compact={!isMobile} />
         </motion.div>
@@ -339,7 +336,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28, delay: 0.22 }}
           whileHover={{ y: -2 }}
-          style={{ ...secondCard, gridColumn: isMobile ? "auto" : `span ${isWide ? 6 : 5}` }}
+          style={{ ...secondCard, gridColumn: isMobile ? "auto" : `span ${isWide ? 8 : 6}` }}
         >
           <div style={{ ...secTitle, display:"flex", justifyContent:"space-between" }}>
             <span>Weekly Theme</span>
@@ -386,7 +383,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28, delay: 0.26 }}
           whileHover={{ y: -2 }}
-          style={{ ...secondCard, gridColumn: isMobile ? "auto" : `span ${isWide ? 10 : 7}` }}
+          style={{ ...secondCard, gridColumn: isMobile ? "auto" : `span ${isWide ? 8 : 6}` }}
         >
           <div style={secTitle}>Pair Performance</div>
           {activePairs.length === 0
@@ -445,6 +442,8 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
         </motion.div>
 
       </div>
+
+      <InsightCards T={T} trades={trades} collapseEmpty />
     </div>
   )
 }
