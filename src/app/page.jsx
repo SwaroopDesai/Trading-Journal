@@ -425,7 +425,7 @@ export default function App() {
 
   // Mobile shows only 5 primary tabs; rest accessible via More
   const TABS=[
-    {id:"dashboard",label:"Home",mobile:true},
+    {id:"dashboard",label:"Dashboard",mobile:true},
     {id:"journal",label:"Journal",mobile:true},
     {id:"daily",label:"Daily",mobile:true},
     {id:"heatmap",label:"Heatmap",mobile:true},

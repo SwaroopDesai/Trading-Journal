@@ -1,5 +1,5 @@
 "use client"
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import { fmtDate, fmtRR } from "@/lib/utils";
 
 const RANGES = [
@@ -126,14 +126,26 @@ export default function EquityCurve({ T, data = [] }) {
   const svgRef  = useRef(null);
   const ddRef   = useRef(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
+    const measure = () => {
+      const width = el.getBoundingClientRect().width || el.clientWidth || el.parentElement?.clientWidth || 0;
+      setSize({ w: Math.max(width, 200) });
+    };
+    measure();
+    const frame = requestAnimationFrame(measure);
     const ro = new ResizeObserver(([entry]) => {
-      setSize({ w: Math.max(entry.contentRect.width, 200) });
+      const width = entry.contentRect.width || el.clientWidth || el.parentElement?.clientWidth || 0;
+      setSize({ w: Math.max(width, 200) });
     });
     ro.observe(el);
-    return () => ro.disconnect();
+    window.addEventListener("resize", measure);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", measure);
+      ro.disconnect();
+    };
   }, []);
 
   const filtered = filterByRange(data, range);
@@ -155,7 +167,7 @@ export default function EquityCurve({ T, data = [] }) {
   });
 
   // ── Layout constants ──────────────────────────────────────────────────────
-  const w   = size.w;
+  const w   = size.w || 720;
   const YAX = 42;          // left Y-axis label column width
   const PR  = 10;
   const PT  = 16;          // top padding inside chart SVG

@@ -123,7 +123,13 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
           const isLastCol  = isMobile ? idx % 2 === 1 : idx === 3
           const isLastRow  = isMobile ? idx >= 2 : true
           return (
-            <div key={k.label} style={{
+            <motion.div
+              key={k.label}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.28, delay: idx * 0.04 }}
+              whileHover={{ y: -2 }}
+              style={{
               position: "relative",
               padding: "12px 14px 0",
               minWidth: 0,
@@ -179,17 +185,19 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
                 position: "relative",
                 overflow: "hidden",
               }}>
-                <div style={{
+                <motion.div
+                  initial={{ width: "0%" }}
+                  animate={{ width: k.barWidth }}
+                  transition={{ duration: 0.65, delay: 0.12 + idx * 0.05, ease: [0.16, 1, 0.3, 1] }}
+                  style={{
                   position: "absolute",
                   left: 0, top: 0, bottom: 0,
-                  width: k.barWidth,
                   background: k.color,
                   opacity: 0.72,
                   borderRadius: "0 2px 2px 0",
-                  transition: "width 0.9s cubic-bezier(0.16,1,0.3,1)",
                 }}/>
               </div>
-            </div>
+            </motion.div>
           )
         })}
       </div>
