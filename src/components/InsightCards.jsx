@@ -23,13 +23,13 @@ function computeInsights(trades) {
     const bestWR  = (best[1].wins/best[1].total*100).toFixed(0)
     const worstWR = (worst[1].wins/worst[1].total*100).toFixed(0)
     if (Number(worstWR) < 38)
-      insights.push({ id:`bad-day-${worst[0]}`, type:"warning", icon:"📅",
+      insights.push({ id:`bad-day-${worst[0]}`, type:"warning", icon:"DAY",
         title:`${DAY[worst[0]]}s are costing you`,
         copy:`${worst[1].wins}/${worst[1].total} wins on ${DAY[worst[0]]}s (${worstWR}% win rate). Consider sitting out or halving size on this day.` })
     if (Number(bestWR) > 62)
-      insights.push({ id:`best-day-${best[0]}`, type:"positive", icon:"🎯",
+      insights.push({ id:`best-day-${best[0]}`, type:"positive", icon:"EDGE",
         title:`${DAY[best[0]]}s are your sharpest day`,
-        copy:`${bestWR}% win rate on ${DAY[best[0]]}s across ${best[1].total} trades. This is where your edge is clearest — lean into it.` })
+        copy:`${bestWR}% win rate on ${DAY[best[0]]}s across ${best[1].total} trades. This is where your edge is clearest, lean into it.` })
   }
 
   // 2. Session pattern
@@ -48,7 +48,7 @@ function computeInsights(trades) {
     const bWR = (bestS[1].wins/bestS[1].total*100).toFixed(0)
     const wWR = (worstS[1].wins/worstS[1].total*100).toFixed(0)
     if (bestS[0] !== worstS[0] && Number(bWR)-Number(wWR) > 22)
-      insights.push({ id:`session-edge`, type:"info", icon:"⏰",
+      insights.push({ id:`session-edge`, type:"info", icon:"SES",
         title:`${bestS[0]} session is where your edge lives`,
         copy:`${bWR}% win rate in ${bestS[0]} vs ${wWR}% in ${worstS[0]}. Concentrating on your best session window will compound returns.` })
   }
@@ -65,7 +65,7 @@ function computeInsights(trades) {
   if (alTotal >= 6) {
     const alWR = (alWins/alTotal*100).toFixed(0)
     if (Number(alWR) < 40)
-      insights.push({ id:`revenge-pattern`, type:"warning", icon:"🔄",
+      insights.push({ id:`revenge-pattern`, type:"warning", icon:"RISK",
         title:`After a loss you win only ${alWR}% of the time`,
         copy:`${alWins}/${alTotal} trades win after a loss. A mandatory cooling-off rule could protect serious R every week.` })
   }
@@ -86,11 +86,11 @@ function computeInsights(trades) {
     const bExp = (bestSetup[1].r/bestSetup[1].total).toFixed(2)
     const wExp = (worstSetup[1].r/worstSetup[1].total).toFixed(2)
     if (Number(bExp) > 0.5)
-      insights.push({ id:`best-setup-${bestSetup[0]}`, type:"positive", icon:"📈",
+      insights.push({ id:`best-setup-${bestSetup[0]}`, type:"positive", icon:"SET",
         title:`${bestSetup[0]} is your most profitable setup`,
         copy:`${bExp}R expectancy per trade across ${bestSetup[1].total} executions. This deserves your full focus and max position size.` })
     if (bestSetup[0] !== worstSetup[0] && Number(wExp) < -0.3)
-      insights.push({ id:`worst-setup-${worstSetup[0]}`, type:"warning", icon:"⚠️",
+      insights.push({ id:`worst-setup-${worstSetup[0]}`, type:"warning", icon:"CUT",
         title:`${worstSetup[0]} is bleeding your account`,
         copy:`${wExp}R expectancy per trade across ${worstSetup[1].total} attempts. Consider removing this setup from your playbook entirely.` })
   }
@@ -103,7 +103,7 @@ function computeInsights(trades) {
     else break
   }
   if (lossStreak >= 3)
-    insights.push({ id:`loss-streak-${lossStreak}`, type:"alert", icon:"🛑",
+    insights.push({ id:`loss-streak-${lossStreak}`, type:"alert", icon:"STOP",
       title:`You're on a ${lossStreak}-trade loss streak right now`,
       copy:`Historical data shows your win rate drops further after a streak. Consider sitting flat until conditions reset.` })
 
@@ -115,7 +115,7 @@ function computeInsights(trades) {
     const hdWR = heavyDays.flat().filter(t=>t.result==="WIN").length / heavyDays.flat().length * 100
     const allWR = trades.filter(t=>t.result==="WIN").length / trades.length * 100
     if (hdWR < allWR - 15)
-      insights.push({ id:`overtrading`, type:"warning", icon:"📊",
+      insights.push({ id:`overtrading`, type:"warning", icon:"VOL",
         title:`More trades per day = worse results`,
         copy:`On 4+ trade days your win rate drops to ${hdWR.toFixed(0)}% vs your overall ${allWR.toFixed(0)}%. Quality beats quantity every time.` })
   }
@@ -178,7 +178,7 @@ export default function InsightCards({ T, trades }) {
       const totalR = trades.reduce((s,t)=>s+(t.rr||0),0)
       const winRate = (wins/trades.length*100).toFixed(1)
 
-      // Build a compact stats summary to send (no raw trade data — cheaper prompt)
+      // Build a compact stats summary to send, no raw trade data.
       const bySession = {}
       const bySetup = {}
       const byDay = {}
@@ -228,7 +228,7 @@ Give the single most important thing this trader should do differently this week
 
       {visible.length === 0 && !aiInsight && (
         <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 16px",fontSize:13,color:T.textDim}}>
-          No patterns detected yet — keep logging trades.
+          No patterns detected yet, keep logging trades.
         </div>
       )}
 
@@ -236,11 +236,11 @@ Give the single most important thing this trader should do differently this week
         {visible.map(insight => {
           const color = getColor(T, insight.type)
           return (
-            <div key={insight.id} style={{background:`linear-gradient(135deg,${color}10,${T.surface})`,border:`1px solid ${color}35`,borderRadius:14,padding:"12px 14px",display:"flex",gap:12,alignItems:"flex-start",position:"relative"}}>
-              <span style={{fontSize:18,lineHeight:1,flexShrink:0,marginTop:1}}>{insight.icon}</span>
+            <div key={insight.id} style={{background:T.surface,border:`1px solid ${color}35`,borderRadius:14,padding:"12px 14px",display:"flex",gap:12,alignItems:"flex-start",position:"relative"}}>
+              <span style={{fontFamily:"'JetBrains Mono','Fira Code',monospace",fontSize:10,fontWeight:800,lineHeight:1,flexShrink:0,marginTop:2,color,background:T.surface2,border:`1px solid ${T.border}`,borderRadius:8,padding:"6px 7px",letterSpacing:"0.04em"}}>{insight.icon}</span>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4,flexWrap:"wrap"}}>
-                  <span style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:13,fontWeight:800,color:T.text}}>{insight.title}</span>
+                  <span style={{fontFamily:"var(--font-geist-sans)",fontSize:13,fontWeight:800,color:T.text}}>{insight.title}</span>
                   <span style={{fontSize:9,fontWeight:700,color,letterSpacing:"0.12em",textTransform:"uppercase",background:`${color}18`,border:`1px solid ${color}40`,padding:"1px 6px",borderRadius:999}}>
                     {insight.type==="positive"?"Edge":insight.type==="warning"?"Watch":insight.type==="alert"?"Alert":"Pattern"}
                   </span>
@@ -251,32 +251,32 @@ Give the single most important thing this trader should do differently this week
                 onClick={() => dismiss(insight.id)}
                 aria-label="Dismiss insight"
                 style={{background:"none",border:"none",color:T.textDim,cursor:"pointer",fontSize:16,lineHeight:1,padding:2,flexShrink:0,opacity:0.6}}
-              >×</button>
+              >x</button>
             </div>
           )
         })}
 
         {/* AI Insight card */}
-        <div style={{background:`linear-gradient(135deg,${T.accent}10,${T.surface})`,border:`1px solid ${T.accent}30`,borderRadius:14,padding:"12px 14px"}}>
+        <div style={{background:T.surface,border:`1px solid ${T.accent}30`,borderRadius:14,padding:"12px 14px"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:aiInsight?8:0,gap:8,flexWrap:"wrap"}}>
             <div style={{display:"flex",alignItems:"center",gap:8}}>
-              <span style={{fontSize:16}}>🤖</span>
-              <span style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:13,fontWeight:800,color:T.text}}>AI Coach</span>
+              <span style={{fontFamily:"'JetBrains Mono','Fira Code',monospace",fontSize:10,fontWeight:800,color:T.accentBright,background:T.surface2,border:`1px solid ${T.border}`,borderRadius:8,padding:"6px 7px",letterSpacing:"0.04em"}}>AI</span>
+              <span style={{fontFamily:"var(--font-geist-sans)",fontSize:13,fontWeight:800,color:T.text}}>AI Coach</span>
               <span style={{fontSize:9,fontWeight:700,color:T.accentBright,letterSpacing:"0.12em",textTransform:"uppercase",background:`${T.accent}18`,border:`1px solid ${T.accent}40`,padding:"1px 6px",borderRadius:999}}>Weekly</span>
             </div>
             <button
               onClick={fetchAiInsight}
               disabled={aiLoading}
-              style={{background:`${T.accent}20`,border:`1px solid ${T.accent}40`,color:T.accentBright,borderRadius:8,padding:"4px 12px",fontSize:11,fontWeight:700,cursor:aiLoading?"wait":"pointer",fontFamily:"Inter,sans-serif",opacity:aiLoading?0.6:1}}
+              style={{background:`${T.accent}20`,border:`1px solid ${T.accent}40`,color:T.accentBright,borderRadius:8,padding:"4px 12px",fontSize:11,fontWeight:700,cursor:aiLoading?"wait":"pointer",fontFamily:"var(--font-geist-sans)",opacity:aiLoading?0.6:1}}
             >
-              {aiLoading ? "Analyzing…" : aiInsight ? "Refresh" : "Generate"}
+              {aiLoading ? "Analyzing..." : aiInsight ? "Refresh" : "Generate"}
             </button>
           </div>
           {aiInsight && (
             <div style={{fontSize:12,color:T.textDim,lineHeight:1.7}}>{aiInsight}</div>
           )}
           {!aiInsight && !aiLoading && (
-            <div style={{fontSize:12,color:T.textDim}}>Get a one-sentence coaching note from your actual data — cached for the week.</div>
+            <div style={{fontSize:12,color:T.textDim}}>Get a one-sentence coaching note from your actual data, cached for the week.</div>
           )}
         </div>
       </div>

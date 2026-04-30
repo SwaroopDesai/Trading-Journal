@@ -9,6 +9,8 @@ import { fmtDate, fmtRR, getWeeklyPairNotes } from "@/lib/utils";
 function useCountUp(target, active, duration=1100) {
   const [val, setVal] = useState(0)
   useEffect(()=>{
+    const reduceMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches
+    if(reduceMotion){ setVal(target); return }
     if(!active) return
     setVal(0)
     if(target === 0) return
@@ -228,6 +230,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
                     minWidth: 58, fontSize: 12, letterSpacing: "0.04em",
                   }}>{t.pair}</span>
                   <Badge color={t.direction === "LONG" ? T.green : T.red}>{t.direction}</Badge>
+                  <Badge color={t.result === "WIN" ? T.green : t.result === "LOSS" ? T.red : T.amber}>{t.result}</Badge>
                   <span style={{ fontSize: 11, color: T.textDim, minWidth: 58 }}>{t.session || "Session"}</span>
                   <span style={{
                     marginLeft: "auto",
