@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import { PAIRS } from "@/lib/constants";
 import { fmtDate, fmtRR } from "@/lib/utils";
 import { Btn, Chip, EmptyState, Badge, Sel } from "@/components/ui";
@@ -22,6 +22,7 @@ function Journal({
   const isMobile = viewportWidth < 768;
   const [filterTag, setFilterTag] = useState(null);
   const [query, setQuery] = useState("");
+  const deferredQuery = useDeferredValue(query);
 
   const allTags = useMemo(
     () => [...new Map(filtered
@@ -32,7 +33,7 @@ function Journal({
   );
 
   const displayTrades = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = deferredQuery.trim().toLowerCase();
     return filtered.filter(t => {
       const tagMatch = !filterTag || (t.tags || []).some(tag => normalizeTag(tag) === filterTag);
       if (!tagMatch) return false;
@@ -53,7 +54,7 @@ function Journal({
 
       return haystack.includes(q);
     });
-  }, [filtered, filterTag, query]);
+  }, [filtered, filterTag, deferredQuery]);
 
   const groups = useMemo(() => {
     const byDate = {};
@@ -72,6 +73,13 @@ function Journal({
 
   const resultColor = trade =>
     trade.result === "WIN" ? T.green : trade.result === "LOSS" ? T.red : T.amber;
+
+  const archiveStats = useMemo(() => {
+    const wins = displayTrades.filter(t => t.result === "WIN").length;
+    const losses = displayTrades.filter(t => t.result === "LOSS").length;
+    const totalR = displayTrades.reduce((sum, t) => sum + (Number(t.rr) || 0), 0);
+    return { wins, losses, totalR };
+  }, [displayTrades]);
 
   const contextItems = trade => [
     { label: "Bias", value: trade.dailyBias, color: trade.dailyBias === "Bullish" ? T.green : trade.dailyBias === "Bearish" ? T.red : T.textDim },
@@ -114,8 +122,10 @@ function Journal({
               letterSpacing: "-0.045em",
               lineHeight: 1,
             }}>Trade Journal</div>
-            <div style={{ fontSize: 12, color: T.textDim, marginTop: 7, lineHeight: 1.5 }}>
-              Search, filter, and review executions without the noise.
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 9 }}>
+              <ArchivePill T={T} label="Trades" value={displayTrades.length} />
+              <ArchivePill T={T} label="Net R" value={fmtRR(archiveStats.totalR)} color={archiveStats.totalR >= 0 ? T.green : T.red} />
+              <ArchivePill T={T} label="W/L" value={`${archiveStats.wins}/${archiveStats.losses}`} />
             </div>
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: isMobile ? "stretch" : "flex-end" }}>
@@ -141,11 +151,15 @@ function Journal({
                 border: `1px solid ${T.border}`,
                 color: T.text,
                 borderRadius: 10,
+                minHeight: 44,
                 padding: "10px 12px",
                 outline: "none",
                 fontSize: 13,
                 fontFamily: "var(--font-geist-sans)",
+                transition: "border .18s ease, box-shadow .18s ease",
               }}
+              onFocus={event => { event.currentTarget.style.borderColor = T.accentBright; event.currentTarget.style.boxShadow = `0 0 0 3px ${T.accentBright}1f`; }}
+              onBlur={event => { event.currentTarget.style.borderColor = T.border; event.currentTarget.style.boxShadow = "none"; }}
             />
           </div>
 
@@ -207,7 +221,7 @@ function Journal({
                   style={{
                     background: T.surface,
                     border: `1px solid ${T.border}`,
-                    borderTop: `2px solid ${resultColor(trade)}88`,
+                    borderTop: `3px solid ${resultColor(trade)}88`,
                     borderRadius: 16,
                     padding: isMobile ? "13px" : "15px 16px",
                     position: "relative",
@@ -314,8 +328,8 @@ function Journal({
                       flexWrap: "wrap",
                     }}>
                       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                        {trade.preScreenshot && <JournalAction T={T} onClick={() => onViewImg(trade.preScreenshot)}>Pre Chart</JournalAction>}
-                        {trade.postScreenshot && <JournalAction T={T} onClick={() => onViewImg(trade.postScreenshot)}>Post Chart</JournalAction>}
+                        {trade.preScreenshot && <JournalAction T={T} onClick={() => onViewImg(trade.preScreenshot)} label="PRE">Pre Chart</JournalAction>}
+                        {trade.postScreenshot && <JournalAction T={T} onClick={() => onViewImg(trade.postScreenshot)} label="POST">Post Chart</JournalAction>}
                       </div>
 
                       <div style={{ display: "flex", gap: 6, marginLeft: isMobile ? 0 : "auto" }}>
@@ -343,21 +357,57 @@ function FilterBlock({ T, title, children }) {
   );
 }
 
-function JournalAction({ T, onClick, children }) {
+function ArchivePill({ T, label, value, color }) {
+  return (
+    <span style={{
+      display: "inline-flex",
+      alignItems: "baseline",
+      gap: 6,
+      minHeight: 28,
+      padding: "5px 9px",
+      borderRadius: 999,
+      background: T.surface2,
+      border: `1px solid ${T.border}`,
+      color: color || T.textDim,
+      fontSize: 11,
+      fontWeight: 800,
+    }}>
+      <span style={{ color: T.muted, fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase" }}>{label}</span>
+      <span style={{ fontFamily: "'JetBrains Mono','Fira Code',monospace" }}>{value}</span>
+    </span>
+  );
+}
+
+function JournalAction({ T, onClick, label, children }) {
   return (
     <button
       onClick={onClick}
+      aria-label={children}
       style={{
-        background: `linear-gradient(135deg, ${T.accent}18, ${T.blue}12)`,
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 7,
+        minHeight: 40,
+        background: T.surface2,
         border: `1px solid ${T.accent}45`,
         color: T.accentBright,
-        padding: "7px 12px",
+        padding: "7px 11px",
         borderRadius: 12,
         cursor: "pointer",
-        fontSize: 12,
+        fontFamily: "var(--font-geist-sans)",
+        fontSize: 11,
         fontWeight: 800,
+        transition: "border .18s ease, background .18s ease, color .18s ease",
       }}
+      onMouseEnter={event => { event.currentTarget.style.borderColor = T.accentBright; event.currentTarget.style.background = `${T.accent}12`; }}
+      onMouseLeave={event => { event.currentTarget.style.borderColor = `${T.accent}45`; event.currentTarget.style.background = T.surface2; }}
     >
+      <span style={{
+        fontFamily: "'JetBrains Mono','Fira Code',monospace",
+        fontSize: 9,
+        color: T.textDim,
+        letterSpacing: "0.08em",
+      }}>{label}</span>
       {children}
     </button>
   );
@@ -371,8 +421,10 @@ function smallButton(T) {
     padding: "7px 12px",
     borderRadius: 12,
     cursor: "pointer",
+    fontFamily: "var(--font-geist-sans)",
     fontSize: 12,
     fontWeight: 800,
+    minHeight: 40,
   };
 }
 
