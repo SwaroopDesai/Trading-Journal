@@ -160,8 +160,8 @@ export default function EquityCurve({ T, data = [] }) {
   const PR  = 10;
   const PT  = 16;          // top padding inside chart SVG
   const PB  = 28;          // bottom (date labels)
-  const ECH = Math.round(Math.max(w * 0.18, 120));  // equity curve height
-  const DDH = Math.round(Math.max(w * 0.07, 48));   // drawdown pane height
+  const ECH = Math.round(Math.max(w * 0.13, 96));   // equity curve height
+  const DDH = Math.round(Math.max(w * 0.045, 36));  // drawdown pane height
   const GAP = 0;           // gap between the two charts
 
   const cW = w - YAX - PR;
