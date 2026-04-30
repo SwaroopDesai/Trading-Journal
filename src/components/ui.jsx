@@ -143,16 +143,16 @@ export function BottomNav({T,tab,setTab,TABS,MOBILE_PRIMARY}){
             aria-label={t.label}
             aria-current={isActive?"page":undefined}
             style={{
-              flex:1,display:"flex",flexDirection:"column",alignItems:"center",
-              padding:"10px 2px 8px",background:"none",border:"none",
+              flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",position:"relative",
+              padding:"12px 2px 10px",background:"none",border:"none",
               color:isActive?T.accentBright:T.muted,
-              cursor:"pointer",fontFamily:"var(--font-geist-sans)",fontSize:9,gap:3,
-              fontWeight:isActive?700:400,transition:"color .15s",
+              cursor:"pointer",fontFamily:"var(--font-geist-sans)",fontSize:11,gap:4,
+              fontWeight:isActive?800:600,transition:"color .15s, background .15s",
               minHeight:44,
             }}
           >
-            <span style={{fontSize:20,lineHeight:1}}>{t.icon}</span>
-            <span style={{letterSpacing:"0.02em"}}>{t.label}</span>
+            <span aria-hidden="true" style={{position:"absolute",top:7,width:isActive?18:4,height:3,borderRadius:999,background:isActive?T.accentBright:T.border,opacity:isActive?1:.75,transition:"width .15s, background .15s"}} />
+            <span style={{letterSpacing:"0.01em"}}>{t.label}</span>
           </button>
         )
       })}

@@ -409,24 +409,24 @@ export default function App() {
 
   // Mobile shows only 5 primary tabs; rest accessible via More
   const TABS=[
-    {id:"dashboard",icon:"DB",label:"Home",mobile:true},
-    {id:"journal",icon:"JR",label:"Journal",mobile:true},
-    {id:"daily",icon:"DY",label:"Daily",mobile:true},
-    {id:"heatmap",icon:"HM",label:"Heatmap",mobile:true},
-    {id:"more",icon:"...",label:"More",mobile:true},
+    {id:"dashboard",label:"Home",mobile:true},
+    {id:"journal",label:"Journal",mobile:true},
+    {id:"daily",label:"Daily",mobile:true},
+    {id:"heatmap",label:"Heatmap",mobile:true},
+    {id:"more",label:"More",mobile:true},
     // Desktop sidebar + accessible via More on mobile
-    {id:"analytics",icon:"AN",label:"Analytics",mobile:false},
-    {id:"weekly",icon:"WK",label:"Weekly",mobile:false},
-    {id:"psychology",icon:"MD",label:"Mind",mobile:false},
-    {id:"playbook",icon:"PB",label:"Playbook",mobile:false},
-    {id:"calculator",icon:"CL",label:"Calculator",mobile:false},
-    {id:"gallery",icon:"GL",label:"Gallery",mobile:false},
-    {id:"review",icon:"RV",label:"Review",mobile:false},
-    {id:"ai",icon:"AI",label:"AI Analysis",mobile:false},
-    {id:"missed",icon:"MS",label:"Missed",mobile:false},
-    {id:"calendar",icon:"EC",label:"Calendar",mobile:false},
-    {id:"patterns",icon:"PT",label:"Patterns",mobile:false},
-    {id:"export",icon:"EX",label:"Export",mobile:false},
+    {id:"analytics",label:"Analytics",mobile:false},
+    {id:"weekly",label:"Weekly",mobile:false},
+    {id:"psychology",label:"Mind",mobile:false},
+    {id:"playbook",label:"Playbook",mobile:false},
+    {id:"calculator",label:"Calculator",mobile:false},
+    {id:"gallery",label:"Gallery",mobile:false},
+    {id:"review",label:"Review",mobile:false},
+    {id:"ai",label:"AI Analysis",mobile:false},
+    {id:"missed",label:"Missed",mobile:false},
+    {id:"calendar",label:"Calendar",mobile:false},
+    {id:"patterns",label:"Patterns",mobile:false},
+    {id:"export",label:"Export",mobile:false},
   ]
   const ALL_TABS=TABS.filter(t=>t.id!=="more")
   const MOBILE_PRIMARY=TABS.filter(t=>t.mobile)
@@ -454,7 +454,6 @@ export default function App() {
             <button key={t.id} className={`nav-btn ${tab===t.id?"nav-active":""}`}
               style={{color:tab===t.id?T.text:T.textDim}}
               onClick={()=>changeTab(t.id)}>
-              <span className="nav-icon">{t.icon}</span>
               <span>{t.label}</span>
             </button>
           ))}
@@ -465,7 +464,6 @@ export default function App() {
             <button key={t.id} className={`nav-btn ${tab===t.id?"nav-active":""}`}
               style={{color:tab===t.id?T.text:T.textDim}}
               onClick={()=>changeTab(t.id)}>
-              <span className="nav-icon">{t.icon}</span>
               <span>{t.label}</span>
             </button>
           ))}
