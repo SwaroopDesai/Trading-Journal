@@ -12,45 +12,45 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { fmtRR } from "@/lib/utils";
 
 const FONT_NUM = "'JetBrains Mono','Fira Code',monospace";
 
 function ChartShell({ T, title, meta, children }) {
   return (
-    <div style={{
-      background: T.surface,
-      border: `1px solid ${T.border}`,
-      borderRadius: 14,
-      minHeight: 206,
-      overflow: "hidden",
-      padding: "12px 14px",
-    }}>
-      <div style={{
-        display: "flex",
-        alignItems: "baseline",
-        justifyContent: "space-between",
-        gap: 10,
-        marginBottom: 10,
-      }}>
-        <div style={{
+    <Card
+      size="sm"
+      className="min-h-[206px] gap-2 rounded-[14px] py-3"
+      style={{ background:T.surface, border:`1px solid ${T.border}`, color:T.text }}
+    >
+      <CardHeader className="px-3">
+        <CardTitle style={{
           color: T.muted,
           fontSize: 11,
           fontWeight: 800,
           letterSpacing: "0.12em",
           textTransform: "uppercase",
-        }}>{title}</div>
+        }}>{title}</CardTitle>
         {meta && (
-          <div style={{
+          <CardAction style={{
             color: T.textDim,
             fontSize: 10,
             fontFamily: FONT_NUM,
             whiteSpace: "nowrap",
-          }}>{meta}</div>
+          }}>{meta}</CardAction>
         )}
-      </div>
-      {children}
-    </div>
+      </CardHeader>
+      <CardContent className="px-3">
+        {children}
+      </CardContent>
+    </Card>
   );
 }
 

@@ -1,5 +1,9 @@
 "use client"
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
 const PRESETS = [
   { id: "all", label: "All" },
   { id: "7d",  label: "7D"  },
@@ -11,48 +15,38 @@ const PRESETS = [
 
 export default function DateRangeBar({ T, value, onChange, count, total }) {
   return (
-    <div className="date-range-bar" style={{
-      padding:"8px 28px",
-      borderBottom:`1px solid ${T.border}`,
-      background:T.surface,
-    }}>
-      <div style={{
-        display:"flex",
-        alignItems:"center",
-        gap:10,
-        flexWrap:"wrap",
-        width:"100%",
-      }}>
-        <span style={{fontSize:11,fontWeight:700,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",flexShrink:0}}>
+    <div
+      className="date-range-bar border-b bg-card px-7 py-2"
+      style={{ borderBottomColor:T.border, background:T.surface }}
+    >
+      <div className="flex w-full flex-wrap items-center gap-2.5">
+        <span className="shrink-0 text-[11px] font-bold uppercase tracking-[0.12em]" style={{ color:T.muted }}>
           Period
         </span>
-        <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+        <div className="flex flex-wrap gap-1">
           {PRESETS.map(p => (
-            <button
+            <Button
               key={p.id}
+              type="button"
+              variant={value === p.id ? "secondary" : "outline"}
+              size="xs"
               onClick={() => onChange(p.id)}
-              className="fx-btn"
+              className={cn(
+                "fx-btn rounded-full px-3 font-bold tracking-[0.05em]",
+                value === p.id && "border-primary bg-primary/10 text-primary"
+              )}
               style={{
-                padding:"3px 11px",
-                borderRadius:999,
-                fontSize:11,
-                fontWeight:700,
-                border:`1px solid ${value===p.id ? T.accentBright : T.border}`,
-                background: value===p.id ? `${T.accent}22` : "transparent",
                 color: value===p.id ? T.accentBright : T.textDim,
-                cursor:"pointer",
-                transition:"all .15s",
-                minHeight:26,
-                letterSpacing:"0.05em",
-                fontFamily:"var(--font-geist-sans)",
+                borderColor: value===p.id ? T.accentBright : T.border,
+                background: value===p.id ? `${T.accent}22` : "transparent",
               }}
-            >{p.label}</button>
+            >{p.label}</Button>
           ))}
         </div>
         {value !== "all" && (
-          <span style={{fontSize:11,color:T.textDim,marginLeft:4}}>
+          <Badge variant="outline" className="ml-1 rounded-full font-normal" style={{ color:T.textDim, borderColor:T.border }}>
             {count} trade{count !== 1 ? "s" : ""} - {total - count} outside range
-          </span>
+          </Badge>
         )}
       </div>
     </div>

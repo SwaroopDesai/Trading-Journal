@@ -1,9 +1,16 @@
+import { clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 import { createClient } from "@/lib/supabase";
 import { STORAGE_BUCKET, SESSION_WINDOWS, DAILY_PAIR_NOTES_MARKER } from "@/lib/constants";
 
 // ─── Formatters ────────────────────────────────────────────────────────────
 export const fmtDate = d => new Date(d).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"2-digit"});
 export const fmtRR   = rr => rr >= 0 ? `+${Number(rr).toFixed(2)}R` : `${Number(rr).toFixed(2)}R`;
+
+// ─── shadcn helper ─────────────────────────────────────────────────────────
+export function cn(...inputs) {
+  return twMerge(clsx(inputs));
+}
 
 // ─── Image helpers ─────────────────────────────────────────────────────────
 export const isDataUrl              = value => typeof value === "string" && value.startsWith("data:image/");
