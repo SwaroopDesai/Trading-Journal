@@ -11,6 +11,7 @@ import Psychology from "@/components/Psychology";
 import Calculator from "@/components/Calculator";
 import MoreMenu from "@/components/MoreMenu";
 import LoginScreen from "@/components/LoginScreen";
+import CommandPalette from "@/components/CommandPalette";
 import Dashboard from "@/components/tabs/Dashboard";
 import Journal from "@/components/tabs/Journal";
 import DailyTab, { DailyModal } from "@/components/tabs/DailyTab";
@@ -526,7 +527,18 @@ export default function App() {
           </div>
           {/* Right: theme swatches + session pill */}
           <div style={{display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
-            <div style={{display:"flex",gap:5,alignItems:"center"}}>
+            <CommandPalette
+              T={T}
+              tabs={ALL_TABS}
+              currentTab={tab}
+              onTab={changeTab}
+              onNewTrade={()=>setTradeModal("quick")}
+              onNewDaily={()=>setDailyModal("new")}
+              onNewWeekly={()=>setWeeklyModal("new")}
+              onNewMissed={()=>setMissedTradeModal("new")}
+              onTheme={changeTheme}
+            />
+            <div className="hide-mobile" style={{display:"flex",gap:5,alignItems:"center"}}>
               {THEME_META.map(tm=>(
                 <button
                   key={tm.id}

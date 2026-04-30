@@ -1,6 +1,12 @@
 "use client"
 
 import { useDeferredValue, useMemo, useState } from "react";
+import {
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
 import { PAIRS } from "@/lib/constants";
 import { fmtDate, fmtRR } from "@/lib/utils";
 import { Btn, Chip, EmptyState, Badge, Sel } from "@/components/ui";
@@ -22,6 +28,7 @@ function Journal({
   const isMobile = viewportWidth < 768;
   const [filterTag, setFilterTag] = useState(null);
   const [query, setQuery] = useState("");
+  const [sorting, setSorting] = useState([{ id: "date", desc: true }]);
   const deferredQuery = useDeferredValue(query);
 
   const allTags = useMemo(
@@ -32,29 +39,57 @@ function Journal({
     [filtered]
   );
 
-  const displayTrades = useMemo(() => {
-    const q = deferredQuery.trim().toLowerCase();
+  const tagFiltered = useMemo(() => {
     return filtered.filter(t => {
       const tagMatch = !filterTag || (t.tags || []).some(tag => normalizeTag(tag) === filterTag);
-      if (!tagMatch) return false;
-      if (!q) return true;
-
-      const haystack = [
-        t.pair,
-        t.direction,
-        t.session,
-        t.result,
-        t.dailyBias,
-        t.setup,
-        t.emotion,
-        t.mistakes,
-        t.notes,
-        ...(t.tags || []).map(normalizeTag),
-      ].filter(Boolean).join(" ").toLowerCase();
-
-      return haystack.includes(q);
+      return tagMatch;
     });
-  }, [filtered, filterTag, deferredQuery]);
+  }, [filtered, filterTag]);
+
+  const columns = useMemo(() => [
+    { id: "date", accessorKey: "date" },
+    { id: "pair", accessorKey: "pair" },
+    { id: "result", accessorKey: "result" },
+    { id: "rr", accessorFn: row => Number(row.rr) || 0 },
+    {
+      id: "search",
+      accessorFn: row => [
+        row.pair,
+        row.direction,
+        row.session,
+        row.result,
+        row.dailyBias,
+        row.setup,
+        row.emotion,
+        row.mistakes,
+        row.notes,
+        ...(row.tags || []).map(normalizeTag),
+      ].filter(Boolean).join(" "),
+    },
+  ], []);
+
+  const table = useReactTable({
+    data: tagFiltered,
+    columns,
+    state: {
+      globalFilter: deferredQuery,
+      sorting,
+    },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    globalFilterFn: (row, columnId, filterValue) => {
+      const q = String(filterValue || "").trim().toLowerCase();
+      if (!q) return true;
+      return String(row.getValue("search") || "").toLowerCase().includes(q);
+    },
+  });
+
+  const displayTrades = useMemo(
+    () => table.getRowModel().rows.map(row => row.original),
+    [table]
+  );
 
   const groups = useMemo(() => {
     const byDate = {};
@@ -184,6 +219,16 @@ function Journal({
             </FilterBlock>
           </div>
         )}
+
+        <div style={{ marginTop: 10 }}>
+          <FilterBlock T={T} title="Sort">
+            <SortChip T={T} active={sorting[0]?.id === "date" && sorting[0]?.desc} onClick={() => setSorting([{ id: "date", desc: true }])}>Newest</SortChip>
+            <SortChip T={T} active={sorting[0]?.id === "date" && !sorting[0]?.desc} onClick={() => setSorting([{ id: "date", desc: false }])}>Oldest</SortChip>
+            <SortChip T={T} active={sorting[0]?.id === "rr" && sorting[0]?.desc} onClick={() => setSorting([{ id: "rr", desc: true }])}>Best R</SortChip>
+            <SortChip T={T} active={sorting[0]?.id === "rr" && !sorting[0]?.desc} onClick={() => setSorting([{ id: "rr", desc: false }])}>Worst R</SortChip>
+            <SortChip T={T} active={sorting[0]?.id === "pair"} onClick={() => setSorting([{ id: "pair", desc: false }])}>Pair A-Z</SortChip>
+          </FilterBlock>
+        </div>
       </div>
 
       {displayTrades.length === 0 && (
@@ -375,6 +420,29 @@ function ArchivePill({ T, label, value, color }) {
       <span style={{ color: T.muted, fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase" }}>{label}</span>
       <span style={{ fontFamily: "'JetBrains Mono','Fira Code',monospace" }}>{value}</span>
     </span>
+  );
+}
+
+function SortChip({ T, active, onClick, children }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-pressed={active}
+      style={{
+        background: active ? `${T.accent}18` : T.surface,
+        border: `1px solid ${active ? T.accentBright : T.border}`,
+        color: active ? T.accentBright : T.textDim,
+        padding: "7px 10px",
+        borderRadius: 999,
+        fontSize: 11,
+        fontWeight: 850,
+        cursor: "pointer",
+        minHeight: 34,
+        fontFamily: "var(--font-geist-sans)",
+      }}
+    >
+      {children}
+    </button>
   );
 }
 

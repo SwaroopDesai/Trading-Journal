@@ -202,21 +202,38 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
         })}
       </div>
 
-      {/* ── Equity curve + drawdown ── */}
-      <EquityCurve T={T} data={stats.equityCurve} />
-
-      {/* ── Monthly returns heatmap ── */}
-      <MonthlyReturns T={T} trades={trades} />
-
-      {/* ── Secondary 2-col grid ── */}
+      {/* ── Bento dashboard grid ── */}
       <div style={{
         display: "grid",
-        gridTemplateColumns: isMobile ? "1fr" : "repeat(2,minmax(0,1fr))",
+        gridTemplateColumns: isMobile ? "1fr" : "repeat(12,minmax(0,1fr))",
         gap: 10,
       }}>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.28, delay: 0.06 }}
+          style={{ gridColumn: isMobile ? "auto" : "span 8", minWidth: 0 }}
+        >
+          <EquityCurve T={T} data={stats.equityCurve} />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.28, delay: 0.1 }}
+          style={{ gridColumn: isMobile ? "auto" : "span 4", minWidth: 0 }}
+        >
+          <MonthlyReturns T={T} trades={trades} />
+        </motion.div>
 
         {/* Today's Trades */}
-        <div style={secondCard}>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.28, delay: 0.14 }}
+          whileHover={{ y: -2 }}
+          style={{ ...secondCard, gridColumn: isMobile ? "auto" : "span 6" }}
+        >
           <div style={{ ...secTitle, display:"flex", justifyContent:"space-between", gap:10 }}>
             <span>Today&apos;s Trades</span>
             <span style={{
@@ -258,10 +275,16 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
                 </div>
               ))
           }
-        </div>
+        </motion.div>
 
         {/* Daily Bias */}
-        <div style={secondCard}>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.28, delay: 0.18 }}
+          whileHover={{ y: -2 }}
+          style={{ ...secondCard, gridColumn: isMobile ? "auto" : "span 6" }}
+        >
           <div style={{ ...secTitle, display:"flex", justifyContent:"space-between" }}>
             <span>Daily Bias</span>
             {latestDaily && <span style={{ color: T.accent, fontWeight: 600, letterSpacing: 0, textTransform:"none", fontSize:11 }}>{fmtDate(latestDaily.date)}</span>}
@@ -301,10 +324,16 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
                 action={<Btn T={T} onClick={onNewDaily}>+ Add Plan</Btn>}
               />
           }
-        </div>
+        </motion.div>
 
         {/* Weekly Theme */}
-        <div style={secondCard}>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.28, delay: 0.22 }}
+          whileHover={{ y: -2 }}
+          style={{ ...secondCard, gridColumn: isMobile ? "auto" : "span 5" }}
+        >
           <div style={{ ...secTitle, display:"flex", justifyContent:"space-between" }}>
             <span>Weekly Theme</span>
             {latestWeekly && <span style={{ color: T.accent, fontWeight: 600, letterSpacing: 0, textTransform:"none", fontSize:11 }}>{latestWeekly.weekStart}</span>}
@@ -342,10 +371,16 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
                 action={<Btn T={T} onClick={onNewWeekly}>+ Weekly Plan</Btn>}
               />
           }
-        </div>
+        </motion.div>
 
         {/* Asset Efficiency Matrix */}
-        <div style={{ ...secondCard, gridColumn: isMobile ? "auto" : "auto" }}>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.28, delay: 0.26 }}
+          whileHover={{ y: -2 }}
+          style={{ ...secondCard, gridColumn: isMobile ? "auto" : "span 7" }}
+        >
           <div style={secTitle}>Pair Performance</div>
           {activePairs.length === 0
             ? <div style={{ color: T.muted, fontSize: 12, textAlign:"center", padding: "16px 0" }}>Log trades to see pair performance</div>
@@ -400,7 +435,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
                 })}
               </div>
           }
-        </div>
+        </motion.div>
 
       </div>
     </div>
