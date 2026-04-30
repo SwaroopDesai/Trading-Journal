@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect } from "react";
-import { Card, CardTitle, EmptyState, Btn, Badge } from "@/components/ui";
+import { EmptyState, Btn, Badge } from "@/components/ui";
 import EquityCurve from "@/components/EquityCurve";
 import InsightCards from "@/components/InsightCards";
 import MonthlyReturns from "@/components/MonthlyReturns";
@@ -34,6 +34,10 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
   const latestWeekly = [...weeklyPlans].sort((a,b) => new Date(b.weekStart) - new Date(a.weekStart))[0]
   const bestPair     = [...stats.byPair].sort((a,b) => b.totalR - a.totalR)[0]
   const isMobile     = viewportWidth < 768
+  const todayR        = todayTrades.reduce((sum, t) => sum + (Number(t.rr) || 0), 0)
+  const activePairs   = stats.byPair
+    .filter(p => p.count > 0)
+    .sort((a, b) => b.totalR - a.totalR)
 
   const animTotalR  = useCountUp(stats.totalR,        active)
   const animWinRate = useCountUp(stats.winRate,        active)
@@ -52,7 +56,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
       label:    "Win Rate",
       value:    `${animWinRate.toFixed(1)}%`,
       color:    stats.winRate >= 55 ? T.green : stats.winRate >= 45 ? T.amber : T.red,
-      sub:      `${stats.wins}W · ${stats.losses}L · ${stats.be}BE`,
+      sub:      `${stats.wins}W / ${stats.losses}L / ${stats.be}BE`,
       barWidth: `${Math.min(stats.winRate, 100)}%`,
     },
     {
@@ -64,7 +68,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
     },
     {
       label:    "Best Pair",
-      value:    bestPair?.pair || "—",
+      value:    bestPair?.pair || "None",
       color:    T.accentBright,
       sub:      `${animBestR >= 0 ? "+" : ""}${animBestR.toFixed(1)}R total`,
       barWidth: `${Math.min(Math.abs(bestPair?.totalR || 0) / 20 * 100, 100)}%`,
@@ -78,6 +82,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
     background: T.surface,
     padding: "12px 14px",
     overflow: "hidden",
+    minHeight: 128,
   }
   const secTitle = {
     fontSize: 11,
@@ -193,18 +198,25 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
 
         {/* Today's Trades */}
         <div style={secondCard}>
-          <div style={secTitle}>Today&apos;s Trades</div>
+          <div style={{ ...secTitle, display:"flex", justifyContent:"space-between", gap:10 }}>
+            <span>Today&apos;s Trades</span>
+            <span style={{
+              color: todayR >= 0 ? T.green : T.red,
+              fontFamily: "'JetBrains Mono','Fira Code',monospace",
+              letterSpacing: "-0.02em",
+            }}>{todayR >= 0 ? "+" : ""}{todayR.toFixed(2)}R</span>
+          </div>
           {todayTrades.length === 0
-            ? <EmptyState T={T} icon="🎯" compact
+            ? <EmptyState T={T} icon="TRD" compact
                 title="No trades today"
                 copy="Log the first execution of the session."
                 action={<Btn T={T} onClick={onNewTrade}>+ Log Trade</Btn>}
               />
-            : todayTrades.map(t => (
+            : todayTrades.map((t, idx) => (
                 <div key={t._dbid} style={{
                   display: "flex", alignItems: "center", gap: 8,
-                  padding: "8px 0",
-                  borderBottom: `1px solid ${T.border}`,
+                  padding: "7px 0",
+                  borderBottom: idx === todayTrades.length - 1 ? "none" : `1px solid ${T.border}`,
                 }}>
                   <span style={{
                     width: 5, height: 5, flexShrink: 0, borderRadius: 1,
@@ -216,7 +228,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
                     minWidth: 58, fontSize: 12, letterSpacing: "0.04em",
                   }}>{t.pair}</span>
                   <Badge color={t.direction === "LONG" ? T.green : T.red}>{t.direction}</Badge>
-                  <Badge color={t.result === "WIN" ? T.green : t.result === "LOSS" ? T.red : T.amber}>{t.result}</Badge>
+                  <span style={{ fontSize: 11, color: T.textDim, minWidth: 58 }}>{t.session || "Session"}</span>
                   <span style={{
                     marginLeft: "auto",
                     fontFamily: "'JetBrains Mono','Fira Code',monospace",
@@ -251,12 +263,19 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
                   </div>
                 ))}
                 {latestDaily.notes && (
-                  <div style={{ fontSize: 12, color: T.textDim, marginTop: 8, lineHeight: 1.5 }}>
+                  <div style={{
+                    fontSize: 12,
+                    color: T.textDim,
+                    marginTop: 8,
+                    lineHeight: 1.5,
+                    borderTop: `1px solid ${T.border}`,
+                    paddingTop: 8,
+                  }}>
                     {latestDaily.notes}
                   </div>
                 )}
               </div>
-            : <EmptyState T={T} icon="📅" compact
+            : <EmptyState T={T} icon="DAY" compact
                 title="No daily plan"
                 copy="Set the bias and levels before the session opens."
                 action={<Btn T={T} onClick={onNewDaily}>+ Add Plan</Btn>}
@@ -297,7 +316,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
                   <div style={{ fontSize: 12, color: T.textDim, lineHeight: 1.5 }}>{latestWeekly.notes}</div>
                 )}
               </div>
-            : <EmptyState T={T} icon="🗓" compact
+            : <EmptyState T={T} icon="WK" compact
                 title="No weekly plan"
                 copy="Map the week before sessions open."
                 action={<Btn T={T} onClick={onNewWeekly}>+ Weekly Plan</Btn>}
@@ -308,37 +327,54 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
         {/* Asset Efficiency Matrix */}
         <div style={{ ...secondCard, gridColumn: isMobile ? "auto" : "auto" }}>
           <div style={secTitle}>Pair Performance</div>
-          {stats.byPair.filter(p => p.count > 0).length === 0
+          {activePairs.length === 0
             ? <div style={{ color: T.muted, fontSize: 12, textAlign:"center", padding: "16px 0" }}>Log trades to see pair performance</div>
             : <div style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill,minmax(110px,1fr))",
-                gap: 8,
+                display: "flex",
+                flexDirection: "column",
+                gap: 7,
               }}>
-                {stats.byPair.filter(p => p.count > 0).map(p => {
+                {activePairs.map((p, idx) => {
                   const topColor = p.totalR > 0 ? T.green : p.totalR < 0 ? T.red : T.muted
                   const winPct   = p.count > 0 ? (p.wins / p.count * 100).toFixed(0) : 0
+                  const maxAbs    = Math.max(...activePairs.map(x => Math.abs(x.totalR)), 1)
+                  const barWidth  = `${Math.max(Math.abs(p.totalR) / maxAbs * 100, 4)}%`
                   return (
                     <div key={p.pair} style={{
                       background: T.surface2,
                       border: `1px solid ${T.border}`,
-                      borderTop: `2px solid ${topColor}`,
-                      borderRadius: 10,
-                      padding: "10px 10px 8px",
+                      borderRadius: 9,
+                      padding: "8px 9px",
                     }}>
-                      <div style={{
-                        fontFamily: "'JetBrains Mono','Fira Code',monospace",
-                        fontSize: 11, fontWeight: 700, color: T.textDim,
-                        marginBottom: 4, letterSpacing: "0.04em",
-                      }}>{p.pair}</div>
-                      <div style={{
-                        fontFamily: "'JetBrains Mono','Fira Code',monospace",
-                        fontSize: 17, fontWeight: 700, color: topColor, lineHeight: 1,
-                      }}>{p.totalR >= 0 ? "+" : ""}{p.totalR.toFixed(1)}R</div>
-                      <div style={{
-                        fontSize: 9, color: T.muted, marginTop: 6,
-                        letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700,
-                      }}>{winPct}% WR</div>
+                      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                        <span style={{
+                          width: 18,
+                          color: T.muted,
+                          fontFamily: "'JetBrains Mono','Fira Code',monospace",
+                          fontSize: 10,
+                          fontWeight: 700,
+                        }}>{idx + 1}</span>
+                        <span style={{
+                          fontFamily: "'JetBrains Mono','Fira Code',monospace",
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: T.text,
+                          minWidth: 62,
+                          letterSpacing: "0.03em",
+                        }}>{p.pair}</span>
+                        <span style={{ fontSize: 10, color: T.textDim }}>{p.count}t</span>
+                        <span style={{ fontSize: 10, color: T.textDim }}>{winPct}% WR</span>
+                        <span style={{
+                          marginLeft: "auto",
+                          fontFamily: "'JetBrains Mono','Fira Code',monospace",
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: topColor,
+                        }}>{p.totalR >= 0 ? "+" : ""}{p.totalR.toFixed(1)}R</span>
+                      </div>
+                      <div style={{ height: 3, background: T.surface, borderRadius: 999, marginTop: 7, overflow:"hidden" }}>
+                        <div style={{ height:"100%", width: barWidth, background: topColor, opacity: 0.75, borderRadius: 999 }} />
+                      </div>
                     </div>
                   )
                 })}
