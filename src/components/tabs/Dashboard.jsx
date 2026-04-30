@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { animate, motion, useMotionValue, useMotionValueEvent } from "framer-motion";
 import { EmptyState, Btn, Badge } from "@/components/ui";
 import EquityCurve from "@/components/EquityCurve";
+import DashboardCharts from "@/components/DashboardCharts";
 import InsightCards from "@/components/InsightCards";
 import MonthlyReturns from "@/components/MonthlyReturns";
 import { fmtDate, fmtRR, getWeeklyPairNotes } from "@/lib/utils";
@@ -440,6 +441,8 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
               </div>
           }
         </motion.div>
+
+        <DashboardCharts T={T} trades={trades} isMobile={isMobile} isWide={isWide} />
 
       </div>
 

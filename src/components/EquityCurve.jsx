@@ -28,6 +28,8 @@ const RANGES = [
 const MODES = [
   { id: "trades", label: "Trades" },
   { id: "curve", label: "Curve" },
+  { id: "daily", label: "Daily" },
+  { id: "drawdown", label: "DD" },
 ];
 
 function filterByRange(data, range) {
@@ -85,6 +87,31 @@ function buildDrawdown(data) {
   });
 }
 
+function buildDailyData(data) {
+  let cumulative = 0;
+  const days = new Map();
+  data.forEach(point => {
+    const key = point.date || point.dateLabel;
+    const current = days.get(key) || { ...point, rr: 0, count: 0, wins: 0, losses: 0 };
+    current.rr += point.rr;
+    current.count += 1;
+    if (point.result === "WIN") current.wins += 1;
+    if (point.result === "LOSS") current.losses += 1;
+    days.set(key, current);
+  });
+  return [...days.values()].map((day, idx) => {
+    cumulative += day.rr;
+    return {
+      ...day,
+      idx,
+      r: cumulative,
+      dateLabel: day.date ? fmtDate(day.date) : day.dateLabel,
+      tradeLabel: `${idx + 1}`,
+      isDaily: true,
+    };
+  });
+}
+
 function clampDomain(min, max) {
   const low = Math.min(0, min);
   const high = Math.max(1, max);
@@ -113,16 +140,19 @@ function CustomTooltip({ active, payload, T }) {
         gap: 12,
         marginBottom: 7,
       }}>
-        <span style={{ fontSize: 13, fontWeight: 850, color: T.text }}>{point.pair || "Trade"}</span>
+        <span style={{ fontSize: 13, fontWeight: 850, color: T.text }}>{point.isDaily ? "Daily Net" : point.pair || "Trade"}</span>
         <span style={{ fontSize: 10, color: T.textDim }}>{point.dateLabel}</span>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        <TooltipMetric T={T} label="Trade" value={fmtRR(rr)} color={rr >= 0 ? T.green : T.red} />
+        <TooltipMetric T={T} label={point.isDaily ? "Day" : "Trade"} value={fmtRR(rr)} color={rr >= 0 ? T.green : T.red} />
         <TooltipMetric T={T} label="Total" value={fmtRR(point.r)} color={point.r >= 0 ? T.green : T.red} />
       </div>
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
+        {point.count > 1 && <TooltipPill T={T} value={`${point.count} trades`} color={T.accentBright} />}
         {point.result && <TooltipPill T={T} value={point.result} color={point.result === "WIN" ? T.green : point.result === "LOSS" ? T.red : T.amber} />}
         {point.session && <TooltipPill T={T} value={point.session} color={T.textDim} />}
+        {point.setup && <TooltipPill T={T} value={point.setup} color={T.accentBright} />}
+        {point.emotion && <TooltipPill T={T} value={point.emotion} color={T.textDim} />}
       </div>
     </div>
   );
@@ -160,9 +190,17 @@ function TooltipPill({ T, value, color }) {
 export default function EquityCurve({ T, data = [] }) {
   const [range, setRange] = useState("all");
   const [mode, setMode] = useState("trades");
+  const [pair, setPair] = useState("all");
   const source = useMemo(() => buildChartData(data), [data]);
-  const filtered = useMemo(() => filterByRange(source, range), [source, range]);
+  const pairOptions = useMemo(() => {
+    const pairs = [...new Set(source.map(point => point.pair).filter(Boolean))].sort();
+    return ["all", ...pairs];
+  }, [source]);
+  const pairFiltered = useMemo(() => pair === "all" ? source : source.filter(point => point.pair === pair), [source, pair]);
+  const filtered = useMemo(() => filterByRange(pairFiltered, range), [pairFiltered, range]);
   const drawdown = useMemo(() => buildDrawdown(filtered), [filtered]);
+  const daily = useMemo(() => buildDailyData(filtered), [filtered]);
+  const activeData = mode === "daily" ? daily : mode === "drawdown" ? drawdown : filtered;
   const allR = filtered.map(d => d.r);
   const allTradeR = filtered.map(d => d.rr);
   const netR = filtered.length ? filtered[filtered.length - 1].r : 0;
@@ -172,6 +210,8 @@ export default function EquityCurve({ T, data = [] }) {
   const maxDD = drawdown.length ? Math.min(0, ...drawdown.map(d => d.drawdown)) : 0;
   const domain = clampDomain(minR, maxR);
   const tradeDomain = clampDomain(Math.min(0, ...allTradeR), Math.max(0, ...allTradeR));
+  const ddDomain = clampDomain(maxDD, 0);
+  const dailyDomain = clampDomain(Math.min(0, ...daily.map(d => d.rr)), Math.max(0, ...daily.map(d => d.rr)));
 
   if (!data.length) {
     return (
@@ -217,6 +257,26 @@ export default function EquityCurve({ T, data = [] }) {
           {maxDD < 0 && <span style={{ fontSize: 10, color: T.muted }}>dd <b style={{ color: T.red }}>{fmtRR(maxDD)}</b></span>}
         </div>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <select
+            aria-label="Filter equity chart by pair"
+            value={pair}
+            onChange={event => setPair(event.target.value)}
+            style={{
+              background: T.surface2,
+              border: `1px solid ${T.border}`,
+              borderRadius: 8,
+              color: T.text,
+              cursor: "pointer",
+              fontFamily: "'JetBrains Mono','Fira Code',monospace",
+              fontSize: 10,
+              fontWeight: 850,
+              minHeight: 30,
+              padding: "0 24px 0 9px",
+              textTransform: "uppercase",
+            }}
+          >
+            {pairOptions.map(item => <option key={item} value={item}>{item === "all" ? "All Pairs" : item}</option>)}
+          </select>
           <div style={{
             display: "flex",
             gap: 2,
@@ -270,11 +330,15 @@ export default function EquityCurve({ T, data = [] }) {
 
       <div style={{ height: 250, padding: "8px 8px 0 0" }}>
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={filtered} margin={{ top: 12, right: 18, bottom: 8, left: 2 }}>
+          <ComposedChart data={activeData} margin={{ top: 12, right: 18, bottom: 8, left: 2 }}>
             <defs>
               <linearGradient id="fx-equity-fill" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor={netR >= 0 ? T.green : T.red} stopOpacity="0.28" />
                 <stop offset="100%" stopColor={netR >= 0 ? T.green : T.red} stopOpacity="0.02" />
+              </linearGradient>
+              <linearGradient id="fx-dd-main-fill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={T.red} stopOpacity="0.34" />
+                <stop offset="100%" stopColor={T.red} stopOpacity="0.04" />
               </linearGradient>
             </defs>
             <CartesianGrid stroke={T.border} strokeDasharray="2 10" vertical={false} opacity={0.36} />
@@ -289,18 +353,18 @@ export default function EquityCurve({ T, data = [] }) {
             <YAxis
               yAxisId="equity"
               width={46}
-              domain={domain}
+              domain={mode === "drawdown" ? ddDomain : domain}
               axisLine={false}
               tickLine={false}
               tickFormatter={value => value >= 0 ? `+${value}` : value}
               tick={{ fill: T.textDim, fontSize: 10, fontFamily: "'JetBrains Mono','Fira Code',monospace" }}
             />
-            {mode === "trades" && (
+            {(mode === "trades" || mode === "daily") && (
               <YAxis
                 yAxisId="trade"
                 orientation="right"
                 width={36}
-                domain={tradeDomain}
+                domain={mode === "daily" ? dailyDomain : tradeDomain}
                 axisLine={false}
                 tickLine={false}
                 tickFormatter={value => value >= 0 ? `+${value}` : value}
@@ -308,7 +372,7 @@ export default function EquityCurve({ T, data = [] }) {
               />
             )}
             <ReferenceLine yAxisId="equity" y={0} stroke={T.border} strokeDasharray="5 8" strokeOpacity={0.9} />
-            {mode === "trades" && (
+            {(mode === "trades" || mode === "daily") && (
               <ReferenceLine yAxisId="trade" y={0} stroke={T.border} strokeDasharray="3 7" strokeOpacity={0.45} />
             )}
             <Tooltip
@@ -326,7 +390,19 @@ export default function EquityCurve({ T, data = [] }) {
                 animationDuration={650}
               />
             )}
-            {mode === "trades" && (
+            {mode === "drawdown" && (
+              <Area
+                yAxisId="equity"
+                type="linear"
+                dataKey="drawdown"
+                fill="url(#fx-dd-main-fill)"
+                stroke={T.red}
+                strokeWidth={2}
+                isAnimationActive
+                animationDuration={550}
+              />
+            )}
+            {(mode === "trades" || mode === "daily") && (
               <Bar
                 yAxisId="trade"
                 dataKey="rr"
@@ -335,7 +411,7 @@ export default function EquityCurve({ T, data = [] }) {
                 isAnimationActive
                 animationDuration={500}
               >
-                {filtered.map(point => (
+                {activeData.map(point => (
                   <Cell
                     key={`trade-bar-${point.idx}`}
                     fill={point.rr >= 0 ? T.green : T.red}
@@ -346,21 +422,23 @@ export default function EquityCurve({ T, data = [] }) {
                 ))}
               </Bar>
             )}
-            <Line
-              yAxisId="equity"
-              type={mode === "trades" ? "stepAfter" : "monotone"}
-              dataKey="r"
-              stroke={netR >= 0 ? T.green : T.red}
-              strokeWidth={3}
-              dot={point => {
-                const payload = point.payload;
-                const color = payload.result === "LOSS" ? T.red : payload.result === "WIN" ? T.green : T.amber;
-                return <circle key={`equity-dot-${payload.idx}`} cx={point.cx} cy={point.cy} r={3.5} fill={color} stroke={T.surface} strokeWidth={2} />;
-              }}
-              activeDot={{ r: 6, stroke: T.surface, strokeWidth: 3 }}
-              isAnimationActive
-              animationDuration={650}
-            />
+            {mode !== "drawdown" && (
+              <Line
+                yAxisId="equity"
+                type={mode === "trades" ? "stepAfter" : "monotone"}
+                dataKey="r"
+                stroke={netR >= 0 ? T.green : T.red}
+                strokeWidth={3}
+                dot={point => {
+                  const payload = point.payload;
+                  const color = payload.result === "LOSS" ? T.red : payload.result === "WIN" ? T.green : T.amber;
+                  return <circle key={`equity-dot-${payload.idx}`} cx={point.cx} cy={point.cy} r={3.5} fill={color} stroke={T.surface} strokeWidth={2} />;
+                }}
+                activeDot={{ r: 6, stroke: T.surface, strokeWidth: 3 }}
+                isAnimationActive
+                animationDuration={650}
+              />
+            )}
           </ComposedChart>
         </ResponsiveContainer>
       </div>
