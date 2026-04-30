@@ -105,7 +105,14 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
   }
 
   return (
-    <div style={{ display:"flex", flexDirection:"column", gap: 10 }}>
+    <div style={{
+      display:"flex",
+      flexDirection:"column",
+      gap: 10,
+      width: "100%",
+      maxWidth: 1680,
+      margin: "0 auto",
+    }}>
 
       {/* ── Insight strip (only when insights exist) ── */}
       <InsightCards T={T} trades={trades} />
