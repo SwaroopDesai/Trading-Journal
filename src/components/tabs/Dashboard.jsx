@@ -26,22 +26,6 @@ function useCountUp(target, active, duration=1100) {
   return val
 }
 
-// HUD corners — kept as a lightweight accent, 8px arms
-function HudCorners({ color }) {
-  const corners = [
-    { top:4, left:4,  transform:"none"         },
-    { top:4, right:4, transform:"rotate(90deg)" },
-    { bottom:4, right:4, transform:"rotate(180deg)" },
-    { bottom:4, left:4,  transform:"rotate(270deg)" },
-  ]
-  return corners.map((s, i) => (
-    <svg key={i} width="8" height="8" viewBox="0 0 8 8"
-      style={{ position:"absolute", ...s, pointerEvents:"none" }} aria-hidden="true">
-      <path d="M 0 8 L 0 0 L 8 0" stroke={color} strokeWidth="1.5"
-        fill="none" strokeLinecap="square" opacity="0.5"/>
-    </svg>
-  ))
-}
 
 function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNewDaily, onNewWeekly, viewportWidth, active }) {
   const today        = new Date().toISOString().split("T")[0]
@@ -110,72 +94,88 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
       {/* ── Insight strip (only when insights exist) ── */}
       <InsightCards T={T} trades={trades} />
 
-      {/* ── KPI row ── */}
+      {/* ── KPI strip — one surface, four cells ── */}
       <div style={{
         display: "grid",
         gridTemplateColumns: isMobile ? "repeat(2,1fr)" : "repeat(4,1fr)",
-        gap: isMobile ? 8 : 10,
+        background: T.surface,
+        border: `1px solid ${T.border}`,
+        borderRadius: 14,
+        overflow: "hidden",
       }}>
-        {kpis.map(k => (
-          <div key={k.label} style={{
-            position: "relative",
-            background: T.surface,
-            border: `1px solid ${T.border}`,
-            borderRadius: 14,
-            padding: "10px 12px 0",
-            overflow: "hidden",
-            minWidth: 0,
-          }}>
-            <HudCorners color={k.color} />
-
-            {/* label + value in one visual block */}
-            <div style={{
-              fontSize: 9, fontWeight: 700,
-              color: k.color, letterSpacing: "0.16em",
-              textTransform: "uppercase",
-              display: "flex", alignItems: "center", gap: 5,
-              marginBottom: 5,
+        {kpis.map((k, idx) => {
+          const isLastCol  = isMobile ? idx % 2 === 1 : idx === 3
+          const isLastRow  = isMobile ? idx >= 2 : true
+          return (
+            <div key={k.label} style={{
+              position: "relative",
+              padding: "12px 14px 0",
+              minWidth: 0,
+              borderRight:  !isLastCol ? `1px solid ${T.border}` : "none",
+              borderBottom: !isLastRow ? `1px solid ${T.border}` : "none",
             }}>
-              <span style={{
-                width: 4, height: 4,
-                background: k.color,
-                display: "inline-block", flexShrink: 0,
-                boxShadow: `0 0 5px ${k.color}`,
-              }}/>
-              {k.label}
-            </div>
-
-            <div style={{
-              fontFamily: "'JetBrains Mono','Fira Code',monospace",
-              fontSize: isMobile ? 18 : 20,
-              fontWeight: 700,
-              color: k.color,
-              lineHeight: 1,
-              letterSpacing: "-0.02em",
-              wordBreak: "break-word",
-              marginBottom: 4,
-            }}>
-              {k.value}
-            </div>
-
-            <div style={{
-              fontSize: 10, color: T.textDim,
-              marginBottom: 10, lineHeight: 1.3,
-            }}>
-              {k.sub}
-            </div>
-
-            {/* Progress bar flush to card bottom */}
-            <div style={{ height: 2, background: T.surface2, margin: "0 -12px" }}>
+              {/* Per-cell color bar — 3px, full width, flush to top */}
               <div style={{
-                width: k.barWidth, height: "100%",
-                background: `linear-gradient(90deg,${k.color},${T.pink})`,
-                boxShadow: `0 0 6px ${k.color}80`,
-                transition: "width 0.9s cubic-bezier(0.16,1,0.3,1)",
+                position: "absolute",
+                top: 0, left: 0, right: 0,
+                height: 3,
+                background: k.color,
+                opacity: 0.9,
               }}/>
+
+              {/* Label */}
+              <div style={{
+                fontSize: 9, fontWeight: 700,
+                color: T.muted, letterSpacing: "0.13em",
+                textTransform: "uppercase",
+                marginBottom: 6,
+              }}>
+                {k.label}
+              </div>
+
+              {/* Value */}
+              <div style={{
+                fontFamily: "'JetBrains Mono','Fira Code',monospace",
+                fontSize: isMobile ? 19 : 21,
+                fontWeight: 700,
+                color: k.color,
+                lineHeight: 1,
+                letterSpacing: "-0.03em",
+                marginBottom: 5,
+                wordBreak: "break-word",
+              }}>
+                {k.value}
+              </div>
+
+              {/* Sub */}
+              <div style={{
+                fontSize: 10, color: T.textDim,
+                marginBottom: 10, lineHeight: 1.3,
+              }}>
+                {k.sub}
+              </div>
+
+              {/* Scale bar — 8px, breaks out of padding, reads as a real gauge */}
+              <div style={{
+                height: 8,
+                margin: "0 -14px",
+                background: T.surface2,
+                position: "relative",
+                overflow: "hidden",
+              }}>
+                <div style={{
+                  position: "absolute",
+                  left: 0, top: 0, bottom: 0,
+                  width: k.barWidth,
+                  background: k.color,
+                  opacity: 0.72,
+                  borderRadius: "0 2px 2px 0",
+                  transition: "width 0.9s cubic-bezier(0.16,1,0.3,1)",
+                }}/>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       {/* ── Equity curve + drawdown ── */}
