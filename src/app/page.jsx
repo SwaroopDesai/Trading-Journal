@@ -515,7 +515,7 @@ export default function App() {
             <span style={{fontFamily:"var(--font-geist-sans)",fontSize:15,fontWeight:700,color:T.text,letterSpacing:"-0.02em",lineHeight:1,whiteSpace:"nowrap"}}>
               {ALL_TABS.find(t=>t.id===tab)?.label || TABS.find(t=>t.id===tab)?.label}
             </span>
-            <span style={{fontSize:11,color:T.muted,whiteSpace:"nowrap"}} className="hide-mobile">
+            <span style={{fontSize:11,color:T.textDim,whiteSpace:"nowrap"}} className="hide-mobile">
               {new Date().toLocaleDateString("en-GB",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}
             </span>
           </div>
