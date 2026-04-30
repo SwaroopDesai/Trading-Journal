@@ -21,8 +21,6 @@ export default function DateRangeBar({ T, value, onChange, count, total }) {
         alignItems:"center",
         gap:10,
         flexWrap:"wrap",
-        maxWidth:1680,
-        margin:"0 auto",
         width:"100%",
       }}>
         <span style={{fontSize:11,fontWeight:700,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",flexShrink:0}}>

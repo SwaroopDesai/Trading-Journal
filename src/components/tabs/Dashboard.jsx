@@ -110,8 +110,6 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
       flexDirection:"column",
       gap: 10,
       width: "100%",
-      maxWidth: 1680,
-      margin: "0 auto",
     }}>
 
       {/* ── Insight strip (only when insights exist) ── */}
