@@ -11,7 +11,7 @@ function buildMonthlyMap(trades) {
     if (isNaN(d)) return
     const y = d.getFullYear()
     const m = d.getMonth() // 0-indexed
-    const r = t.rr || 0
+    const r = Number(t.rr) || 0
     if (!map[y]) map[y] = {}
     map[y][m] = (map[y][m] || 0) + r
   })
@@ -27,7 +27,7 @@ function cellColor(r, maxAbs, T) {
   return r > 0 ? `${T.green}${hex}` : `${T.red}${hex}`
 }
 
-export default function MonthlyReturns({ T, trades = [] }) {
+export default function MonthlyReturns({ T, trades = [], compact = false }) {
   const map = buildMonthlyMap(trades)
   const years = Object.keys(map).map(Number).sort((a, b) => b - a)
 
@@ -41,6 +41,86 @@ export default function MonthlyReturns({ T, trades = [] }) {
       if (v !== undefined) maxAbs = Math.max(maxAbs, Math.abs(v))
     })
   })
+
+  const latestYear = years[0]
+
+  if (compact && latestYear) {
+    const yearTotal = MONTHS.reduce((acc, _, m) => acc + (map[latestYear]?.[m] || 0), 0)
+    return (
+      <div style={{
+        borderRadius: 14,
+        border: `1px solid ${T.border}`,
+        background: T.surface,
+        padding: "12px 14px",
+        overflow: "hidden",
+        height: "100%",
+        minHeight: 216,
+        display: "flex",
+        flexDirection: "column",
+      }}>
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 10,
+          alignItems: "baseline",
+          marginBottom: 12,
+        }}>
+          <div>
+            <div style={{
+              fontSize: 11, fontWeight: 700, color: T.muted,
+              letterSpacing: "0.1em", textTransform: "uppercase",
+              marginBottom: 4,
+            }}>Monthly Heatmap</div>
+            <div style={{ fontSize: 11, color: T.textDim }}>{latestYear}</div>
+          </div>
+          <div style={{
+            fontFamily: "'JetBrains Mono','Fira Code',monospace",
+            fontSize: 16,
+            fontWeight: 800,
+            color: yearTotal >= 0 ? T.green : T.red,
+            letterSpacing: "-0.04em",
+          }}>{yearTotal >= 0 ? "+" : ""}{yearTotal.toFixed(1)}R</div>
+        </div>
+
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3,minmax(0,1fr))",
+          gap: 6,
+          flex: 1,
+          alignContent: "start",
+        }}>
+          {MONTHS.map((month, m) => {
+            const v = map[latestYear]?.[m]
+            const bg = cellColor(v, maxAbs, T)
+            const active = v !== undefined
+            return (
+              <div key={month} style={{
+                minHeight: 38,
+                borderRadius: 8,
+                background: active ? bg : T.surface2,
+                border: `1px solid ${active ? (v >= 0 ? `${T.green}33` : `${T.red}33`) : T.border}`,
+                padding: "6px 7px",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                gap: 4,
+              }}>
+                <span style={{ fontSize: 9, fontWeight: 800, color: T.textDim, letterSpacing: "0.05em" }}>{month}</span>
+                <span style={{
+                  fontFamily: "'JetBrains Mono','Fira Code',monospace",
+                  fontSize: 10,
+                  fontWeight: 800,
+                  color: active ? (v >= 0 ? T.green : T.red) : T.muted,
+                }}>
+                  {active ? (v >= 0 ? `+${v.toFixed(1)}` : v.toFixed(1)) : "-"}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div style={{

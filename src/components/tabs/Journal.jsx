@@ -3,7 +3,6 @@
 import { useDeferredValue, useMemo, useState } from "react";
 import {
   getCoreRowModel,
-  getFilteredRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
@@ -39,12 +38,15 @@ function Journal({
     [filtered]
   );
 
-  const tagFiltered = useMemo(() => {
+  const viewFiltered = useMemo(() => {
+    const q = String(deferredQuery || "").trim().toLowerCase();
     return filtered.filter(t => {
       const tagMatch = !filterTag || (t.tags || []).some(tag => normalizeTag(tag) === filterTag);
-      return tagMatch;
+      if (!tagMatch) return false;
+      if (!q) return true;
+      return getTradeSearchText(t).includes(q);
     });
-  }, [filtered, filterTag]);
+  }, [deferredQuery, filtered, filterTag]);
 
   const columns = useMemo(() => [
     { id: "date", accessorKey: "date" },
@@ -53,37 +55,19 @@ function Journal({
     { id: "rr", accessorFn: row => Number(row.rr) || 0 },
     {
       id: "search",
-      accessorFn: row => [
-        row.pair,
-        row.direction,
-        row.session,
-        row.result,
-        row.dailyBias,
-        row.setup,
-        row.emotion,
-        row.mistakes,
-        row.notes,
-        ...(row.tags || []).map(normalizeTag),
-      ].filter(Boolean).join(" "),
+      accessorFn: getTradeSearchText,
     },
   ], []);
 
   const table = useReactTable({
-    data: tagFiltered,
+    data: viewFiltered,
     columns,
     state: {
-      globalFilter: deferredQuery,
       sorting,
     },
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    globalFilterFn: (row, columnId, filterValue) => {
-      const q = String(filterValue || "").trim().toLowerCase();
-      if (!q) return true;
-      return String(row.getValue("search") || "").toLowerCase().includes(q);
-    },
   });
 
   const displayTrades = useMemo(
@@ -503,6 +487,21 @@ function normalizeTag(tag) {
   if (lower.includes("htf") && (lower.includes("align") || lower.includes("bias") || lower.includes("profile"))) return "HTF aligned";
   if (lower.includes("a+") || lower.includes("a plus")) return "A+ setup";
   return clean;
+}
+
+function getTradeSearchText(trade) {
+  return [
+    trade.pair,
+    trade.direction,
+    trade.session,
+    trade.result,
+    trade.dailyBias,
+    trade.setup,
+    trade.emotion,
+    trade.mistakes,
+    trade.notes,
+    ...(trade.tags || []).map(normalizeTag),
+  ].filter(Boolean).join(" ").toLowerCase();
 }
 
 export default Journal;

@@ -223,7 +223,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
           transition={{ duration: 0.28, delay: 0.1 }}
           style={{ gridColumn: isMobile ? "auto" : "span 4", minWidth: 0 }}
         >
-          <MonthlyReturns T={T} trades={trades} />
+          <MonthlyReturns T={T} trades={trades} compact={!isMobile} />
         </motion.div>
 
         {/* Today's Trades */}

@@ -350,14 +350,42 @@ export default function App() {
   },[trades,datePreset])
 
   const stats = useMemo(()=>{
+    const numR = x => Number(x?.rr) || 0
+    const tradeTime = x => {
+      const dateMs = x?.date ? new Date(`${String(x.date).slice(0,10)}T00:00:00`).getTime() : 0
+      const createdMs = x?.created_at ? new Date(x.created_at).getTime() : dateMs
+      return { dateMs: Number.isFinite(dateMs) ? dateMs : 0, createdMs: Number.isFinite(createdMs) ? createdMs : 0, id: String(x?._dbid || x?.id || "") }
+    }
     const t=dateFiltered, wins=t.filter(x=>x.result==="WIN"), losses=t.filter(x=>x.result==="LOSS"), be=t.filter(x=>x.result==="BREAKEVEN")
-    const totalR=t.reduce((s,x)=>s+(x.rr||0),0), avgRR=wins.length?wins.reduce((s,x)=>s+x.rr,0)/wins.length:0, winRate=t.length?(wins.length/t.length)*100:0
-    const byPair=PAIRS.map(p=>{ const pt=t.filter(x=>x.pair===p); return{pair:p,count:pt.length,wins:pt.filter(x=>x.result==="WIN").length,totalR:pt.reduce((s,x)=>s+(x.rr||0),0)} })
-    const bySession=SESSIONS.map(s=>{ const st=t.filter(x=>x.session===s); return{session:s,count:st.length,wins:st.filter(x=>x.result==="WIN").length,totalR:st.reduce((s2,x)=>s2+(x.rr||0),0)} }).filter(x=>x.count>0)
+    const totalR=t.reduce((s,x)=>s+numR(x),0), avgRR=wins.length?wins.reduce((s,x)=>s+numR(x),0)/wins.length:0, winRate=t.length?(wins.length/t.length)*100:0
+    const byPair=PAIRS.map(p=>{ const pt=t.filter(x=>x.pair===p); return{pair:p,count:pt.length,wins:pt.filter(x=>x.result==="WIN").length,totalR:pt.reduce((s,x)=>s+numR(x),0)} })
+    const bySession=SESSIONS.map(s=>{ const st=t.filter(x=>x.session===s); return{session:s,count:st.length,wins:st.filter(x=>x.result==="WIN").length,totalR:st.reduce((s2,x)=>s2+numR(x),0)} }).filter(x=>x.count>0)
     const equityCurve=[];
     let cum=0;
-    const sortedT=[...t].sort((a,b)=>new Date(a.date)-new Date(b.date));
-    sortedT.forEach(x=>{ cum+=(x.rr||0); equityCurve.push({r:cum,result:x.result,date:x.date,pair:x.pair,rr:x.rr||0}) });
+    const sortedT=[...t].sort((a,b)=>{
+      const ta = tradeTime(a), tb = tradeTime(b)
+      return (ta.dateMs - tb.dateMs) || (ta.createdMs - tb.createdMs) || ta.id.localeCompare(tb.id)
+    });
+    sortedT.forEach(x=>{
+      const rr = numR(x)
+      cum += rr
+      equityCurve.push({
+        id:x._dbid || x.id,
+        r:cum,
+        result:x.result,
+        date:x.date,
+        created_at:x.created_at,
+        pair:x.pair,
+        direction:x.direction,
+        session:x.session,
+        setup:x.setup,
+        emotion:x.emotion,
+        notes:x.notes,
+        pips:x.pips,
+        entry:x.entry,
+        rr,
+      })
+    });
     return {total:t.length,wins:wins.length,losses:losses.length,be:be.length,totalR,avgRR,winRate,byPair,bySession,equityCurve}
   },[dateFiltered])
 
@@ -376,7 +404,11 @@ export default function App() {
     return null;
   }, [trades])
 
-  const filtered = useMemo(()=>dateFiltered.filter(t=>(filterPair==="ALL"||t.pair===filterPair)&&(filterResult==="ALL"||t.result===filterResult)).sort((a,b)=>new Date(b.date)-new Date(a.date)),[dateFiltered,filterPair,filterResult])
+  const filtered = useMemo(()=>dateFiltered.filter(t=>(filterPair==="ALL"||t.pair===filterPair)&&(filterResult==="ALL"||t.result===filterResult)).sort((a,b)=>{
+    const dateDiff = new Date(b.date) - new Date(a.date)
+    if(dateDiff) return dateDiff
+    return new Date(b.created_at || b.date) - new Date(a.created_at || a.date)
+  }),[dateFiltered,filterPair,filterResult])
   const currentSession = useMemo(()=>getCurrentSessionInfo(new Date(sessionTick)),[sessionTick])
   const compactSession = viewportWidth < 1180
   const isMobileViewport = viewportWidth < 768

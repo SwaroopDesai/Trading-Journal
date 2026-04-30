@@ -23,7 +23,11 @@ function filterByRange(data, range) {
   const filtered = data.filter(d => d.date && new Date(d.date) >= cutoff);
   if (!filtered.length) return data;
   let cum = 0;
-  return filtered.map(d => { cum += d.rr || 0; return { ...d, r: cum }; });
+  return filtered.map(d => {
+    const rr = Number(d.rr) || 0;
+    cum += rr;
+    return { ...d, rr, r: cum };
+  });
 }
 
 // ── Nice round tick generation ─────────────────────────────────────────────
@@ -254,11 +258,15 @@ export default function EquityCurve({ T, data = [] }) {
   const onMove = useCallback((e) => {
     if (!svgRef.current || !pts.length) return;
     const rect = svgRef.current.getBoundingClientRect();
-    const rx   = e.clientX - rect.left;
+    const scaleX = w / Math.max(rect.width, 1);
+    const scaleY = ECH / Math.max(rect.height, 1);
+    const cssX = e.clientX - rect.left;
+    const rx   = cssX * scaleX;
     const step = cW / Math.max(filtered.length - 1, 1);
     const idx  = Math.max(0, Math.min(filtered.length - 1, Math.round((rx - YAX) / step)));
-    setTip({ idx, screenX: rx, pt: pts[idx] });
-  }, [pts, cW, filtered.length, YAX]);
+    const pt = pts[idx];
+    setTip({ idx, screenX: cssX, screenY: pt.y / scaleY, pt });
+  }, [pts, cW, filtered.length, YAX, ECH, w]);
 
   const onLeave = () => setTip(null);
 
@@ -490,16 +498,17 @@ export default function EquityCurve({ T, data = [] }) {
 
         {/* Hover tooltip */}
         {tooltip && (() => {
-          const { pt, screenX } = tooltip;
+          const { pt, screenX, screenY } = tooltip;
           const d = pt.d;
-          const r = d.rr || 0;
-          const left = Math.min(Math.max(screenX - 68, 8), w - 152);
+          const r = Number(d.rr) || 0;
+          const containerW = wrapRef.current?.getBoundingClientRect().width || w;
+          const left = Math.min(Math.max(screenX - 68, 8), Math.max(containerW - 152, 8));
           const above = pt.y / ECH > 0.55;
           return (
             <div style={{
               position: "absolute",
               left,
-              top: above ? pt.y - 88 : pt.y + 14,
+              top: above ? screenY - 88 : screenY + 14,
               background: T.surface,
               border: `1px solid ${T.border}`,
               borderRadius: 10, padding: "10px 13px",
@@ -624,7 +633,7 @@ export default function EquityCurve({ T, data = [] }) {
       {/* ── Selected trade panel ── */}
       {selectedTrade && (() => {
         const d = selectedTrade;
-        const r = d.rr || 0;
+        const r = Number(d.rr) || 0;
         const rc = d.result === "WIN" ? T.green : d.result === "LOSS" ? T.red : (T.amber || "#f59e0b");
         return (
           <div style={{
