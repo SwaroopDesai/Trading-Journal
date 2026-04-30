@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { PAIRS } from "@/lib/constants";
 import { fmtDate, fmtRR } from "@/lib/utils";
-import { SectionLead, Btn, Chip, EmptyState, Badge, Sel } from "@/components/ui";
+import { Btn, Chip, EmptyState, Badge, Sel } from "@/components/ui";
 
 function Journal({
   T,
@@ -84,37 +84,52 @@ function Journal({
   return (
     <div>
       <div style={{
-        background: `linear-gradient(145deg, ${T.surface}f5, ${T.surface2}f2)`,
+        background: T.surface,
         border: `1px solid ${T.border}`,
-        borderRadius: 28,
-        padding: isMobile ? "16px" : "22px",
-        marginBottom: 20,
-        boxShadow: `0 24px 68px ${T.cardGlow}`,
-        position: "relative",
-        overflow: "hidden",
+        borderRadius: 16,
+        padding: isMobile ? "14px" : "16px",
+        marginBottom: 16,
       }}>
-        <div aria-hidden="true" style={{ position:"absolute", right:-80, top:-100, width:260, height:260, borderRadius:"50%", background:`radial-gradient(circle,${T.accentBright}1f,transparent 70%)`, pointerEvents:"none" }} />
-        <div style={{ position:"relative" }}>
-        <SectionLead
-          T={T}
-          compact={isMobile}
-          eyebrow="Execution Archive"
-          title="Trade Journal"
-          copy="A clean log of what you executed, why it mattered, and what the trade taught you."
-          action={
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: isMobile ? "stretch" : "flex-end" }}>
-              {onRepeatLast && <Btn T={T} ghost onClick={onRepeatLast}>Repeat Last Trade</Btn>}
-              <Btn T={T} onClick={onNew}>+ Log Trade</Btn>
+        <div style={{
+          display: "flex",
+          alignItems: isMobile ? "flex-start" : "center",
+          justifyContent: "space-between",
+          gap: 12,
+          flexWrap: "wrap",
+          marginBottom: 14,
+        }}>
+          <div>
+            <div style={{
+              fontSize: 10,
+              fontWeight: 800,
+              color: T.muted,
+              letterSpacing: "0.16em",
+              textTransform: "uppercase",
+              marginBottom: 6,
+            }}>Execution Archive</div>
+            <div style={{
+              fontSize: isMobile ? 20 : 23,
+              fontWeight: 900,
+              color: T.text,
+              letterSpacing: "-0.045em",
+              lineHeight: 1,
+            }}>Trade Journal</div>
+            <div style={{ fontSize: 12, color: T.textDim, marginTop: 7, lineHeight: 1.5 }}>
+              Search, filter, and review executions without the noise.
             </div>
-          }
-        />
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: isMobile ? "stretch" : "flex-end" }}>
+            {onRepeatLast && <Btn T={T} ghost onClick={onRepeatLast}>Repeat Last</Btn>}
+            <Btn T={T} onClick={onNew}>+ Log Trade</Btn>
+          </div>
+        </div>
 
         <div style={{
           display: "grid",
           gridTemplateColumns: isMobile ? "1fr" : "minmax(240px, 1.2fr) minmax(220px, 1fr) minmax(220px, 1fr)",
           gap: 10,
         }}>
-          <div style={{ background: `${T.surface2}cc`, border: `1px solid ${T.border}`, borderRadius: 18, padding: 12 }}>
+          <div style={{ background: T.surface2, border: `1px solid ${T.border}`, borderRadius: 12, padding: 10 }}>
             <div style={{ fontSize: 10, fontWeight: 800, color: T.muted, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 10 }}>Search</div>
             <input
               value={query}
@@ -122,11 +137,11 @@ function Journal({
               placeholder="Search notes, setup, emotion, tags..."
               style={{
                 width: "100%",
-                background: `${T.surface}cc`,
+                background: T.surface,
                 border: `1px solid ${T.border}`,
                 color: T.text,
-                borderRadius: 14,
-                padding: "12px 13px",
+                borderRadius: 10,
+                padding: "10px 12px",
                 outline: "none",
                 fontSize: 13,
                 fontFamily: "var(--font-geist-sans)",
@@ -134,7 +149,7 @@ function Journal({
             />
           </div>
 
-          <div style={{ background: `${T.surface2}cc`, border: `1px solid ${T.border}`, borderRadius: 18, padding: 12 }}>
+          <div style={{ background: T.surface2, border: `1px solid ${T.border}`, borderRadius: 12, padding: 10 }}>
             <div style={{ fontSize: 10, fontWeight: 800, color: T.muted, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 10 }}>Pair</div>
             <Sel T={T} val={filterPair} opts={["ALL", ...PAIRS]} on={setFilterPair} label="Filter by pair" />
           </div>
@@ -155,7 +170,6 @@ function Journal({
             </FilterBlock>
           </div>
         )}
-        </div>
       </div>
 
       {displayTrades.length === 0 && (
@@ -191,33 +205,26 @@ function Journal({
                 <article
                   key={trade._dbid}
                   style={{
-                    background: `linear-gradient(145deg, ${T.surface}f8 0%, ${T.surface2}f0 100%)`,
-                    border: `1px solid ${resultColor(trade)}55`,
-                    borderRadius: 26,
-                    padding: isMobile ? "15px" : "20px",
-                    boxShadow: `0 22px 58px ${T.cardGlow}`,
+                    background: T.surface,
+                    border: `1px solid ${T.border}`,
+                    borderTop: `2px solid ${resultColor(trade)}88`,
+                    borderRadius: 16,
+                    padding: isMobile ? "13px" : "15px 16px",
                     position: "relative",
                     overflow: "hidden",
                   }}
                 >
-                  <div style={{
-                    position: "absolute",
-                    inset: 0,
-                    background: `radial-gradient(circle at 12% 0%, ${resultColor(trade)}18, transparent 34%)`,
-                    pointerEvents: "none",
-                  }} />
-
-                  <div style={{ position: "relative" }}>
+                  <div>
                     <div style={{
                       display: "grid",
                       gridTemplateColumns: isMobile ? "1fr" : "1fr auto",
-                      gap: 12,
-                      alignItems: "start",
-                      marginBottom: 12,
+                      gap: 10,
+                      alignItems: "center",
+                      marginBottom: 10,
                     }}>
                       <div>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
-                          <span style={{ fontSize: isMobile ? 20 : 24, fontWeight: 900, color: T.accentBright, letterSpacing: "-0.03em" }}>
+                          <span style={{ fontSize: isMobile ? 18 : 20, fontWeight: 900, color: T.text, letterSpacing: "-0.035em" }}>
                             {trade.pair}
                           </span>
                           <Badge color={trade.direction === "LONG" ? T.green : T.red}>{trade.direction}</Badge>
@@ -233,9 +240,9 @@ function Journal({
                               background: `${item.color || T.accent}12`,
                               border: `1px solid ${item.color || T.border}44`,
                               color: item.color || T.textDim,
-                              padding: "5px 9px",
+                              padding: "4px 8px",
                               borderRadius: 999,
-                              fontSize: 11,
+                              fontSize: 10,
                               fontWeight: 750,
                               maxWidth: "100%",
                             }}>
@@ -254,7 +261,13 @@ function Journal({
                         flexDirection: isMobile ? "row" : "column",
                       }}>
                         <Badge color={resultColor(trade)}>{trade.result}</Badge>
-                        <span style={{ fontSize: isMobile ? 24 : 28, fontWeight: 950, color: Number(trade.rr) >= 0 ? T.green : T.red, letterSpacing: "-0.04em" }}>
+                        <span style={{
+                          fontFamily: "'JetBrains Mono','Fira Code',monospace",
+                          fontSize: isMobile ? 20 : 24,
+                          fontWeight: 800,
+                          color: Number(trade.rr) >= 0 ? T.green : T.red,
+                          letterSpacing: "-0.04em",
+                        }}>
                           {fmtRR(trade.rr || 0)}
                         </span>
                       </div>
@@ -263,29 +276,29 @@ function Journal({
                     {trade.notes && (
                       <div style={{
                         color: T.textDim,
-                        lineHeight: 1.7,
+                        lineHeight: 1.6,
                         fontSize: 13,
-                        padding: isMobile ? "11px 12px" : "13px 14px",
-                        borderRadius: 16,
+                        padding: isMobile ? "10px 11px" : "11px 12px",
+                        borderRadius: 12,
                         border: `1px solid ${T.border}`,
-                        background: `${T.bg}55`,
-                        marginBottom: 12,
+                        background: T.surface2,
+                        marginBottom: 10,
                       }}>
                         {trade.notes}
                       </div>
                     )}
 
                     {trade.tags?.length > 0 && (
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 10 }}>
                         {[...new Map(trade.tags.map(tag => [normalizeTag(tag), normalizeTag(tag)])).values()].map(tag => (
                           <span key={tag} title={tag} style={{
-                            background: `${T.blue}16`,
-                            border: `1px solid ${T.blue}45`,
-                            color: T.blue,
-                            padding: "4px 10px",
-                            fontSize: 11,
+                            background: T.surface2,
+                            border: `1px solid ${T.border}`,
+                            color: T.textDim,
+                            padding: "3px 8px",
+                            fontSize: 10,
                             borderRadius: 999,
-                            fontWeight: 800,
+                            fontWeight: 750,
                           }}>
                             {tag}
                           </span>

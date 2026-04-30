@@ -351,57 +351,52 @@ export function SessionPill({T,session,compact,mobile,open,onToggle}) {
 
 // ─── Empty state ───────────────────────────────────────────────────────────
 export function EmptyState({T, title, copy, action, compact, icon}) {
-  const iconEl = icon ?? "✦"
-  const pad    = compact ? "32px 24px" : "56px 32px"
+  const iconEl = icon ?? "FX"
+  const pad    = compact ? "24px 20px" : "40px 28px"
   return (
     <div style={{
-      background: `linear-gradient(160deg,${T.surface} 0%,${T.surface2} 100%)`,
-      border: `1px dashed ${T.border}`,
-      borderRadius: compact ? 18 : 24,
+      background: T.surface,
+      border: `1px solid ${T.border}`,
+      borderRadius: compact ? 14 : 18,
       padding: pad,
       textAlign: "center",
       position: "relative",
       overflow: "hidden",
-      animation: "fadeUp .38s cubic-bezier(.16,1,.3,1) both",
     }}>
-      {/* Dot-grid overlay */}
-      <div aria-hidden="true" style={{
-        position:"absolute", inset:0,
-        backgroundImage:`radial-gradient(circle,${T.muted}22 1px,transparent 1px)`,
-        backgroundSize:"22px 22px", opacity:.5, pointerEvents:"none",
-      }}/>
-      {/* Radial glow behind icon */}
-      <div aria-hidden="true" style={{
-        position:"absolute", top:compact?-40:-60, left:"50%", transform:"translateX(-50%)",
-        width:compact?160:220, height:compact?160:220, borderRadius:"50%",
-        background:`radial-gradient(circle, ${T.accent}22 0%, transparent 70%)`,
-        pointerEvents:"none", animation:"glowPulse 3s ease-in-out infinite",
-      }}/>
-
       <div style={{position:"relative"}}>
         {/* Icon */}
         <div aria-hidden="true" style={{
-          fontSize: compact ? 38 : 52, lineHeight:1,
-          marginBottom: compact ? 14 : 18,
-          display:"inline-block",
-          filter:`drop-shadow(0 0 18px ${T.accentBright}55)`,
-          animation:"iconFloat 3.5s ease-in-out infinite",
+          display:"inline-flex",
+          alignItems:"center",
+          justifyContent:"center",
+          minWidth: compact ? 34 : 40,
+          height: compact ? 34 : 40,
+          padding:"0 10px",
+          borderRadius: 12,
+          background: T.surface2,
+          border:`1px solid ${T.border}`,
+          color:T.accentBright,
+          fontFamily:"'JetBrains Mono','Fira Code',monospace",
+          fontSize: compact ? 12 : 13,
+          fontWeight: 800,
+          letterSpacing:"0.04em",
+          marginBottom: compact ? 12 : 14,
         }}>{iconEl}</div>
 
         <div style={{
           fontFamily:"var(--font-geist-sans)",
-          fontSize: compact ? 18 : 22,
+          fontSize: compact ? 16 : 19,
           fontWeight: 800, color: T.text,
-          marginBottom: 10, letterSpacing:"-0.02em",
+          marginBottom: 7, letterSpacing:"-0.025em",
         }}>{title}</div>
 
         <div style={{
           maxWidth: compact ? 400 : 500,
           margin:"0 auto", fontSize:13,
-          color:T.textDim, lineHeight:1.75,
+          color:T.textDim, lineHeight:1.6,
         }}>{copy}</div>
 
-        {action && <div style={{marginTop:22}}>{action}</div>}
+        {action && <div style={{marginTop:18}}>{action}</div>}
       </div>
     </div>
   )
@@ -411,10 +406,10 @@ export function EmptyState({T, title, copy, action, compact, icon}) {
 export function ModalShell({T,title,subtitle,onClose,children,footer,width=640}) {
   return (
     <Overlay onClose={onClose}>
-      <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${T.border}`,borderRadius:26,width:`min(${width}px,96vw)`,maxHeight:"92vh",display:"flex",flexDirection:"column",boxShadow:`0 44px 110px ${T.bg}b0`,overflow:"hidden"}}>
-        <div style={{padding:"20px 24px 18px",borderBottom:`1px solid ${T.border}`,background:`linear-gradient(180deg,${T.surface} 0%,${T.surface}dd 100%)`,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:16}}>
+      <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:18,width:`min(${width}px,96vw)`,maxHeight:"92vh",display:"flex",flexDirection:"column",boxShadow:`0 36px 90px ${T.bg}b0`,overflow:"hidden"}}>
+        <div style={{padding:"18px 22px 16px",borderBottom:`1px solid ${T.border}`,background:T.surface,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:16}}>
           <div>
-            <div style={{fontFamily:"var(--font-geist-sans)",fontSize:26,fontWeight:900,color:T.text,letterSpacing:"-0.055em",lineHeight:1}}>{title}</div>
+            <div style={{fontFamily:"var(--font-geist-sans)",fontSize:24,fontWeight:900,color:T.text,letterSpacing:"-0.05em",lineHeight:1}}>{title}</div>
             {subtitle&&<div style={{fontSize:12,color:T.textDim,marginTop:8,lineHeight:1.6,maxWidth:420}}>{subtitle}</div>}
           </div>
           <button
@@ -425,7 +420,7 @@ export function ModalShell({T,title,subtitle,onClose,children,footer,width=640})
           >×</button>
         </div>
         <div style={{padding:"20px 22px",overflowY:"auto",flex:1,display:"flex",flexDirection:"column",gap:16}}>{children}</div>
-        {footer&&<div style={{padding:"15px 22px",borderTop:`1px solid ${T.border}`,display:"flex",gap:10,background:`linear-gradient(180deg,${T.surface}ee 0%,${T.surface2} 100%)`}}>{footer}</div>}
+        {footer&&<div style={{padding:"15px 22px",borderTop:`1px solid ${T.border}`,display:"flex",gap:10,background:T.surface}}>{footer}</div>}
       </div>
     </Overlay>
   )
