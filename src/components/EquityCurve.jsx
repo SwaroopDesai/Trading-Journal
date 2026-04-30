@@ -3,7 +3,9 @@
 import { useMemo, useState } from "react";
 import {
   Area,
+  Bar,
   CartesianGrid,
+  Cell,
   ComposedChart,
   Line,
   ReferenceLine,
@@ -23,6 +25,11 @@ const RANGES = [
   { id:"1y",  label:"1Y"  },
 ];
 
+const MODES = [
+  { id: "trades", label: "Trades" },
+  { id: "curve", label: "Curve" },
+];
+
 function filterByRange(data, range) {
   if (range === "all" || !data.length) return data;
   const now = new Date();
@@ -38,24 +45,36 @@ function filterByRange(data, range) {
   return filtered.map((d, idx) => {
     const rr = Number(d.rr) || 0;
     cum += rr;
-    return normalizePoint(d, idx, cum, rr);
+    return normalizePoint(d, idx, cum);
   });
 }
 
-function normalizePoint(d, idx, fallbackR, fallbackRR) {
-  const rr = Number(d.rr) || fallbackRR || 0;
-  const r = Number.isFinite(Number(d.r)) ? Number(d.r) : fallbackR;
+function normalizePoint(d, idx, cumulativeR) {
+  const rr = Number(d.rr) || 0;
   return {
     ...d,
     idx,
     rr,
-    r,
+    r: Number(cumulativeR) || 0,
     dateLabel: d.date ? fmtDate(d.date) : `#${idx + 1}`,
+    tradeLabel: `${idx + 1}`,
   };
 }
 
 function buildChartData(data) {
-  return data.map((d, idx) => normalizePoint(d, idx, Number(d.r) || 0, Number(d.rr) || 0));
+  let cum = 0;
+  return [...data]
+    .sort((a, b) => {
+      const da = a.date ? new Date(a.date).getTime() : 0;
+      const db = b.date ? new Date(b.date).getTime() : 0;
+      if (da !== db) return da - db;
+      return String(a._dbid || a.id || "").localeCompare(String(b._dbid || b.id || ""));
+    })
+    .map((d, idx) => {
+      const rr = Number(d.rr) || 0;
+      cum += rr;
+      return normalizePoint(d, idx, cum);
+    });
 }
 
 function buildDrawdown(data) {
@@ -75,7 +94,8 @@ function clampDomain(min, max) {
 
 function CustomTooltip({ active, payload, T }) {
   if (!active || !payload?.length) return null;
-  const point = payload[0].payload;
+  const point = payload.find(item => item?.payload)?.payload;
+  if (!point) return null;
   const rr = Number(point.rr) || 0;
   return (
     <div style={{
@@ -139,16 +159,19 @@ function TooltipPill({ T, value, color }) {
 
 export default function EquityCurve({ T, data = [] }) {
   const [range, setRange] = useState("all");
+  const [mode, setMode] = useState("trades");
   const source = useMemo(() => buildChartData(data), [data]);
   const filtered = useMemo(() => filterByRange(source, range), [source, range]);
   const drawdown = useMemo(() => buildDrawdown(filtered), [filtered]);
   const allR = filtered.map(d => d.r);
+  const allTradeR = filtered.map(d => d.rr);
   const netR = filtered.length ? filtered[filtered.length - 1].r : 0;
   const peak = filtered.length ? Math.max(0, ...allR) : 0;
   const minR = filtered.length ? Math.min(0, ...allR) : 0;
   const maxR = filtered.length ? Math.max(0, ...allR) : 1;
   const maxDD = drawdown.length ? Math.min(0, ...drawdown.map(d => d.drawdown)) : 0;
   const domain = clampDomain(minR, maxR);
+  const tradeDomain = clampDomain(Math.min(0, ...allTradeR), Math.max(0, ...allTradeR));
 
   if (!data.length) {
     return (
@@ -193,29 +216,55 @@ export default function EquityCurve({ T, data = [] }) {
           <span style={{ fontSize: 10, color: T.muted }}>pk <b style={{ color: T.green }}>{fmtRR(peak)}</b></span>
           {maxDD < 0 && <span style={{ fontSize: 10, color: T.muted }}>dd <b style={{ color: T.red }}>{fmtRR(maxDD)}</b></span>}
         </div>
-        <div style={{
-          display: "flex",
-          gap: 2,
-          background: T.surface2,
-          border: `1px solid ${T.border}`,
-          borderRadius: 8,
-          padding: 2,
-        }}>
-          {RANGES.map(r => (
-            <button key={r.id} onClick={() => setRange(r.id)} style={{
-              background: range === r.id ? T.accent : "transparent",
-              border: "none",
-              borderRadius: 6,
-              color: range === r.id ? "#fff" : T.textDim,
-              cursor: "pointer",
-              fontFamily: "'JetBrains Mono','Fira Code',monospace",
-              fontSize: 10,
-              fontWeight: 800,
-              letterSpacing: "0.03em",
-              minHeight: 24,
-              padding: "2px 8px",
-            }}>{r.label}</button>
-          ))}
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <div style={{
+            display: "flex",
+            gap: 2,
+            background: T.surface2,
+            border: `1px solid ${T.border}`,
+            borderRadius: 8,
+            padding: 2,
+          }}>
+            {MODES.map(item => (
+              <button key={item.id} onClick={() => setMode(item.id)} style={{
+                background: mode === item.id ? T.accent : "transparent",
+                border: "none",
+                borderRadius: 6,
+                color: mode === item.id ? "#fff" : T.textDim,
+                cursor: "pointer",
+                fontFamily: "'JetBrains Mono','Fira Code',monospace",
+                fontSize: 10,
+                fontWeight: 850,
+                letterSpacing: "0.03em",
+                minHeight: 24,
+                padding: "2px 9px",
+              }}>{item.label}</button>
+            ))}
+          </div>
+          <div style={{
+            display: "flex",
+            gap: 2,
+            background: T.surface2,
+            border: `1px solid ${T.border}`,
+            borderRadius: 8,
+            padding: 2,
+          }}>
+            {RANGES.map(r => (
+              <button key={r.id} onClick={() => setRange(r.id)} style={{
+                background: range === r.id ? T.accent : "transparent",
+                border: "none",
+                borderRadius: 6,
+                color: range === r.id ? "#fff" : T.textDim,
+                cursor: "pointer",
+                fontFamily: "'JetBrains Mono','Fira Code',monospace",
+                fontSize: 10,
+                fontWeight: 800,
+                letterSpacing: "0.03em",
+                minHeight: 24,
+                padding: "2px 8px",
+              }}>{r.label}</button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -238,6 +287,7 @@ export default function EquityCurve({ T, data = [] }) {
               tick={{ fill: T.muted, fontSize: 10, fontFamily: "var(--font-geist-sans)" }}
             />
             <YAxis
+              yAxisId="equity"
               width={46}
               domain={domain}
               axisLine={false}
@@ -245,21 +295,60 @@ export default function EquityCurve({ T, data = [] }) {
               tickFormatter={value => value >= 0 ? `+${value}` : value}
               tick={{ fill: T.textDim, fontSize: 10, fontFamily: "'JetBrains Mono','Fira Code',monospace" }}
             />
-            <ReferenceLine y={0} stroke={T.border} strokeDasharray="5 8" strokeOpacity={0.9} />
+            {mode === "trades" && (
+              <YAxis
+                yAxisId="trade"
+                orientation="right"
+                width={36}
+                domain={tradeDomain}
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={value => value >= 0 ? `+${value}` : value}
+                tick={{ fill: T.muted, fontSize: 9, fontFamily: "'JetBrains Mono','Fira Code',monospace" }}
+              />
+            )}
+            <ReferenceLine yAxisId="equity" y={0} stroke={T.border} strokeDasharray="5 8" strokeOpacity={0.9} />
+            {mode === "trades" && (
+              <ReferenceLine yAxisId="trade" y={0} stroke={T.border} strokeDasharray="3 7" strokeOpacity={0.45} />
+            )}
             <Tooltip
               cursor={{ stroke: T.border, strokeWidth: 1, strokeDasharray: "3 5" }}
               content={<CustomTooltip T={T} />}
             />
-            <Area
-              type="monotone"
-              dataKey="r"
-              fill="url(#fx-equity-fill)"
-              stroke="none"
-              isAnimationActive
-              animationDuration={650}
-            />
+            {mode === "curve" && (
+              <Area
+                yAxisId="equity"
+                type="monotone"
+                dataKey="r"
+                fill="url(#fx-equity-fill)"
+                stroke="none"
+                isAnimationActive
+                animationDuration={650}
+              />
+            )}
+            {mode === "trades" && (
+              <Bar
+                yAxisId="trade"
+                dataKey="rr"
+                radius={[4, 4, 4, 4]}
+                barSize={filtered.length > 30 ? 5 : 10}
+                isAnimationActive
+                animationDuration={500}
+              >
+                {filtered.map(point => (
+                  <Cell
+                    key={`trade-bar-${point.idx}`}
+                    fill={point.rr >= 0 ? T.green : T.red}
+                    fillOpacity={point.rr >= 0 ? 0.34 : 0.42}
+                    stroke={point.rr >= 0 ? T.green : T.red}
+                    strokeOpacity={0.8}
+                  />
+                ))}
+              </Bar>
+            )}
             <Line
-              type="monotone"
+              yAxisId="equity"
+              type={mode === "trades" ? "stepAfter" : "monotone"}
               dataKey="r"
               stroke={netR >= 0 ? T.green : T.red}
               strokeWidth={3}
