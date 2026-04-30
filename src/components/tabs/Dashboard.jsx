@@ -1,31 +1,45 @@
 "use client"
 import { useState, useEffect } from "react";
+import { animate, motion, useMotionValue, useMotionValueEvent } from "framer-motion";
 import { EmptyState, Btn, Badge } from "@/components/ui";
 import EquityCurve from "@/components/EquityCurve";
 import InsightCards from "@/components/InsightCards";
 import MonthlyReturns from "@/components/MonthlyReturns";
 import { fmtDate, fmtRR, getWeeklyPairNotes } from "@/lib/utils";
 
-function useCountUp(target, active, duration=1100) {
-  const [val, setVal] = useState(0)
+function AnimatedNumber({ target, active, format }) {
+  const value = useMotionValue(active ? 0 : target)
+  const [display, setDisplay] = useState(format(active ? 0 : target))
+
+  useMotionValueEvent(value, "change", latest => {
+    setDisplay(format(latest))
+  })
+
   useEffect(()=>{
     const reduceMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches
-    if(reduceMotion){ setVal(target); return }
-    if(!active) return
-    setVal(0)
-    if(target === 0) return
-    let step = 0
-    const steps = 55
-    const id = setInterval(()=>{
-      step++
-      const e = 1 - Math.pow(1 - step/steps, 3)
-      setVal(target * e)
-      if(step >= steps){ clearInterval(id); setVal(target) }
-    }, duration / steps)
-    return ()=>clearInterval(id)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[active, target])
-  return val
+    if(reduceMotion || !active){
+      value.set(target)
+      setDisplay(format(target))
+      return
+    }
+    value.set(0)
+    const controls = animate(value, target, {
+      duration: 0.8,
+      ease: [0.16, 1, 0.3, 1],
+    })
+    return controls.stop
+  }, [active, format, target, value])
+
+  return (
+    <motion.span
+      key={target}
+      initial={{ opacity: 0.7, y: 3 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.18 }}
+    >
+      {display}
+    </motion.span>
+  )
 }
 
 
@@ -41,29 +55,24 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
     .filter(p => p.count > 0)
     .sort((a, b) => b.totalR - a.totalR)
 
-  const animTotalR  = useCountUp(stats.totalR,        active)
-  const animWinRate = useCountUp(stats.winRate,        active)
-  const animAvgRR   = useCountUp(stats.avgRR,          active)
-  const animBestR   = useCountUp(bestPair?.totalR || 0, active)
-
   const kpis = [
     {
       label:    "Total R",
-      value:    `${animTotalR >= 0 ? "+" : ""}${animTotalR.toFixed(2)}R`,
+      value:    <AnimatedNumber target={stats.totalR} active={active} format={v=>`${v >= 0 ? "+" : ""}${v.toFixed(2)}R`} />,
       color:    stats.totalR >= 0 ? T.green : T.red,
       sub:      `${stats.total} trades`,
       barWidth: `${Math.min(Math.abs(stats.totalR) / 20 * 100, 100)}%`,
     },
     {
       label:    "Win Rate",
-      value:    `${animWinRate.toFixed(1)}%`,
+      value:    <AnimatedNumber target={stats.winRate} active={active} format={v=>`${v.toFixed(1)}%`} />,
       color:    stats.winRate >= 55 ? T.green : stats.winRate >= 45 ? T.amber : T.red,
       sub:      `${stats.wins}W / ${stats.losses}L / ${stats.be}BE`,
       barWidth: `${Math.min(stats.winRate, 100)}%`,
     },
     {
       label:    "Avg RR",
-      value:    `${animAvgRR.toFixed(2)}R`,
+      value:    <AnimatedNumber target={stats.avgRR} active={active} format={v=>`${v.toFixed(2)}R`} />,
       color:    stats.avgRR >= 2 ? T.green : stats.avgRR >= 1 ? T.amber : T.red,
       sub:      "on winning trades",
       barWidth: `${Math.min(stats.avgRR / 3 * 100, 100)}%`,
@@ -72,7 +81,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
       label:    "Best Pair",
       value:    bestPair?.pair || "None",
       color:    T.accentBright,
-      sub:      `${animBestR >= 0 ? "+" : ""}${animBestR.toFixed(1)}R total`,
+      sub:      `${(bestPair?.totalR || 0) >= 0 ? "+" : ""}${(bestPair?.totalR || 0).toFixed(1)}R total`,
       barWidth: `${Math.min(Math.abs(bestPair?.totalR || 0) / 20 * 100, 100)}%`,
     },
   ]

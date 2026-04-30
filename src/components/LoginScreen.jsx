@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect, useRef, useCallback } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import GlowBtn from "@/components/GlowBtn";
 
 /* ── Pain points ───────────────────────────────────────────────────── */
@@ -990,8 +991,13 @@ export default function LoginScreen({ supabase }) {
           </div>
 
           {/* ── Login modal overlay ── */}
+          <AnimatePresence>
           {showLogin && (
-            <div
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.16 }}
               onClick={(e) => e.target === e.currentTarget && setShowLogin(false)}
               style={{
                 position:"fixed", inset:0, zIndex:200,
@@ -1000,7 +1006,12 @@ export default function LoginScreen({ supabase }) {
                 padding:24,
               }}
             >
-              <div style={{
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                style={{
                 background:"#0d0d0d", border:"1px solid rgba(177,158,239,0.2)",
                 borderRadius:24, padding:"40px 36px", width:"100%", maxWidth:400,
                 position:"relative",
@@ -1045,9 +1056,10 @@ export default function LoginScreen({ supabase }) {
                     </button>
                   </div>
                 )}
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           )}
+          </AnimatePresence>
 
           {/* Scroll cue */}
           <div className="phantom-bounce" style={{ position:"absolute", bottom:76, opacity:0.22 }}>

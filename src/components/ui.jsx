@@ -1,5 +1,6 @@
 "use client"
 import { useState, useRef, useCallback, useEffect } from "react";
+import { motion } from "framer-motion";
 import { normalizeImageList } from "@/lib/utils";
 import { DARK } from "@/lib/constants";
 
@@ -99,33 +100,43 @@ export function Overlay({onClose,children}){
     return ()=>document.removeEventListener("keydown", handler)
   },[onClose])
   return (
-    <div
+    <motion.div
       onClick={onClose}
       role="presentation"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.16 }}
       style={{position:"fixed",inset:0,background:"rgba(0,0,0,.72)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16,backdropFilter:"blur(4px)"}}
     >
-      <div
+      <motion.div
         role="dialog"
         aria-modal="true"
         onClick={e=>e.stopPropagation()}
-      >{children}</div>
-    </div>
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 20 }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+      >{children}</motion.div>
+    </motion.div>
   )
 }
 
 // ─── Tab panel (show/hide) ─────────────────────────────────────────────────
 export function TabPanel({active,children}) {
   return (
-    <div
+    <motion.div
       aria-hidden={!active}
+      initial={false}
+      animate={active ? { opacity: 1, x: 0 } : { opacity: 0, x: 10 }}
+      transition={{ duration: 0.2 }}
       style={{
         display:active?"block":"none",
         minHeight:active?"auto":0,
-        animation:active?"tabFadeIn .2s ease":"none",
       }}
     >
       {children}
-    </div>
+    </motion.div>
   )
 }
 
@@ -205,7 +216,10 @@ export function Card({T,children,style={},glow}){
   // For brutalist: caller's borderRadius/shadow are overridden so all cards stay consistent
   const brutalOverrides = brutal ? { borderRadius:3, border:`2px solid ${T.border}`, boxShadow:T.hardShadow } : {}
   return (
-    <div style={{
+    <motion.div
+      whileHover={{ y: -2 }}
+      transition={{ duration: 0.15 }}
+      style={{
       background:T.surface,
       border:`1px solid ${T.border}`,
       borderRadius:20,
@@ -217,7 +231,7 @@ export function Card({T,children,style={},glow}){
       ...brutalOverrides,
     }}>
       <div style={{position:"relative"}}>{children}</div>
-    </div>
+    </motion.div>
   )
 }
 

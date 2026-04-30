@@ -1,6 +1,7 @@
 "use client"
 import { createClient } from "@/lib/supabase";
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { AnimatePresence } from "framer-motion";
 import { THEMES, THEME_META, DARK, LIGHT, PAIRS, SESSIONS, TAB_STORAGE_KEY, TRADE_BOOT_FIELDS, DAILY_BOOT_FIELDS, WEEKLY_BOOT_FIELDS, MISSED_BOOT_FIELDS } from "@/lib/constants";
 import { getCurrentSessionInfo, uploadImageValue, uploadImageList, deleteStoredImages, getDailyPlanImages, getWeeklyPlanImages, getMissedTradeImages, serializeMissedTradeNotes, clearDraft, serializeImageList, getAutoSession } from "@/lib/utils";
 import { Spinner, AppShellSkeleton, TabPanel, BottomNav, Overlay, HeaderMeta, SessionPill } from "@/components/ui";
@@ -622,24 +623,26 @@ export default function App() {
         >+</button>
       )}
 
-      {tradeModal&&<TradeModal T={T} userId={user.id} initial={tradeModal==="new"||tradeModal==="quick"?null:tradeModal} defaults={newTradeDefaults} initialMode={tradeModal==="quick"?"quick":undefined} onSave={saveTrade} onClose={()=>setTradeModal(null)} syncing={syncing}/>}
-      {missedTradeModal&&<MissedTradeModal T={T} initial={missedTradeModal==="new"?null:missedTradeModal} onSave={saveMissedTrade} onClose={()=>setMissedTradeModal(null)} syncing={syncing}/>}
-      {dailyModal&&<DailyModal T={T} userId={user.id} initial={dailyModal==="new"?null:dailyModal} onSave={saveDaily} onClose={()=>setDailyModal(null)} syncing={syncing}/>}
-      {weeklyModal&&<WeeklyModal T={T} userId={user.id} initial={weeklyModal==="new"?null:weeklyModal} onSave={saveWeekly} onClose={()=>setWeeklyModal(null)} syncing={syncing}/>}
-      {deleteTarget&&(
-        <Overlay onClose={()=>setDeleteTarget(null)}>
-          <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,padding:"32px 40px",textAlign:"center",minWidth:300}}>
-            <div style={{fontFamily:"var(--font-geist-sans)",fontSize:18,fontWeight:800,color:T.text,marginBottom:8}}>Delete this entry?</div>
-            <div style={{fontSize:13,color:T.textDim,marginBottom:4}}>{deleteTarget.name}</div>
-            <div style={{fontSize:12,color:T.red,marginBottom:24}}>This is permanent and cannot be undone.</div>
-            <div style={{display:"flex",gap:10,justifyContent:"center"}}>
-              <button onClick={confirmDelete} disabled={syncing} style={{background:T.red,color:T.bg,border:"none",minHeight:44,padding:"10px 24px",borderRadius:999,cursor:"pointer",fontFamily:"var(--font-geist-sans)",fontWeight:800,fontSize:13}}>{syncing?"Deleting...":"Delete"}</button>
-              <button onClick={()=>setDeleteTarget(null)} style={{background:"none",border:`1px solid ${T.border}`,color:T.textDim,padding:"10px 24px",borderRadius:10,cursor:"pointer",fontSize:13}}>Cancel</button>
+      <AnimatePresence>
+        {tradeModal&&<TradeModal key="trade-modal" T={T} userId={user.id} initial={tradeModal==="new"||tradeModal==="quick"?null:tradeModal} defaults={newTradeDefaults} initialMode={tradeModal==="quick"?"quick":undefined} onSave={saveTrade} onClose={()=>setTradeModal(null)} syncing={syncing}/>}
+        {missedTradeModal&&<MissedTradeModal key="missed-trade-modal" T={T} initial={missedTradeModal==="new"?null:missedTradeModal} onSave={saveMissedTrade} onClose={()=>setMissedTradeModal(null)} syncing={syncing}/>}
+        {dailyModal&&<DailyModal key="daily-modal" T={T} userId={user.id} initial={dailyModal==="new"?null:dailyModal} onSave={saveDaily} onClose={()=>setDailyModal(null)} syncing={syncing}/>}
+        {weeklyModal&&<WeeklyModal key="weekly-modal" T={T} userId={user.id} initial={weeklyModal==="new"?null:weeklyModal} onSave={saveWeekly} onClose={()=>setWeeklyModal(null)} syncing={syncing}/>}
+        {deleteTarget&&(
+          <Overlay key="delete-modal" onClose={()=>setDeleteTarget(null)}>
+            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,padding:"32px 40px",textAlign:"center",minWidth:300}}>
+              <div style={{fontFamily:"var(--font-geist-sans)",fontSize:18,fontWeight:800,color:T.text,marginBottom:8}}>Delete this entry?</div>
+              <div style={{fontSize:13,color:T.textDim,marginBottom:4}}>{deleteTarget.name}</div>
+              <div style={{fontSize:12,color:T.red,marginBottom:24}}>This is permanent and cannot be undone.</div>
+              <div style={{display:"flex",gap:10,justifyContent:"center"}}>
+                <button onClick={confirmDelete} disabled={syncing} style={{background:T.red,color:T.bg,border:"none",minHeight:44,padding:"10px 24px",borderRadius:999,cursor:"pointer",fontFamily:"var(--font-geist-sans)",fontWeight:800,fontSize:13}}>{syncing?"Deleting...":"Delete"}</button>
+                <button onClick={()=>setDeleteTarget(null)} style={{background:"none",border:`1px solid ${T.border}`,color:T.textDim,padding:"10px 24px",borderRadius:10,cursor:"pointer",fontSize:13}}>Cancel</button>
+              </div>
             </div>
-          </div>
-        </Overlay>
-      )}
-      {imgViewer&&<Overlay onClose={()=>setImgViewer(null)}><img src={imgViewer} alt="chart" style={{maxWidth:"95vw",maxHeight:"90vh",borderRadius:8,boxShadow:"0 20px 80px rgba(0,0,0,.8)"}}/></Overlay>}
+          </Overlay>
+        )}
+        {imgViewer&&<Overlay key="image-viewer" onClose={()=>setImgViewer(null)}><img src={imgViewer} alt="chart" style={{maxWidth:"95vw",maxHeight:"90vh",borderRadius:8,boxShadow:"0 20px 80px rgba(0,0,0,.8)"}}/></Overlay>}
+      </AnimatePresence>
 
       {/* ── Toast stack ── */}
       {toasts.length>0&&(
