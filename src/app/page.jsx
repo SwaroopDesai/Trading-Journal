@@ -31,7 +31,10 @@ export default function App() {
   const supabase = createClient()
   const [user,setUser] = useState(null)
   const [authLoading,setAuthLoading] = useState(true)
-  const [themeKey,setThemeKey] = useState("dark")
+  const [themeKey,setThemeKey] = useState(()=>{
+    if(typeof window==="undefined") return "dark"
+    return localStorage.getItem("fx-theme")||"dark"
+  })
   const T = THEMES[themeKey] || DARK
   const [trades,setTrades] = useState([])
   const [dailyPlans,setDailyPlans] = useState([])
@@ -165,6 +168,7 @@ export default function App() {
   const changeTheme = useCallback(async(key)=>{
     if(!THEMES[key]) return
     setThemeKey(key)
+    try { localStorage.setItem("fx-theme",key) } catch {}
     try { await supabase.auth.updateUser({ data:{ theme:key } }) } catch {}
   },[supabase])
 
