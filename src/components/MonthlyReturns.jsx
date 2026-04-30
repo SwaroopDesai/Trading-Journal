@@ -53,10 +53,7 @@ export default function MonthlyReturns({ T, trades = [], compact = false }) {
         background: T.surface,
         padding: "12px 14px",
         overflow: "hidden",
-        height: "100%",
-        minHeight: 216,
-        display: "flex",
-        flexDirection: "column",
+        minHeight: 0,
       }}>
         <div style={{
           display: "flex",
@@ -86,8 +83,6 @@ export default function MonthlyReturns({ T, trades = [], compact = false }) {
           display: "grid",
           gridTemplateColumns: "repeat(3,minmax(0,1fr))",
           gap: 6,
-          flex: 1,
-          alignContent: "start",
         }}>
           {MONTHS.map((month, m) => {
             const v = map[latestYear]?.[m]

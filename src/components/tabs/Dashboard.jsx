@@ -50,6 +50,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
   const latestWeekly = [...weeklyPlans].sort((a,b) => new Date(b.weekStart) - new Date(a.weekStart))[0]
   const bestPair     = [...stats.byPair].sort((a,b) => b.totalR - a.totalR)[0]
   const isMobile     = viewportWidth < 768
+  const isWide       = viewportWidth >= 1700
   const todayR        = todayTrades.reduce((sum, t) => sum + (Number(t.rr) || 0), 0)
   const activePairs   = stats.byPair
     .filter(p => p.count > 0)
@@ -210,14 +211,15 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
       {/* ── Bento dashboard grid ── */}
       <div style={{
         display: "grid",
-        gridTemplateColumns: isMobile ? "1fr" : "repeat(12,minmax(0,1fr))",
+        gridTemplateColumns: isMobile ? "1fr" : `repeat(${isWide ? 16 : 12},minmax(0,1fr))`,
         gap: 10,
+        alignItems: "start",
       }}>
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28, delay: 0.06 }}
-          style={{ gridColumn: isMobile ? "auto" : "span 8", minWidth: 0 }}
+          style={{ gridColumn: isMobile ? "auto" : `span ${isWide ? 10 : 8}`, minWidth: 0 }}
         >
           <EquityCurve T={T} data={stats.equityCurve} />
         </motion.div>
@@ -226,7 +228,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28, delay: 0.1 }}
-          style={{ gridColumn: isMobile ? "auto" : "span 4", minWidth: 0 }}
+          style={{ gridColumn: isMobile ? "auto" : `span ${isWide ? 6 : 4}`, minWidth: 0 }}
         >
           <MonthlyReturns T={T} trades={trades} compact={!isMobile} />
         </motion.div>
@@ -237,7 +239,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28, delay: 0.14 }}
           whileHover={{ y: -2 }}
-          style={{ ...secondCard, gridColumn: isMobile ? "auto" : "span 6" }}
+          style={{ ...secondCard, gridColumn: isMobile ? "auto" : `span ${isWide ? 8 : 6}` }}
         >
           <div style={{ ...secTitle, display:"flex", justifyContent:"space-between", gap:10 }}>
             <span>Today&apos;s Trades</span>
@@ -288,7 +290,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28, delay: 0.18 }}
           whileHover={{ y: -2 }}
-          style={{ ...secondCard, gridColumn: isMobile ? "auto" : "span 6" }}
+          style={{ ...secondCard, gridColumn: isMobile ? "auto" : `span ${isWide ? 8 : 6}` }}
         >
           <div style={{ ...secTitle, display:"flex", justifyContent:"space-between" }}>
             <span>Daily Bias</span>
@@ -337,7 +339,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28, delay: 0.22 }}
           whileHover={{ y: -2 }}
-          style={{ ...secondCard, gridColumn: isMobile ? "auto" : "span 5" }}
+          style={{ ...secondCard, gridColumn: isMobile ? "auto" : `span ${isWide ? 6 : 5}` }}
         >
           <div style={{ ...secTitle, display:"flex", justifyContent:"space-between" }}>
             <span>Weekly Theme</span>
@@ -384,7 +386,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28, delay: 0.26 }}
           whileHover={{ y: -2 }}
-          style={{ ...secondCard, gridColumn: isMobile ? "auto" : "span 7" }}
+          style={{ ...secondCard, gridColumn: isMobile ? "auto" : `span ${isWide ? 10 : 7}` }}
         >
           <div style={secTitle}>Pair Performance</div>
           {activePairs.length === 0
