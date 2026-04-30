@@ -505,16 +505,18 @@ export default function App() {
       {/* Main */}
       <main className="app-main" style={{flex:1,display:"flex",flexDirection:"column",position:"relative",zIndex:1}}>
         {/* Topbar */}
-        <div className="topbar" style={{borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,background:`${T.surface}f4`,backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",position:"sticky",top:0,zIndex:40,boxShadow:`0 1px 0 ${T.border}`}}>
-          <div style={{flex:1,minWidth:0}}>
-            <HeaderMeta
-              T={T}
-              eyebrow="Trading Journal"
-              title={ALL_TABS.find(t=>t.id===tab)?.label || TABS.find(t=>t.id===tab)?.label}
-              subtitle={new Date().toLocaleDateString("en-GB",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}
-            />
+        <div className="topbar" style={{borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,background:`${T.surface}f4`,backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",position:"sticky",top:0,zIndex:40}}>
+          {/* Left: tab name + date */}
+          <div style={{display:"flex",alignItems:"baseline",gap:10,minWidth:0}}>
+            <span style={{fontFamily:"var(--font-geist-sans)",fontSize:15,fontWeight:700,color:T.text,letterSpacing:"-0.02em",lineHeight:1,whiteSpace:"nowrap"}}>
+              {ALL_TABS.find(t=>t.id===tab)?.label || TABS.find(t=>t.id===tab)?.label}
+            </span>
+            <span style={{fontSize:11,color:T.muted,whiteSpace:"nowrap"}} className="hide-mobile">
+              {new Date().toLocaleDateString("en-GB",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}
+            </span>
           </div>
-          <div className="topbar-right" style={{flexShrink:0,alignSelf:"flex-start",display:"flex",flexDirection:"column",alignItems:"flex-end",gap:10}}>
+          {/* Right: theme swatches + session pill */}
+          <div style={{display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
             <div style={{display:"flex",gap:5,alignItems:"center"}}>
               {THEME_META.map(tm=>(
                 <button
@@ -523,7 +525,7 @@ export default function App() {
                   aria-label={`${tm.label} theme`}
                   title={tm.label}
                   style={{
-                    width:18,height:18,borderRadius:"50%",padding:0,cursor:"pointer",
+                    width:16,height:16,borderRadius:"50%",padding:0,cursor:"pointer",
                     background:tm.swatch,
                     border:themeKey===tm.id?`2px solid ${T.text}`:`2px solid ${tm.border?"#94a3b8":"transparent"}`,
                     boxShadow:themeKey===tm.id?`0 0 0 1px ${T.accentBright}`:"none",
@@ -716,7 +718,7 @@ function buildCSS(T) {
     .nav-icon { font-size:15px; line-height:1; width:18px; text-align:center; flex-shrink:0; transition:transform .18s cubic-bezier(.16,1,.3,1); }
     .nav-btn:hover .nav-icon { transform:scale(1.12); }
     .bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; z-index:50; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); }
-    .topbar{padding:20px 32px;}
+    .topbar{padding:10px 24px;}
     .tab-content{padding:28px 32px;background-image:radial-gradient(circle at 20% 0%,${T.accentBright}0b,transparent 28%),radial-gradient(circle at 88% 8%,${T.pink}09,transparent 26%);}
     .topbar-right{min-width:0;}
     .theme-btn{padding:7px 14px;font-size:13px;min-width:auto;}
