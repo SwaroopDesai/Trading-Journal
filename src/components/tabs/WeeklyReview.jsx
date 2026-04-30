@@ -53,7 +53,7 @@ function WeeklyReview({T,weeklyPlans,trades,saveWeekly,onNewWeekly,viewportWidth
   return (
     <div>
       <SectionLead T={T} compact={isMobile} eyebrow="Performance Review" title="Weekly Debrief" copy="Every review should end with one clear lesson, one clear leak, and one clear focus for the next week." />
-      {sorted.length===0&&<EmptyState T={T} icon="✍️" title="No weekly reviews yet" copy="Start with one weekly plan and your end-of-week debriefs will build themselves from there." action={<Btn T={T} onClick={onNewWeekly}>+ Weekly Plan</Btn>} />}
+      {sorted.length===0&&<EmptyState T={T} icon="RV" title="No weekly reviews yet" copy="Start with one weekly plan and your end-of-week debriefs will build themselves from there." action={<Btn T={T} onClick={onNewWeekly}>+ Weekly Plan</Btn>} />}
       <div style={{display:"grid",gridTemplateColumns:`repeat(auto-fill,minmax(${isMobile?280:320}px,1fr))`,gap:14}}>
         {sorted.map(plan=>{
           const wt=getWeekTrades(plan)
@@ -62,10 +62,10 @@ function WeeklyReview({T,weeklyPlans,trades,saveWeekly,onNewWeekly,viewportWidth
           const totalR=insights.totalR
           const hasReview=plan.review&&plan.review.trim().length>0
           return (
-            <div key={plan._dbid} style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${hasReview?T.accentBright:T.border}`,borderRadius:18,padding:"20px 20px 18px",boxShadow:`0 14px 32px ${T.cardGlow}`}}>
+            <div key={plan._dbid} style={{background:T.surface,border:`1px solid ${hasReview?T.accentBright:T.border}`,borderRadius:16,padding:"18px",boxShadow:"none"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
                 <div>
-                  <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text}}>{plan.weekStart} to {plan.weekEnd}</div>
+                  <div style={{fontFamily:"var(--font-geist-sans)",fontSize:15,fontWeight:800,color:T.text}}>{plan.weekStart} to {plan.weekEnd}</div>
                   {plan.overallBias&&<div style={{fontSize:12,color:T.accentBright,marginTop:3}}>{plan.overallBias}</div>}
                 </div>
                 {hasReview&&<Badge color={T.green}>Reviewed</Badge>}
@@ -74,7 +74,7 @@ function WeeklyReview({T,weeklyPlans,trades,saveWeekly,onNewWeekly,viewportWidth
                 {[{l:"Trades",v:wt.length,c:T.text},{l:"Wins",v:wins,c:T.green},{l:"Losses",v:wt.length-wins,c:T.red},{l:"Total R",v:`${totalR>=0?"+":""}${totalR.toFixed(1)}R`,c:totalR>=0?T.green:T.red}].map(s=>(
                   <div key={s.l} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:"8px",textAlign:"center"}}>
                     <div style={{fontSize:9,fontWeight:700,color:T.muted,letterSpacing:"0.08em",marginBottom:3}}>{s.l}</div>
-                    <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:16,fontWeight:800,color:s.c}}>{s.v}</div>
+                    <div style={{fontFamily:"var(--font-geist-sans)",fontSize:16,fontWeight:800,color:s.c}}>{s.v}</div>
                   </div>
                 ))}
               </div>
@@ -103,7 +103,7 @@ function WeeklyReview({T,weeklyPlans,trades,saveWeekly,onNewWeekly,viewportWidth
                 </div>
               )}
               {wt.length>0&&(
-                <div style={{background:`linear-gradient(135deg,${T.accent}18,${T.blue}10)`,border:`1px solid ${T.accent}28`,borderRadius:14,padding:"12px 14px",marginBottom:12}}>
+                <div style={{background:T.surface2,border:`1px solid ${T.border}`,borderRadius:14,padding:"12px 14px",marginBottom:12}}>
                   <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6}}>Next Week Focus</div>
                   <div style={{fontSize:12,color:T.text,lineHeight:1.7}}>{insights.nextFocus}</div>
                 </div>
@@ -122,8 +122,8 @@ function WeeklyReview({T,weeklyPlans,trades,saveWeekly,onNewWeekly,viewportWidth
                   </div>
                 </div>
               )}
-              {hasReview&&<div style={{fontSize:12,color:T.textDim,lineHeight:1.6,marginBottom:12,padding:"10px 12px",background:T.surface,borderRadius:10,borderLeft:`3px solid ${T.accentBright}`}}>{plan.review.slice(0,180)}{plan.review.length>180?"...":""}</div>}
-              <button onClick={()=>open(plan)} style={{width:"100%",background:`linear-gradient(135deg,${T.accentBright},${T.pink})`,color:"#fff",border:"none",padding:"10px",borderRadius:10,cursor:"pointer",fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:700,fontSize:13}}>
+              {hasReview&&<div style={{fontSize:12,color:T.textDim,lineHeight:1.6,marginBottom:12,padding:"10px 12px",background:T.surface2,borderRadius:10,border:`1px solid ${T.border}`}}>{plan.review.slice(0,180)}{plan.review.length>180?"...":""}</div>}
+              <button onClick={()=>open(plan)} style={{width:"100%",background:T.accentBright,color:T.bg,border:`1px solid ${T.accentBright}`,minHeight:44,padding:"10px",borderRadius:10,cursor:"pointer",fontFamily:"var(--font-geist-sans)",fontWeight:700,fontSize:13}}>
                 {hasReview?"Update Review":"Write Review"}
               </button>
             </div>
@@ -135,7 +135,7 @@ function WeeklyReview({T,weeklyPlans,trades,saveWeekly,onNewWeekly,viewportWidth
         <Overlay onClose={()=>setSelected(null)}>
           <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,width:"min(720px,95vw)",maxHeight:"90vh",display:"flex",flexDirection:"column"}}>
             <div style={{padding:"18px 22px",borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-              <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:17,fontWeight:800,color:T.text}}>Week Review - {selected.weekStart}</div>
+              <div style={{fontFamily:"var(--font-geist-sans)",fontSize:17,fontWeight:800,color:T.text}}>Week Review - {selected.weekStart}</div>
               <button onClick={()=>setSelected(null)} style={{background:"none",border:"none",color:T.textDim,cursor:"pointer",fontSize:20}}>x</button>
             </div>
             <div style={{padding:"20px 22px",overflowY:"auto",flex:1,display:"flex",flexDirection:"column",gap:14}}>
@@ -162,7 +162,7 @@ function WeeklyReview({T,weeklyPlans,trades,saveWeekly,onNewWeekly,viewportWidth
                       <div>Best pair: {insights.bestPair?.[0]||"-"}</div>
                     </div>
                   </div>
-                  <div style={{background:`linear-gradient(135deg,${T.accent}18,${T.blue}10)`,border:`1px solid ${T.accent}28`,borderRadius:12,padding:"12px 14px"}}>
+                  <div style={{background:T.surface2,border:`1px solid ${T.border}`,borderRadius:12,padding:"12px 14px"}}>
                     <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6}}>Coaching Focus</div>
                     <div style={{fontSize:12,color:T.text,lineHeight:1.7}}>{insights.nextFocus}</div>
                   </div>
@@ -207,9 +207,9 @@ function ChecklistGate({T, onPass, onClose}) {
     <Overlay onClose={onClose}>
       <div style={{background:T.surface, border:`1px solid ${T.border}`, borderRadius:20, width:"min(520px,96vw)", maxHeight:"92vh", display:"flex", flexDirection:"column", overflow:"hidden"}}>
         {/* Header */}
-        <div style={{padding:"22px 24px 18px", background:`linear-gradient(135deg,${T.accent}20,${T.pink}10)`, borderBottom:`1px solid ${T.border}`}}>
+        <div style={{padding:"22px 24px 18px", background:T.surface2, borderBottom:`1px solid ${T.border}`}}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:4}}>
-            <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize:20, fontWeight:800, color:T.text}}>Pre-Trade Checklist</div>
+            <div style={{fontFamily:"var(--font-geist-sans)", fontSize:20, fontWeight:800, color:T.text}}>Pre-Trade Checklist</div>
             <button onClick={onClose} style={{background:"none", border:"none", color:T.textDim, cursor:"pointer", fontSize:20}}>x</button>
           </div>
           <div style={{fontSize:13, color:T.textDim}}>Tick every rule before logging your trade</div>
@@ -220,7 +220,7 @@ function ChecklistGate({T, onPass, onClose}) {
               <span style={{fontSize:12, fontWeight:800, color:progressColor}}>{pct}%</span>
             </div>
             <div style={{height:6, background:T.surface2, borderRadius:3, overflow:"hidden"}}>
-              <div style={{height:"100%", borderRadius:3, background:`linear-gradient(90deg,${progressColor},${T.pink})`, width:`${pct}%`, transition:"width .4s ease"}}/>
+              <div style={{height:"100%", borderRadius:3, background:progressColor, width:`${pct}%`, transition:"width .4s ease"}}/>
             </div>
           </div>
         </div>
@@ -249,7 +249,7 @@ function ChecklistGate({T, onPass, onClose}) {
                   display:"flex", alignItems:"center", justifyContent:"center",
                   transition:"all .2s",
                 }}>
-                  {isChecked && <span style={{color:"#fff", fontSize:12, fontWeight:700}}>OK</span>}
+                  {isChecked && <span style={{color:T.bg, fontSize:12, fontWeight:700}}>OK</span>}
                 </div>
                 {/* Icon + text */}
                 <span style={{fontSize:20, flexShrink:0}}>{rule.icon}</span>
@@ -273,11 +273,11 @@ function ChecklistGate({T, onPass, onClose}) {
             onClick={handleProceed}
             style={{
               width:"100%", padding:"13px",
-              background: allChecked ? `linear-gradient(135deg,${T.accentBright},${T.pink})` : T.surface2,
-              color: allChecked ? "#fff" : T.muted,
+              background: allChecked ? T.accentBright : T.surface2,
+              color: allChecked ? T.bg : T.muted,
               border:`1px solid ${allChecked ? "transparent" : T.border}`,
               borderRadius:12, cursor: allChecked ? "pointer" : "default",
-              fontFamily:"'Plus Jakarta Sans',sans-serif", fontWeight:800, fontSize:15,
+              fontFamily:"var(--font-geist-sans)", fontWeight:800, fontSize:15,
               transition:"all .3s",
             }}
           >

@@ -40,12 +40,12 @@ function Playbook({T, trades}) {
   return (
     <div>
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}}>
-        <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:18,fontWeight:800,color:T.text}}>My Playbooks</div>
+        <div style={{fontFamily:"var(--font-geist-sans)",fontSize:18,fontWeight:800,color:T.text}}>My Playbooks</div>
         <Btn T={T} onClick={()=>setModal("new")}>+ New Playbook</Btn>
       </div>
 
       {playbooks.length===0&&(
-        <EmptyState T={T} icon="📋" title="No playbooks yet" copy="Turn your best setups into repeatable rules so you can review them, track them, and execute them with less noise." action={<Btn T={T} onClick={()=>setModal("new")}>+ Create First Playbook</Btn>}/>
+        <EmptyState T={T} icon="PB" title="No playbooks yet" copy="Turn your best setups into repeatable rules so you can review them, track them, and execute them with less noise." action={<Btn T={T} onClick={()=>setModal("new")}>+ Create First Playbook</Btn>}/>
       )}
 
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14}}>
@@ -58,7 +58,7 @@ function Playbook({T, trades}) {
               onClick={()=>setViewPb(pb)}>
               <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:10}}>
                 <div>
-                  <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:16,fontWeight:800,color:T.text,marginBottom:4}}>{pb.name}</div>
+                  <div style={{fontFamily:"var(--font-geist-sans)",fontSize:16,fontWeight:800,color:T.text,marginBottom:4}}>{pb.name}</div>
                   {pb.setup&&<span style={{fontSize:11,background:`${T.accent}20`,color:T.accentBright,border:`1px solid ${T.accent}40`,padding:"2px 8px",borderRadius:6}}>{pb.setup}</span>}
                 </div>
                 <div style={{fontSize:24}}>{pb.emoji||"PB"}</div>
@@ -68,7 +68,7 @@ function Playbook({T, trades}) {
                 {[{l:"Trades",v:s.count,c:T.text},{l:"Win Rate",v:`${s.wr}%`,c:s.wr>=55?T.green:s.wr>=40?T.amber:T.red},{l:"Total R",v:`${s.totalR>=0?"+":""}${s.totalR.toFixed(1)}R`,c:s.totalR>=0?T.green:T.red}].map(k=>(
                   <div key={k.l} style={{background:T.surface2,borderRadius:8,padding:"8px",textAlign:"center"}}>
                     <div style={{fontSize:9,fontWeight:700,color:T.muted,letterSpacing:"0.1em",marginBottom:3}}>{k.l}</div>
-                    <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:k.c}}>{k.v}</div>
+                    <div style={{fontFamily:"var(--font-geist-sans)",fontSize:15,fontWeight:800,color:k.c}}>{k.v}</div>
                   </div>
                 ))}
               </div>
@@ -93,9 +93,9 @@ function Playbook({T, trades}) {
                 <div style={{fontSize:13,color:T.textDim,lineHeight:1.6}}>{viewPb.description}</div>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(148px,1fr))",gap:10}}>
                   {[{l:"Trades Logged",v:s.count,c:T.text},{l:"Win Rate",v:`${s.wr}%`,c:s.wr>=55?T.green:s.wr>=40?T.amber:T.red},{l:"Total R",v:`${s.totalR>=0?"+":""}${s.totalR.toFixed(2)}R`,c:s.totalR>=0?T.green:T.red},{l:"Avg R / Win",v:s.wins>0?`+${(s.totalR/s.wins).toFixed(2)}R`:"-",c:T.green}].map(k=>(
-                    <div key={k.l} style={{background:`linear-gradient(180deg,${T.surface2},${T.surface})`,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 16px"}}>
+                    <div key={k.l} style={{background:T.surface2,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 16px"}}>
                       <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>{k.l}</div>
-                      <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:20,fontWeight:800,color:k.c}}>{k.v}</div>
+                      <div style={{fontFamily:"var(--font-geist-sans)",fontSize:20,fontWeight:800,color:k.c}}>{k.v}</div>
                     </div>
                   ))}
                 </div>

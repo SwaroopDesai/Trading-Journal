@@ -30,7 +30,7 @@ function AIResultView({ T, text }) {
           const title = lines[0].replace(/^#{1,3}\s+/, "")
           return (
             <div key={index} style={{paddingTop:index===0?0:6}}>
-              <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:16,fontWeight:800,color:T.text}}>
+              <div style={{fontFamily:"var(--font-geist-sans)",fontSize:16,fontWeight:800,color:T.text}}>
                 {title}
               </div>
             </div>
@@ -44,7 +44,7 @@ function AIResultView({ T, text }) {
         return (
           <div key={index} style={{background:T.surface2,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px 18px"}}>
             {headingLine && (
-              <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:14,fontWeight:800,color:T.accentBright,marginBottom:bulletLines.length || nonBulletLines.length ? 12 : 0}}>
+              <div style={{fontFamily:"var(--font-geist-sans)",fontSize:14,fontWeight:800,color:T.accentBright,marginBottom:bulletLines.length || nonBulletLines.length ? 12 : 0}}>
                 {headingLine}
               </div>
             )}
@@ -163,7 +163,7 @@ Be concise, direct and actionable.`
 
   return (
     <div style={{maxWidth:720}}>
-      <div style={{background:`linear-gradient(180deg,${T.surface},${T.surface2})`,border:`1px solid ${T.border}`,borderRadius:20,padding:"22px",marginBottom:16,boxShadow:`0 18px 48px ${T.cardGlow}`}}>
+      <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,padding:"20px",marginBottom:16,boxShadow:"none"}}>
         <HeaderMeta
           T={T}
           eyebrow="AI Coach"
@@ -172,7 +172,7 @@ Be concise, direct and actionable.`
         />
         <div style={{display:"flex",gap:8,marginBottom:16}}>
           {[{id:"journal",label:"Analyze My Journal"},{id:"notes",label:"Analyze Trade Notes"}].map(m=>(
-            <button key={m.id} onClick={()=>{setMode(m.id);setResult(null)}} style={{padding:"9px 18px",borderRadius:20,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif",background:mode===m.id?`linear-gradient(135deg,${T.accentBright},${T.pink})`:`${T.surface2}`,color:mode===m.id?"#fff":T.textDim,border:`1px solid ${mode===m.id?"transparent":T.border}`}}>{m.label}</button>
+            <button key={m.id} onClick={()=>{setMode(m.id);setResult(null)}} style={{minHeight:40,padding:"9px 18px",borderRadius:999,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"var(--font-geist-sans)",background:mode===m.id?`${T.accent}18`:`${T.surface2}`,color:mode===m.id?T.accentBright:T.textDim,border:`1px solid ${mode===m.id?T.accentBright:T.border}`}}>{m.label}</button>
           ))}
         </div>
         {mode==="journal"&&(
@@ -211,7 +211,7 @@ Be concise, direct and actionable.`
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
             <div>
               <div style={{fontSize:10,fontWeight:700,color:T.accentBright,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:6}}>Structured Report</div>
-              <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:18,fontWeight:800,color:T.text}}>Analysis Results</div>
+              <div style={{fontFamily:"var(--font-geist-sans)",fontSize:18,fontWeight:800,color:T.text}}>Analysis Results</div>
               <div style={{fontSize:12,color:T.textDim,marginTop:4}}>Clear takeaways, risk patterns, and a next-step focus pulled from your own journal.</div>
             </div>
             <button onClick={()=>setResult(null)} style={{background:"none",border:`1px solid ${T.border}`,color:T.textDim,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontSize:12}}>Clear</button>

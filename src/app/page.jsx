@@ -409,24 +409,24 @@ export default function App() {
 
   // Mobile shows only 5 primary tabs; rest accessible via More
   const TABS=[
-    {id:"dashboard",icon:"⊞",label:"Home",mobile:true},
-    {id:"journal",icon:"📓",label:"Journal",mobile:true},
-    {id:"daily",icon:"📅",label:"Daily",mobile:true},
-    {id:"heatmap",icon:"🔥",label:"Heatmap",mobile:true},
-    {id:"more",icon:"···",label:"More",mobile:true},
+    {id:"dashboard",icon:"DB",label:"Home",mobile:true},
+    {id:"journal",icon:"JR",label:"Journal",mobile:true},
+    {id:"daily",icon:"DY",label:"Daily",mobile:true},
+    {id:"heatmap",icon:"HM",label:"Heatmap",mobile:true},
+    {id:"more",icon:"...",label:"More",mobile:true},
     // Desktop sidebar + accessible via More on mobile
-    {id:"analytics",icon:"📊",label:"Analytics",mobile:false},
-    {id:"weekly",icon:"🗓",label:"Weekly",mobile:false},
-    {id:"psychology",icon:"🧠",label:"Mind",mobile:false},
-    {id:"playbook",icon:"📋",label:"Playbook",mobile:false},
-    {id:"calculator",icon:"🧮",label:"Calculator",mobile:false},
-    {id:"gallery",icon:"🖼️",label:"Gallery",mobile:false},
-    {id:"review",icon:"✍️",label:"Review",mobile:false},
-    {id:"ai",icon:"✨",label:"AI Analysis",mobile:false},
-    {id:"missed",icon:"👁",label:"Missed",mobile:false},
-    {id:"calendar",icon:"📰",label:"Calendar",mobile:false},
-    {id:"patterns",icon:"🔍",label:"Patterns",mobile:false},
-    {id:"export",icon:"📤",label:"Export",mobile:false},
+    {id:"analytics",icon:"AN",label:"Analytics",mobile:false},
+    {id:"weekly",icon:"WK",label:"Weekly",mobile:false},
+    {id:"psychology",icon:"MD",label:"Mind",mobile:false},
+    {id:"playbook",icon:"PB",label:"Playbook",mobile:false},
+    {id:"calculator",icon:"CL",label:"Calculator",mobile:false},
+    {id:"gallery",icon:"GL",label:"Gallery",mobile:false},
+    {id:"review",icon:"RV",label:"Review",mobile:false},
+    {id:"ai",icon:"AI",label:"AI Analysis",mobile:false},
+    {id:"missed",icon:"MS",label:"Missed",mobile:false},
+    {id:"calendar",icon:"EC",label:"Calendar",mobile:false},
+    {id:"patterns",icon:"PT",label:"Patterns",mobile:false},
+    {id:"export",icon:"EX",label:"Export",mobile:false},
   ]
   const ALL_TABS=TABS.filter(t=>t.id!=="more")
   const MOBILE_PRIMARY=TABS.filter(t=>t.mobile)
@@ -442,13 +442,6 @@ export default function App() {
   return (
     <div className="fx-app-root" style={{display:"flex",minHeight:"100vh",background:T.bg,color:T.text,fontFamily:"var(--font-geist-sans)",transition:"background .3s, color .3s",position:"relative",overflowX:"hidden"}}>
       <style>{css}</style>
-      {!T.hardShadow&&(
-        <>
-          <div aria-hidden="true" className="fx-orb fx-orb-one" />
-          <div aria-hidden="true" className="fx-orb fx-orb-two" />
-          <div aria-hidden="true" className="fx-noise" />
-        </>
-      )}
 
       {/* Sidebar */}
       <nav className="sidebar" style={{background:T.surface,borderRight:`1px solid ${T.border}`}}>
@@ -492,7 +485,7 @@ export default function App() {
                 style={{
                   width:22,height:22,borderRadius:"50%",padding:0,cursor:"pointer",
                   background:tm.swatch,
-                  border:themeKey===tm.id?`2px solid ${T.text}`:`2px solid ${tm.border?"#94a3b8":"transparent"}`,
+                  border:themeKey===tm.id?`2px solid ${T.text}`:`2px solid ${tm.border?T.border:"transparent"}`,
                   boxShadow:themeKey===tm.id?`0 0 0 2px ${T.accentBright}80`:"none",
                   transition:"all .15s",flexShrink:0,
                 }}
@@ -531,7 +524,7 @@ export default function App() {
                   style={{
                     width:16,height:16,borderRadius:"50%",padding:0,cursor:"pointer",
                     background:tm.swatch,
-                    border:themeKey===tm.id?`2px solid ${T.text}`:`2px solid ${tm.border?"#94a3b8":"transparent"}`,
+                    border:themeKey===tm.id?`2px solid ${T.text}`:`2px solid ${tm.border?T.border:"transparent"}`,
                     boxShadow:themeKey===tm.id?`0 0 0 1px ${T.accentBright}`:"none",
                     transition:"all .15s",flexShrink:0,
                   }}
@@ -541,7 +534,7 @@ export default function App() {
             <SessionPill T={T} session={currentSession} compact={compactSession||isMobileViewport} mobile={isMobileViewport} open={sessionOpen} onToggle={()=>setSessionOpen(v=>!v)}/>
           </div>
         </div>
-        {error&&<div style={{background:"#450a0a",borderBottom:"1px solid #991b1b",color:"#fca5a5",padding:"10px 28px",fontSize:13,display:"flex",alignItems:"center"}}>Alert: {error}<button onClick={()=>setError(null)} style={{marginLeft:12,background:"none",border:"none",color:"inherit",cursor:"pointer",fontWeight:700}}>x</button></div>}
+        {error&&<div style={{background:`${T.red}14`,borderBottom:`1px solid ${T.red}44`,color:T.red,padding:"10px 28px",fontSize:13,display:"flex",alignItems:"center"}}>Alert: {error}<button onClick={()=>setError(null)} style={{marginLeft:12,background:"none",border:"none",color:"inherit",cursor:"pointer",fontWeight:700,minWidth:32,minHeight:32}}>x</button></div>}
         {streakAlert && dismissedStreak !== `${streakAlert.type}-${streakAlert.count}` && (
           <div style={{
             background: streakAlert.type === "LOSS" ? `${T.red}18` : `${T.green}18`,
@@ -552,10 +545,10 @@ export default function App() {
           }}>
             <span>
               {streakAlert.type === "LOSS"
-                ? `⚠️ ${streakAlert.count} consecutive losses — consider stepping back and reviewing your process.`
-                : `🔥 ${streakAlert.count} wins in a row — great momentum, stay disciplined and don't oversize.`}
+                ? `Risk alert: ${streakAlert.count} consecutive losses. Consider stepping back and reviewing your process.`
+                : `Momentum alert: ${streakAlert.count} wins in a row. Stay disciplined and do not oversize.`}
             </span>
-            <button onClick={() => setDismissedStreak(`${streakAlert.type}-${streakAlert.count}`)} style={{background:"none",border:"none",color:"inherit",cursor:"pointer",fontSize:16,lineHeight:1,padding:4}}>✕</button>
+            <button onClick={() => setDismissedStreak(`${streakAlert.type}-${streakAlert.count}`)} style={{background:"none",border:"none",color:"inherit",cursor:"pointer",fontSize:16,lineHeight:1,padding:4,minWidth:32,minHeight:32}}>x</button>
           </div>
         )}
 
@@ -594,9 +587,9 @@ export default function App() {
             bottom: isMobileViewport ? 80 : 24,
             width:56, height:56,
             borderRadius: T.hardShadow ? "3px" : "50%",
-            background: T.hardShadow ? (T.accentFill||"#ffe17c") : T.accentBright,
-            border: T.hardShadow ? "2px solid #000" : "none",
-            color: T.hardShadow ? T.text : "#fff",
+            background: T.hardShadow ? (T.accentFill||T.accentBright) : T.accentBright,
+            border: T.hardShadow ? `2px solid ${T.border}` : `1px solid ${T.accentBright}`,
+            color: T.hardShadow ? T.text : T.bg,
             fontSize:28, cursor:"pointer",
             display:"flex", alignItems:"center", justifyContent:"center",
             boxShadow: T.hardShadow ? T.hardShadow : `0 4px 24px ${T.accentBright}70`,
@@ -625,7 +618,7 @@ export default function App() {
             <div style={{fontSize:13,color:T.textDim,marginBottom:4}}>{deleteTarget.name}</div>
             <div style={{fontSize:12,color:T.red,marginBottom:24}}>This is permanent and cannot be undone.</div>
             <div style={{display:"flex",gap:10,justifyContent:"center"}}>
-              <button onClick={confirmDelete} disabled={syncing} style={{background:T.red,color:"#fff",border:"none",padding:"10px 24px",borderRadius:999,cursor:"pointer",fontFamily:"var(--font-geist-sans)",fontWeight:800,fontSize:13}}>{syncing?"Deleting...":"Delete"}</button>
+              <button onClick={confirmDelete} disabled={syncing} style={{background:T.red,color:T.bg,border:"none",minHeight:44,padding:"10px 24px",borderRadius:999,cursor:"pointer",fontFamily:"var(--font-geist-sans)",fontWeight:800,fontSize:13}}>{syncing?"Deleting...":"Delete"}</button>
               <button onClick={()=>setDeleteTarget(null)} style={{background:"none",border:`1px solid ${T.border}`,color:T.textDim,padding:"10px 24px",borderRadius:10,cursor:"pointer",fontSize:13}}>Cancel</button>
             </div>
           </div>
@@ -638,8 +631,8 @@ export default function App() {
         <div style={{position:"fixed",bottom:isMobileViewport?90:32,left:"50%",transform:"translateX(-50%)",display:"flex",flexDirection:"column",gap:8,zIndex:500,pointerEvents:"none",alignItems:"center"}}>
           {toasts.map(t=>(
             <div key={t.id} style={{
-              background:t.type==="error"?"#dc2626":t.msg==="Deleted"?T.textDim:"#16a34a",
-              color:"#fff",padding:"10px 22px",borderRadius:12,
+              background:t.type==="error"?T.red:t.msg==="Deleted"?T.textDim:T.green,
+              color:T.bg,padding:"10px 22px",borderRadius:12,
               fontSize:13,fontWeight:700,letterSpacing:"0.01em",
               boxShadow:"0 8px 28px rgba(0,0,0,.5)",
               animation:"toastIn .18s ease",whiteSpace:"nowrap",
@@ -711,10 +704,6 @@ function buildCSS(T) {
     /* ── Layout ────────────────────────────────────────────── */
     .fx-app-root::selection{background:${T.accentBright}44;color:${T.text};}
     h1,h2,h3,h4,h5,h6{font-family:var(--font-geist-sans);}
-    .fx-orb{position:fixed;border-radius:999px;pointer-events:none;z-index:0;filter:blur(52px);opacity:.5;transform:translateZ(0);will-change:transform;}
-    .fx-orb-one{width:480px;height:480px;right:-150px;top:-160px;background:radial-gradient(circle,${T.accentBright}28,transparent 68%);}
-    .fx-orb-two{width:400px;height:400px;left:100px;bottom:-200px;background:radial-gradient(circle,${T.pink}18,transparent 70%);}
-    .fx-noise{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:${T.isDark?".035":".02"};background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");mix-blend-mode:${T.isDark?"screen":"multiply"};}
     .sidebar { width:224px; position:fixed; top:0; left:0; height:100vh; z-index:50; overflow-y:auto; display:flex; flex-direction:column; }
     .nav-btn { display:flex; align-items:center; gap:10px; width:100%; padding:9px 14px 9px 16px; background:none; border:none; cursor:pointer; font-family:var(--font-geist-sans); font-size:13px; font-weight:700; text-align:left; transition:background .15s, color .15s, box-shadow .15s; border-radius:10px; position:relative; }
     .nav-btn:hover { background:${T.accent}12; color:${T.text} !important; }
@@ -723,7 +712,7 @@ function buildCSS(T) {
     .nav-btn:hover .nav-icon { transform:scale(1.12); }
     .bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; z-index:50; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); }
     .topbar{padding:10px 24px;}
-    .tab-content{padding:28px 32px;background-image:radial-gradient(circle at 20% 0%,${T.accentBright}0b,transparent 28%),radial-gradient(circle at 88% 8%,${T.pink}09,transparent 26%);}
+    .tab-content{padding:28px 32px;background:${T.bg};}
     .topbar-right{min-width:0;}
     .theme-btn{padding:7px 14px;font-size:13px;min-width:auto;}
     .pill-label{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}

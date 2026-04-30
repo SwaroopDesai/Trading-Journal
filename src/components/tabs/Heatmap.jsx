@@ -132,14 +132,14 @@ function Heatmap({T, trades, viewportWidth, onViewImg}) {
   }
 
   const getCalColor=(data,isWeekend)=>{
-    if(isWeekend) return T.isDark?"#1a1a24":"#f0f0f5"
+    if(isWeekend) return T.surface
     if(!data) return T.surface2
-    if(data.r>=4) return T.isDark?"#14532d":"#bbf7d0"
-    if(data.r>=2) return T.isDark?"#166534":"#86efac"
-    if(data.r>0)  return T.isDark?"#15803d":"#4ade80"
-    if(data.r>-1) return T.isDark?"#7f1d1d":"#fecaca"
-    if(data.r>-3) return T.isDark?"#991b1b":"#f87171"
-    return T.isDark?"#450a0a":"#ef4444"
+    if(data.r>=4) return `${T.green}38`
+    if(data.r>=2) return `${T.green}2c`
+    if(data.r>0)  return `${T.green}20`
+    if(data.r>-1) return `${T.red}18`
+    if(data.r>-3) return `${T.red}28`
+    return `${T.red}38`
   }
   const getCellBorder=(data,isToday)=>{
     if(isToday) return `2px solid ${T.accentBright}`
@@ -174,9 +174,9 @@ function Heatmap({T, trades, viewportWidth, onViewImg}) {
           {l:"Active Days",v:`${activeDays}`,c:T.amber,meta:bestDay?`Best day ${new Date(bestDay[0]).toLocaleDateString("en-GB",{day:"2-digit",month:"short"})}`:"No daily cluster yet"},
           {l:"Max Drawdown",v:`${drawdownData.maxDD.toFixed(2)}R`,c:T.red,meta:`Best streak ${streakData.maxWin} wins`},
         ].map(k=>(
-          <div key={k.l} style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${T.border}`,borderRadius:16,padding:isMobile?"14px 14px":"16px 18px",boxShadow:`0 16px 30px ${T.cardGlow}`}}>
+          <div key={k.l} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:isMobile?"13px 14px":"15px 16px",boxShadow:"none"}}>
             <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6}}>{k.l}</div>
-            <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?20:22,fontWeight:800,color:k.c}}>{k.v}</div>
+            <div style={{fontFamily:"var(--font-geist-sans)",fontSize:isMobile?20:22,fontWeight:800,color:k.c}}>{k.v}</div>
             <div style={{fontSize:11,color:T.textDim,marginTop:6,lineHeight:1.5}}>{k.meta}</div>
           </div>
         ))}
@@ -186,9 +186,9 @@ function Heatmap({T, trades, viewportWidth, onViewImg}) {
       <div style={{display:"flex",gap:8,marginBottom:16,flexWrap:"wrap"}}>
         {VIEWS.map(v=>(
           <button key={v.id} onClick={()=>setActiveView(v.id)} style={{
-            padding:isMobile?"9px 14px":"9px 16px",borderRadius:999,fontSize:12,fontWeight:activeView===v.id?800:600,cursor:"pointer",fontFamily:"Inter,sans-serif",
-            background:activeView===v.id?`linear-gradient(135deg,${T.accentBright},${T.pink})`:`${T.surface}`,
-            color:activeView===v.id?"#fff":T.textDim,
+            minHeight:40,padding:isMobile?"9px 14px":"9px 16px",borderRadius:999,fontSize:12,fontWeight:activeView===v.id?800:600,cursor:"pointer",fontFamily:"var(--font-geist-sans)",
+            background:activeView===v.id?`${T.accent}18`:`${T.surface}`,
+            color:activeView===v.id?T.accentBright:T.textDim,
             border:`1px solid ${activeView===v.id?"transparent":T.border}`,
             boxShadow:activeView===v.id?`0 12px 26px ${T.cardGlow}`:"none",
             transition:"all .2s",
@@ -200,10 +200,10 @@ function Heatmap({T, trades, viewportWidth, onViewImg}) {
       {activeView==="calendar"&&(
         <div>
           {/* Year overview */}
-          <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${T.border}`,borderRadius:20,padding:isMobile?"14px 14px":"16px 18px",marginBottom:14,boxShadow:`0 18px 34px ${T.cardGlow}`}}>
+          <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,padding:isMobile?"14px 14px":"16px 18px",marginBottom:14,boxShadow:"none"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,flexWrap:"wrap",gap:8}}>
               <div>
-                <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text}}>Year Overview / {year}</div>
+                <div style={{fontFamily:"var(--font-geist-sans)",fontSize:15,fontWeight:800,color:T.text}}>Year Overview / {year}</div>
                 <div style={{fontSize:12,color:T.textDim,marginTop:4}}>Tap a month to jump straight into its calendar.</div>
               </div>
               <div style={{display:"flex",gap:8}}>
@@ -218,7 +218,7 @@ function Heatmap({T, trades, viewportWidth, onViewImg}) {
                   <div style={{
                     width:"100%",borderRadius:"6px 6px 0 0",
                     height:d.count===0?4:Math.max(6,Math.abs(d.r)/maxAbsR*52),
-                    background:d.r>0?`linear-gradient(180deg,${T.green},${T.green}66)`:d.r<0?`linear-gradient(180deg,${T.red},${T.red}66)`:T.surface2,
+                    background:d.r>0?`${T.green}2c`:d.r<0?`${T.red}2c`:T.surface2,
                     border:`1px solid ${i===month?T.accentBright:T.border}`,
                     boxShadow:i===month?`0 0 12px ${T.accentBright}40`:"none",
                     transition:"all .2s",
@@ -230,10 +230,10 @@ function Heatmap({T, trades, viewportWidth, onViewImg}) {
           </div>
 
           {/* Monthly calendar */}
-          <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${T.border}`,borderRadius:20,padding:isMobile?"14px 14px":"16px 18px",boxShadow:`0 18px 34px ${T.cardGlow}`}}>
+          <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,padding:isMobile?"14px 14px":"16px 18px",boxShadow:"none"}}>
             <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:16,flexWrap:"wrap",gap:12}}>
               <div>
-                <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?22:24,fontWeight:800,color:T.text}}>{MONTHS[month]} {year}</div>
+                <div style={{fontFamily:"var(--font-geist-sans)",fontSize:isMobile?21:23,fontWeight:800,color:T.text}}>{MONTHS[month]} {year}</div>
                 <div style={{fontSize:12,color:T.textDim,marginTop:6}}>Tap a green or red day to open that day’s trade replay and screenshots.</div>
                 <div style={{display:"flex",gap:10,marginTop:12,flexWrap:"wrap"}}>
                   {[
@@ -242,9 +242,9 @@ function Heatmap({T, trades, viewportWidth, onViewImg}) {
                     {label:"Win Rate",value:`${monthWR}%`,color:T.blue},
                     {label:"Record",value:`${monthWins}W / ${monthTrades.length-monthWins}L`,color:T.textDim},
                   ].map(item=>(
-                    <div key={item.label} style={{minWidth:isMobile?118:132,background:`linear-gradient(180deg,${T.surface2} 0%,${T.surface} 100%)`,border:`1px solid ${T.border}`,borderRadius:14,padding:isMobile?"10px 12px":"12px 14px",boxShadow:`0 12px 26px ${T.cardGlow}`}}>
+                    <div key={item.label} style={{minWidth:isMobile?118:132,background:T.surface2,border:`1px solid ${T.border}`,borderRadius:12,padding:isMobile?"10px 12px":"12px 14px",boxShadow:"none"}}>
                       <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6}}>{item.label}</div>
-                      <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?18:20,fontWeight:800,color:item.color}}>{item.value}</div>
+                      <div style={{fontFamily:"var(--font-geist-sans)",fontSize:isMobile?18:20,fontWeight:800,color:item.color}}>{item.value}</div>
                     </div>
                   ))}
                 </div>
@@ -270,10 +270,10 @@ function Heatmap({T, trades, viewportWidth, onViewImg}) {
                     position:"relative",cursor:cell.data?"pointer":"default",
                     boxShadow:isToday?`0 0 0 2px ${T.accentBright}40`:`inset 0 1px 0 rgba(255,255,255,0.02)`,
                   }}>
-                    <div style={{fontSize:isMobile?10:11,fontWeight:700,color:cell.isWeekend?T.muted:cell.data?(cell.data.r>=0?"#fff":T.red):T.textDim}}>{cell.dayNum}</div>
+                    <div style={{fontSize:isMobile?10:11,fontWeight:700,color:cell.isWeekend?T.muted:cell.data?(cell.data.r>=0?T.green:T.red):T.textDim}}>{cell.dayNum}</div>
                     {cell.data&&(
                       <>
-                        <div style={{fontSize:isMobile?10:11,fontWeight:800,color:cell.data.r>=0?"#fff":T.red,lineHeight:1.1}}>{cell.data.r>=0?"+":""}{cell.data.r.toFixed(1)}R</div>
+                        <div style={{fontSize:isMobile?10:11,fontWeight:800,color:cell.data.r>=0?T.green:T.red,lineHeight:1.1}}>{cell.data.r>=0?"+":""}{cell.data.r.toFixed(1)}R</div>
                         {!isMobile&&<div style={{fontSize:9,color:cell.data.r>=0?"rgba(255,255,255,0.75)":T.textDim,letterSpacing:"0.02em"}}>{cell.data.count}t / {cell.data.wins}W</div>}
                       </>
                     )}
@@ -284,7 +284,7 @@ function Heatmap({T, trades, viewportWidth, onViewImg}) {
             </div>
             <div style={{display:"flex",gap:10,marginTop:14,alignItems:"center",flexWrap:"wrap"}}>
               <span style={{fontSize:11,color:T.muted,fontWeight:600}}>Legend:</span>
-              {[{c:T.isDark?"#15803d":"#4ade80",l:"Strong Win (4R+)"},{c:T.isDark?"#166534":"#86efac",l:"Win"},{c:T.surface2,l:"No Trade"},{c:T.isDark?"#991b1b":"#f87171",l:"Loss"},{c:T.isDark?"#450a0a":"#ef4444",l:"Heavy Loss"}].map(x=>(
+              {[{c:`${T.green}38`,l:"Strong Win (4R+)"},{c:`${T.green}20`,l:"Win"},{c:T.surface2,l:"No Trade"},{c:`${T.red}28`,l:"Loss"},{c:`${T.red}38`,l:"Heavy Loss"}].map(x=>(
                 <div key={x.l} style={{display:"flex",alignItems:"center",gap:5}}>
                   <div style={{width:14,height:14,borderRadius:4,background:x.c,border:`1px solid ${T.border}`}}/>
                   <span style={{fontSize:10,color:T.muted}}>{x.l}</span>
@@ -298,8 +298,8 @@ function Heatmap({T, trades, viewportWidth, onViewImg}) {
       {/* ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ DAY OF WEEK VIEW ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ */}
       {activeView==="weekday"&&(
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
-          <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${T.border}`,borderRadius:18,padding:isMobile?"16px 14px":"18px 20px",boxShadow:`0 18px 34px ${T.cardGlow}`}}>
-            <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text,marginBottom:16}}>Performance by Day of Week</div>
+          <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,padding:isMobile?"16px 14px":"18px 20px",boxShadow:"none"}}>
+            <div style={{fontFamily:"var(--font-geist-sans)",fontSize:15,fontWeight:800,color:T.text,marginBottom:16}}>Performance by Day of Week</div>
             {trades.length===0?<EmptyState T={T} compact title="No weekday edge yet" copy="Log trades to see which weekday is really paying you."/>:(
               <>
                 {/* Bar chart */}
@@ -312,7 +312,7 @@ function Heatmap({T, trades, viewportWidth, onViewImg}) {
                         <div style={{fontSize:11,fontWeight:700,color:d.totalR>=0?T.green:T.red}}>{d.count>0?`${d.totalR>=0?"+":""}${d.totalR.toFixed(1)}R`:""}</div>
                         <div style={{
                           width:"100%",borderRadius:"8px 8px 0 0",height:h,
-                          background:d.totalR>0?`linear-gradient(180deg,${T.green},${T.green}77)`:d.totalR<0?`linear-gradient(180deg,${T.red},${T.red}77)`:T.surface2,
+                          background:d.totalR>0?`${T.green}2c`:d.totalR<0?`${T.red}2c`:T.surface2,
                           border:`1px solid ${T.border}`,transition:"height .5s",
                         }}/>
                         <div style={{fontSize:12,fontWeight:700,color:T.text}}>{d.short}</div>
@@ -326,7 +326,7 @@ function Heatmap({T, trades, viewportWidth, onViewImg}) {
                 <div style={{display:"grid",gridTemplateColumns:"1fr",gap:6}}>
                   {dowData.filter(d=>d.count>0).sort((a,b)=>b.totalR-a.totalR).map((d,i)=>(
                     <div key={d.dow} style={{display:"flex",alignItems:isMobile?"flex-start":"center",flexDirection:isMobile?"column":"row",gap:isMobile?8:12,padding:"10px 14px",background:T.surface2,borderRadius:10,border:`1px solid ${d.totalR>0?T.green+"40":d.totalR<0?T.red+"40":T.border}`}}>
-                      <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:13,fontWeight:800,color:T.text,minWidth:90}}>{d.dow}</div>
+                      <div style={{fontFamily:"var(--font-geist-sans)",fontSize:13,fontWeight:800,color:T.text,minWidth:90}}>{d.dow}</div>
                       <div style={{flex:1,width:isMobile?"100%":"auto",height:6,background:T.surface,borderRadius:3,overflow:"hidden"}}>
                         <div style={{height:"100%",background:d.totalR>=0?T.green:T.red,width:`${Math.min(100,d.count>0?d.wins/d.count*100:0)}%`,transition:"width .5s"}}/>
                       </div>
@@ -345,8 +345,8 @@ function Heatmap({T, trades, viewportWidth, onViewImg}) {
 
       {/* ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ SESSION GRID VIEW ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ */}
       {activeView==="session"&&(
-        <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${T.border}`,borderRadius:18,padding:isMobile?"16px 14px":"18px 20px",boxShadow:`0 18px 34px ${T.cardGlow}`}}>
-          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text,marginBottom:6}}>Session / Day Heatmap</div>
+        <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,padding:isMobile?"16px 14px":"18px 20px",boxShadow:"none"}}>
+          <div style={{fontFamily:"var(--font-geist-sans)",fontSize:15,fontWeight:800,color:T.text,marginBottom:6}}>Session / Day Heatmap</div>
           <div style={{fontSize:12,color:T.muted,marginBottom:16}}>Which session on which day makes you the most money?</div>
           {trades.length===0?<EmptyState T={T} compact title="No session map yet" copy="Log trades to see which session and weekday combination carries your edge."/>:(
             <>
@@ -360,7 +360,7 @@ function Heatmap({T, trades, viewportWidth, onViewImg}) {
                   <div style={{fontSize:isMobile?11:12,fontWeight:700,color:T.textDim,display:"flex",alignItems:"center"}}>{session.split("/")[0]}</div>
                   {[1,2,3,4,5].map(dow=>{
                     const cell=sessionDowGrid.grid[session]?.[dow]||{r:0,count:0,wins:0}
-                    const bg=cell.count===0?T.surface2:cell.r>2?T.isDark?"#14532d":"#bbf7d0":cell.r>0?T.isDark?"#166534":"#86efac":cell.r<-2?T.isDark?"#450a0a":"#fca5a5":cell.r<0?T.isDark?"#7f1d1d":"#fecaca":T.surface2
+                    const bg=cell.count===0?T.surface2:cell.r>2?`${T.green}38`:cell.r>0?`${T.green}24`:cell.r<-2?`${T.red}38`:cell.r<0?`${T.red}22`:T.surface2
                     return (
                       <div key={dow} style={{background:bg,border:`1px solid ${cell.count>0?(cell.r>=0?T.green+"50":T.red+"50"):T.border}`,borderRadius:10,padding:isMobile?"8px 4px":"10px 8px",textAlign:"center",minHeight:isMobile?54:60,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3}}>
                         {cell.count===0?(
@@ -392,16 +392,16 @@ function Heatmap({T, trades, viewportWidth, onViewImg}) {
               {l:"Worst Loss Streak",v:`${streakData.maxLoss} L`,sub:"consecutive losses",c:T.red},
               {l:"Total Trades",v:trades.length,sub:`${trades.filter(t=>t.result==="WIN").length}W / ${trades.filter(t=>t.result==="LOSS").length}L`,c:T.accentBright},
             ].map(k=>(
-              <div key={k.l} style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",boxShadow:`0 16px 30px ${T.cardGlow}`}}>
+              <div key={k.l} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",boxShadow:"none"}}>
                 <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.1em",marginBottom:8}}>{k.l}</div>
-                <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:24,fontWeight:800,color:k.c}}>{k.v}</div>
+                <div style={{fontFamily:"var(--font-geist-sans)",fontSize:24,fontWeight:800,color:k.c}}>{k.v}</div>
                 <div style={{fontSize:11,color:T.muted,marginTop:4}}>{k.sub}</div>
               </div>
             ))}
           </div>
           {/* Streak visualization - last 30 trades */}
-          <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${T.border}`,borderRadius:18,padding:isMobile?"16px 14px":"18px 20px",boxShadow:`0 18px 34px ${T.cardGlow}`}}>
-            <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text,marginBottom:16}}>Last 30 Trades / Streak View</div>
+          <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,padding:isMobile?"16px 14px":"18px 20px",boxShadow:"none"}}>
+            <div style={{fontFamily:"var(--font-geist-sans)",fontSize:15,fontWeight:800,color:T.text,marginBottom:16}}>Last 30 Trades / Streak View</div>
             {trades.length===0?<EmptyState T={T} compact title="No streak tape yet" copy="Log trades to watch your recent streak structure develop."/>:(
               <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
                 {streakData.streaks.map((t,i)=>(
@@ -429,15 +429,15 @@ function Heatmap({T, trades, viewportWidth, onViewImg}) {
               {l:"Current Drawdown",v:`${drawdownData.currentDD.toFixed(2)}R`,c:drawdownData.currentDD>0?T.amber:T.green,sub:"from current peak"},
               {l:"Peak Equity",v:`+${drawdownData.peak.toFixed(2)}R`,c:T.green,sub:"highest point reached"},
             ].map(k=>(
-              <div key={k.l} style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",boxShadow:`0 16px 30px ${T.cardGlow}`}}>
+              <div key={k.l} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",boxShadow:"none"}}>
                 <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.1em",marginBottom:8}}>{k.l}</div>
-                <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:24,fontWeight:800,color:k.c}}>{k.v}</div>
+                <div style={{fontFamily:"var(--font-geist-sans)",fontSize:24,fontWeight:800,color:k.c}}>{k.v}</div>
                 <div style={{fontSize:11,color:T.muted,marginTop:4}}>{k.sub}</div>
               </div>
             ))}
           </div>
-          <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.surface2} 100%)`,border:`1px solid ${T.border}`,borderRadius:18,padding:isMobile?"16px 14px":"18px 20px",boxShadow:`0 18px 34px ${T.cardGlow}`}}>
-            <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:800,color:T.text,marginBottom:16}}>Equity & Drawdown Chart</div>
+          <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,padding:isMobile?"16px 14px":"18px 20px",boxShadow:"none"}}>
+            <div style={{fontFamily:"var(--font-geist-sans)",fontSize:15,fontWeight:800,color:T.text,marginBottom:16}}>Equity & Drawdown Chart</div>
             {drawdownData.points.length===0?<EmptyState T={T} compact title="No drawdown curve yet" copy="Log trades to see how equity and drawdown evolve over time."/>:(()=>{
               const pts=drawdownData.points
               const W=600,H=160
@@ -476,7 +476,7 @@ function Heatmap({T, trades, viewportWidth, onViewImg}) {
           <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:18,width:"min(760px,96vw)",maxHeight:"90vh",display:"flex",flexDirection:"column",overflow:"hidden"}}>
             <div style={{padding:"18px 22px",borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
               <div>
-                <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:18,fontWeight:800,color:T.text}}>{fmtDate(selectedDay)} Trade Drilldown</div>
+                <div style={{fontFamily:"var(--font-geist-sans)",fontSize:18,fontWeight:800,color:T.text}}>{fmtDate(selectedDay)} Trade Drilldown</div>
                 <div style={{fontSize:12,color:T.textDim,marginTop:4}}>{selectedDayTrades.length} trade{selectedDayTrades.length!==1?"s":""} logged on this day</div>
               </div>
               <button onClick={()=>setSelectedDay(null)} style={{background:"none",border:"none",color:T.textDim,cursor:"pointer",fontSize:20}}>x</button>
@@ -485,23 +485,15 @@ function Heatmap({T, trades, viewportWidth, onViewImg}) {
               {selectedDayTrades.length===0?(
                 <EmptyState T={T} compact title="No trades on this day" copy="This day block has no drilldown data yet." />
               ):selectedDayTrades.map(trade=>(
-                <div key={trade._dbid||`${trade.date}-${trade.pair}-${trade.entry}`} style={{background:`linear-gradient(180deg,${T.surface2} 0%,${T.surface} 100%)`,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 16px"}}>
+                <div key={trade._dbid||`${trade.date}-${trade.pair}-${trade.entry}`} style={{background:T.surface2,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 16px"}}>
                   <div style={{display:"flex",alignItems:isMobile?"flex-start":"center",justifyContent:"space-between",gap:10,flexDirection:isMobile?"column":"row",marginBottom:10}}>
                     <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-                      <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:16,fontWeight:800,color:T.accentBright}}>{trade.pair}</div>
+                      <div style={{fontFamily:"var(--font-geist-sans)",fontSize:16,fontWeight:800,color:T.accentBright}}>{trade.pair}</div>
                       <Badge color={trade.direction==="LONG"?T.green:T.red}>{trade.direction}</Badge>
                       <Badge color={trade.result==="WIN"?T.green:trade.result==="LOSS"?T.red:T.amber}>{trade.result}</Badge>
                       {trade.session&&<Badge color={T.blue}>{trade.session}</Badge>}
                     </div>
                     <div style={{fontSize:15,fontWeight:800,color:(trade.rr||0)>=0?T.green:T.red}}>{fmtRR(trade.rr||0)}</div>
-                  </div>
-                  <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:8,marginBottom:10}}>
-                    {[{l:"Entry",v:trade.entry||"-"},{l:"Stop",v:trade.sl||"-"},{l:"Target",v:trade.tp||"-"},{l:"Pips",v:trade.pips||0}].map(item=>(
-                      <div key={item.l} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:"8px 10px"}}>
-                        <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:4}}>{item.l}</div>
-                        <div style={{fontSize:13,fontWeight:800,color:T.text}}>{item.v}</div>
-                      </div>
-                    ))}
                   </div>
                   {[{l:"Setup",v:trade.setup},{l:"Manip",v:trade.manipulation},{l:"POI",v:trade.poi}].some(x=>x.v)&&(
                     <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:10}}>
@@ -515,8 +507,8 @@ function Heatmap({T, trades, viewportWidth, onViewImg}) {
                   )}
                   {trade.notes&&<div style={{fontSize:12,color:T.textDim,lineHeight:1.6,background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 12px",marginBottom:10}}>{trade.notes}</div>}
                   <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                    {trade.preScreenshot&&<button onClick={()=>onViewImg?.(trade.preScreenshot)} style={{background:`linear-gradient(135deg,${T.accent}16,${T.blue}12)`,border:`1px solid ${T.accent}40`,color:T.accentBright,padding:"8px 12px",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:700}}>Pre Screenshot</button>}
-                    {trade.postScreenshot&&<button onClick={()=>onViewImg?.(trade.postScreenshot)} style={{background:`linear-gradient(135deg,${T.accent}16,${T.blue}12)`,border:`1px solid ${T.accent}40`,color:T.accentBright,padding:"8px 12px",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:700}}>Post Screenshot</button>}
+                    {trade.preScreenshot&&<button onClick={()=>onViewImg?.(trade.preScreenshot)} style={{background:T.surface,border:`1px solid ${T.border}`,color:T.accentBright,minHeight:40,padding:"8px 12px",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:700}}>Pre Screenshot</button>}
+                    {trade.postScreenshot&&<button onClick={()=>onViewImg?.(trade.postScreenshot)} style={{background:T.surface,border:`1px solid ${T.border}`,color:T.accentBright,minHeight:40,padding:"8px 12px",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:700}}>Post Screenshot</button>}
                     {!trade.preScreenshot&&!trade.postScreenshot&&<div style={{fontSize:12,color:T.muted}}>No screenshots attached to this trade.</div>}
                   </div>
                 </div>

@@ -1,6 +1,5 @@
 "use client"
 import { useState, useRef, useCallback, useEffect } from "react";
-import GlowBtn from "@/components/GlowBtn";
 import { normalizeImageList } from "@/lib/utils";
 import { DARK } from "@/lib/constants";
 
@@ -134,7 +133,7 @@ export function TabPanel({active,children}) {
 export function BottomNav({T,tab,setTab,TABS,MOBILE_PRIMARY}){
   const tabs = MOBILE_PRIMARY||TABS.slice(0,5)
   return (
-    <nav className="bottom-nav" aria-label="Main navigation" style={{background:`linear-gradient(180deg,${T.surface}e8,${T.surface2}f4)`,borderTop:`1px solid ${T.border}`,paddingBottom:"env(safe-area-inset-bottom)",boxShadow:`0 -18px 44px ${T.bg}aa`}}>
+    <nav className="bottom-nav" aria-label="Main navigation" style={{background:T.surface,borderTop:`1px solid ${T.border}`,paddingBottom:"env(safe-area-inset-bottom)",boxShadow:`0 -12px 28px ${T.bg}88`}}>
       {tabs.map(t=>{
         const isActive = t.id==="more" ? tab==="more" : (t.id===tab || (t.id==="more" && !tabs.find(x=>x.id===tab&&x.mobile)))
         return (
@@ -165,44 +164,26 @@ export function BottomNav({T,tab,setTab,TABS,MOBILE_PRIMARY}){
 export function Btn({T,onClick,children,ghost,danger,disabled,ariaLabel}){
   const brutal = !!T.hardShadow
   const bg = brutal
-    ? (danger ? T.red : ghost ? T.surface : (T.accentFill || "#ffe17c"))
-    : (danger ? T.red : ghost ? "none" : `linear-gradient(135deg,${T.accentBright},${T.pink})`)
+    ? (danger ? T.red : ghost ? T.surface : (T.accentFill || T.accentBright))
+    : (danger ? T.red : ghost ? "none" : T.accentBright)
   const border = brutal
     ? `2px solid ${T.border}`
     : (ghost ? `1px solid ${T.border}` : "none")
-  const color = brutal ? T.text : (ghost ? T.textDim : "#fff")
+  const color = brutal ? T.text : (ghost ? T.textDim : T.bg)
   const shadow = brutal ? T.hardShadow : undefined
-
-  // Non-ghost primary buttons on non-brutalist themes get the cursor glow
-  const useGlow = !brutal && !ghost && !danger && T.glowRgb
 
   const baseStyle = {
     background:bg, color, border,
-    padding:"9px 18px",
+    padding:"10px 18px",
     fontFamily: "var(--font-geist-sans)",
     fontWeight:800, fontSize:13,
     letterSpacing:"0.01em",
     borderRadius: brutal ? 3 : 999,
     cursor:disabled?"not-allowed":"pointer",
     whiteSpace:"nowrap", opacity:disabled?0.6:1,
-    minHeight:36,
-    transition: brutal ? "transform .08s ease, box-shadow .08s ease" : "opacity .15s, box-shadow .15s",
+    minHeight:44,
+    transition: brutal ? "transform .08s ease, box-shadow .08s ease" : "opacity .15s, background .15s, border-color .15s",
     boxShadow: shadow,
-  }
-
-  if (useGlow) {
-    return (
-      <GlowBtn
-        onClick={onClick}
-        disabled={disabled}
-        ariaLabel={ariaLabel}
-        glowColor={T.glowRgb}
-        showArrow={false}
-        style={baseStyle}
-      >
-        {children}
-      </GlowBtn>
-    )
   }
 
   return (
@@ -219,25 +200,22 @@ export function Btn({T,onClick,children,ghost,danger,disabled,ariaLabel}){
 }
 
 // ─── Card / Card title ─────────────────────────────────────────────────────
-const NOISE_URL = "data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"
-
 export function Card({T,children,style={},glow}){
   const brutal = !!T.hardShadow
   // For brutalist: caller's borderRadius/shadow are overridden so all cards stay consistent
   const brutalOverrides = brutal ? { borderRadius:3, border:`2px solid ${T.border}`, boxShadow:T.hardShadow } : {}
   return (
     <div style={{
-      background:brutal ? T.surface : `linear-gradient(160deg,${T.surface},${T.surface2})`,
+      background:T.surface,
       border:`1px solid ${T.border}`,
       borderRadius:20,
       padding:"20px 22px",
-      boxShadow:glow?`0 22px 54px ${T.cardGlow}`:`0 12px 34px ${T.cardGlow}`,
+      boxShadow:glow?`0 16px 34px ${T.cardGlow}`:`0 8px 22px ${T.cardGlow}`,
       position:"relative",
       overflow:"hidden",
       ...style,
       ...brutalOverrides,
     }}>
-      {!brutal && <div aria-hidden="true" style={{position:"absolute",inset:0,backgroundImage:`url("${NOISE_URL}")`,opacity:T.isDark?0.035:0.02,pointerEvents:"none",borderRadius:"inherit"}}/>}
       <div style={{position:"relative"}}>{children}</div>
     </div>
   )
@@ -282,11 +260,11 @@ export function HeaderMeta({T,eyebrow,title,subtitle,actions}) {
 // ─── Session pill / clock dropdown ────────────────────────────────────────
 export function SessionPill({T,session,compact,mobile,open,onToggle}) {
   const tones = {
-    overlap: { dot:"#f59e0b", glow:"#f59e0b33", bg:`linear-gradient(135deg,${T.amber}22,${T.pink}14)` },
-    london:  { dot:T.accentBright, glow:`${T.accentBright}33`, bg:`linear-gradient(135deg,${T.accent}22,${T.pink}12)` },
-    newyork: { dot:T.green, glow:`${T.green}33`, bg:`linear-gradient(135deg,${T.green}18,${T.accent}10)` },
-    asian:   { dot:"#38bdf8", glow:"#38bdf833", bg:`linear-gradient(135deg,#38bdf824,${T.accent}10)` },
-    closed:  { dot:T.textDim, glow:`${T.textDim}22`, bg:`linear-gradient(135deg,${T.surface2},${T.surface})` },
+    overlap: { dot:T.amber, glow:`${T.amber}33`, bg:`${T.amber}16` },
+    london:  { dot:T.accentBright, glow:`${T.accentBright}33`, bg:`${T.accent}16` },
+    newyork: { dot:T.green, glow:`${T.green}33`, bg:`${T.green}14` },
+    asian:   { dot:T.accentBright, glow:`${T.accentBright}33`, bg:`${T.accent}12` },
+    closed:  { dot:T.textDim, glow:`${T.textDim}22`, bg:T.surface2 },
   }
   const tone = tones[session?.tone] || tones.closed
   const sessionCode = session?.label==="London / NY" ? "OVR" : session?.label==="New York" ? "NY" : session?.label==="Between Sessions" ? "OFF" : (session?.label || "SES").slice(0,3).toUpperCase()
@@ -304,7 +282,7 @@ export function SessionPill({T,session,compact,mobile,open,onToggle}) {
         {session?.tone !== "closed" && (
           <span aria-label="Market open" style={{position:"absolute",top:-3,right:-3,width:9,height:9,borderRadius:"50%",background:tone.dot,border:`2px solid ${T.bg}`,animation:"livePulse 2s ease-in-out infinite",pointerEvents:"none"}}/>
         )}
-        <div style={{width:compact?28:34,height:compact?28:34,borderRadius:12,background:`linear-gradient(135deg,${tone.dot}30,${tone.dot}12)`,border:`1px solid ${tone.dot}55`,display:"grid",placeItems:"center",flexShrink:0}}>
+        <div style={{width:compact?28:34,height:compact?28:34,borderRadius:12,background:`${tone.dot}14`,border:`1px solid ${tone.dot}55`,display:"grid",placeItems:"center",flexShrink:0}}>
           <span style={{fontSize:compact?10:11,fontWeight:800,color:tone.dot,letterSpacing:"0.08em"}}>{sessionCode}</span>
         </div>
         <div style={{lineHeight:1.1,minWidth:0}}>
@@ -315,7 +293,7 @@ export function SessionPill({T,session,compact,mobile,open,onToggle}) {
         {!mobile&&<div style={{marginLeft:"auto",fontSize:11,color:T.textDim}}>{open?"Hide":"Open"}</div>}
       </button>
       {open&&(
-        <div style={{...panelStyle,background:`linear-gradient(180deg,${T.surface},${T.surface2})`,border:`1px solid ${T.border}`,borderRadius:18,padding:"14px 14px 12px",boxShadow:`0 24px 60px ${T.bg}aa`,zIndex:60}}>
+        <div style={{...panelStyle,background:T.surface,border:`1px solid ${T.border}`,borderRadius:18,padding:"14px 14px 12px",boxShadow:`0 20px 44px ${T.bg}aa`,zIndex:60}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,gap:12}}>
             <div>
               <div style={{fontSize:11,fontWeight:700,color:T.muted,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:5}}>Session Pulse</div>
@@ -434,7 +412,7 @@ export function Chip({T,active,onClick,children,ariaLabel}){
       aria-label={ariaLabel}
       aria-pressed={active}
       className="fx-btn"
-      style={{background:active?`linear-gradient(135deg,${T.accent}24,${T.pink}10)`:`${T.surface2}70`,border:`1px solid ${active?T.accentBright:T.border}`,color:active?T.accentBright:T.textDim,padding:"7px 14px",borderRadius:999,fontSize:12,fontWeight:active?800:700,cursor:"pointer",fontFamily:"var(--font-geist-sans)",transition:"all .15s",minHeight:34,boxShadow:active?`0 10px 24px ${T.accentBright}18`:"none"}}
+      style={{background:active?`${T.accent}18`:`${T.surface2}70`,border:`1px solid ${active?T.accentBright:T.border}`,color:active?T.accentBright:T.textDim,padding:"8px 14px",borderRadius:999,fontSize:12,fontWeight:active?800:700,cursor:"pointer",fontFamily:"var(--font-geist-sans)",transition:"background .15s, border-color .15s, color .15s",minHeight:40,boxShadow:"none"}}
     >{children}</button>
   )
 }
@@ -457,7 +435,7 @@ export function Toggle({T,value,opts,onChange}){
           onClick={()=>onChange(o.v||o)}
           aria-pressed={(o.v||o)===value}
           className="fx-btn"
-          style={{background:(o.v||o)===value?`linear-gradient(135deg,${T.accentBright}24,${T.pink}10)`:`${T.surface2}70`,border:`1px solid ${(o.v||o)===value?T.accentBright:T.border}`,color:(o.v||o)===value?T.accentBright:T.textDim,padding:"7px 12px",borderRadius:999,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"var(--font-geist-sans)",minHeight:34}}
+          style={{background:(o.v||o)===value?`${T.accent}18`:`${T.surface2}70`,border:`1px solid ${(o.v||o)===value?T.accentBright:T.border}`,color:(o.v||o)===value?T.accentBright:T.textDim,padding:"8px 12px",borderRadius:999,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"var(--font-geist-sans)",minHeight:40}}
         >{o.l||o}</button>
       ))}
     </div>
@@ -585,13 +563,13 @@ export function PasteImageInput({T, value, onChange, label, disabled}) {
               <button
                 onClick={()=>onChange("")}
                 aria-label="Remove image"
-                style={{position:"absolute",top:6,right:6,background:"rgba(0,0,0,.75)",border:"none",color:"#fff",borderRadius:"50%",width:28,height:28,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}
+                style={{position:"absolute",top:6,right:6,background:T.surface,border:`1px solid ${T.border}`,color:T.text,borderRadius:"50%",width:32,height:32,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}
               >×</button>
             )}
           </div>
         ) : (
           <div style={{color:T.muted,fontSize:12}}>
-            <div style={{fontSize:24,marginBottom:6}} aria-hidden="true">{isLoading ? "⏳" : "🖼"}</div>
+            <div style={{fontSize:11,fontWeight:800,letterSpacing:"0.14em",marginBottom:8,color:T.accentBright}} aria-hidden="true">{isLoading ? "LOAD" : "IMG"}</div>
             <div style={{fontWeight:600,color:T.textDim,marginBottom:2}}>
               {isLoading ? "Reading chart…" : "Ctrl+V to paste"}
             </div>
@@ -660,7 +638,7 @@ export function MultiImageInput({T, values, onChange, label, max=6}) {
               <button
                 onClick={()=>removeImage(index)}
                 aria-label={`Remove ${label||"screenshot"} ${index+1}`}
-                style={{position:"absolute",top:6,right:6,background:"rgba(0,0,0,.75)",border:"none",color:"#fff",borderRadius:999,width:28,height:28,cursor:"pointer",fontSize:14,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center"}}
+                style={{position:"absolute",top:6,right:6,background:T.surface,border:`1px solid ${T.border}`,color:T.text,borderRadius:999,width:32,height:32,cursor:"pointer",fontSize:14,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center"}}
               >×</button>
             </div>
           ))}

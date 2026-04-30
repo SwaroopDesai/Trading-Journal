@@ -27,7 +27,7 @@ function Analytics({T,stats,trades,onNewTrade,viewportWidth}) {
   const bestSession = [...bySession].sort((a,b)=>b.totalR-a.totalR)[0]
   const bestSetup = [...bySetup].sort((a,b)=>b.totalR-a.totalR)[0]
   const cleanestManip = [...byManip].sort((a,b)=>(b.wins/b.count)-(a.wins/a.count))[0]
-  const E=<EmptyState T={T} icon="📊" compact title="Analytics wakes up after a few trades" copy="A few clean logs are enough to surface where your edge is strongest and where your leaks keep showing up." action={<Btn T={T} onClick={onNewTrade}>+ Log Trade</Btn>} />
+  const E=<EmptyState T={T} icon="AN" compact title="Analytics wakes up after a few trades" copy="A few clean logs are enough to surface where your edge is strongest and where your leaks keep showing up." action={<Btn T={T} onClick={onNewTrade}>+ Log Trade</Btn>} />
 
   const BarRow=({label,wins,count,totalR,color})=>(
     <div style={{display:"flex",alignItems:"center",gap:10,padding:"6px 0",borderBottom:`1px solid ${T.border}`}}>
@@ -49,9 +49,9 @@ function Analytics({T,stats,trades,onNewTrade,viewportWidth}) {
           {RANGE_OPTS.map(r=>(
             <button key={r.id} onClick={()=>setRange(r.id)} style={{
               background:range===r.id?T.accentBright:"transparent",
-              color:range===r.id?"#fff":T.textDim,
+              color:range===r.id?T.accentBright:T.textDim,
               border:"none",borderRadius:7,padding:"4px 14px",
-              fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif",transition:"all .15s",
+              fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"var(--font-geist-sans)",transition:"background .15s, border-color .15s, color .15s",
             }}>{r.label}</button>
           ))}
         </div>
@@ -62,9 +62,9 @@ function Analytics({T,stats,trades,onNewTrade,viewportWidth}) {
       <WeeklyCalendar T={T} trades={ft}/>
       <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(3,minmax(0,1fr))",gap:12,marginBottom:14}}>
         {[{eyebrow:"Best Session",value:bestSession?.session||"Building",detail:bestSession?`${bestSession.totalR>=0?"+":""}${bestSession.totalR.toFixed(1)}R with ${bestSession.wins}/${bestSession.count} wins`:"Log trades to reveal it",color:T.green},{eyebrow:"Best Setup",value:bestSetup?.s||"Building",detail:bestSetup?`${bestSetup.totalR>=0?"+":""}${bestSetup.totalR.toFixed(1)}R across ${bestSetup.count} trades`:"Setup leaderboard fills as you trade",color:T.accentBright},{eyebrow:"Cleanest Manip",value:cleanestManip?.m||"Building",detail:cleanestManip?`${cleanestManip.wins}/${cleanestManip.count} wins in this pattern`:"Execution patterns will surface here",color:T.amber}].map(card=>(
-          <div key={card.eyebrow} style={{background:`linear-gradient(180deg,${T.surface},${T.surface2})`,border:`1px solid ${T.border}`,borderRadius:18,padding:"16px 18px",boxShadow:`0 10px 26px ${T.cardGlow}`}}>
+          <div key={card.eyebrow} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"15px 16px",boxShadow:"none"}}>
             <div style={{fontSize:10,fontWeight:700,color:T.muted,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>{card.eyebrow}</div>
-            <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,fontWeight:800,color:card.color,letterSpacing:"-0.04em"}}>{card.value}</div>
+            <div style={{fontFamily:"var(--font-geist-sans)",fontSize:22,fontWeight:800,color:card.color,letterSpacing:"-0.04em"}}>{card.value}</div>
             <div style={{fontSize:12,color:T.textDim,marginTop:8,lineHeight:1.6}}>{card.detail}</div>
           </div>
         ))}
