@@ -8,7 +8,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ChevronDown, Pencil, Search, Table2, X } from "lucide-react";
+import { ChevronDown, Pencil, Search, X } from "lucide-react";
 import { PAIRS } from "@/lib/constants";
 import { fmtDate, fmtRR, normalizeImageList } from "@/lib/utils";
 import { Btn, EmptyState } from "@/components/ui";
@@ -297,11 +297,6 @@ function Journal({
           ))}
         </div>
 
-        <div className="journal-view-toggle" aria-label="Journal view">
-          <button className="active" type="button"><Table2 size={13} aria-hidden="true" /> Table</button>
-          <button type="button" disabled title="Card view removed for power-table mode">Cards</button>
-        </div>
-
         {allTags.length > 0 && (
           <div className="journal-tags-filter" aria-label="Tag filter">
             {allTags.map(tag => (
@@ -429,31 +424,41 @@ function TradeDetail({ trade, onViewImg }) {
   const confluences = tags.filter(tag => isConfluenceTag(tag));
   const pre = normalizeImageList(trade.preScreenshot)[0];
   const post = normalizeImageList(trade.postScreenshot)[0];
+  const hasNotes = Boolean(String(trade.notes || "").trim());
 
   return (
     <div className="detail-content">
-      <div>
-        <DetailTitle>Trade Notes</DetailTitle>
-        <p className="detail-notes">{trade.notes || "No notes logged for this execution."}</p>
+      <div className="detail-card detail-review">
+        <div className="detail-kicker">
+          <span>Execution Review</span>
+          <strong className={Number(trade.rr) >= 0 ? "positive" : "negative"}>{fmtRR(trade.rr)}</strong>
+        </div>
+        <p className={`detail-notes ${hasNotes ? "" : "empty"}`}>
+          {hasNotes ? trade.notes : "No written review yet. Add the lesson, why the setup mattered, and what you would repeat or avoid next time."}
+        </p>
 
-        <DetailTitle>Confluences</DetailTitle>
+        <div className="detail-context-grid">
+          <ContextItem label="Session" value={trade.session || "-"} />
+          <ContextItem label="Setup" value={trade.setup || "-"} />
+          <ContextItem label="Bias" value={trade.dailyBias || "-"} tone={trade.dailyBias === "Bullish" ? "green" : trade.dailyBias === "Bearish" ? "red" : ""} />
+          <ContextItem label="Emotion" value={trade.emotion || "-"} />
+        </div>
+
+        <DetailTitle>Confluence Stack</DetailTitle>
         <PillRow items={confluences.length ? confluences : ["No confluence tags"]} muted={!confluences.length} />
 
         <DetailTitle>Tags</DetailTitle>
         <PillRow items={tags.length ? tags : ["No tags"]} muted={!tags.length} />
       </div>
 
-      <div>
-        <DetailTitle>Screenshots</DetailTitle>
-        <div className="screenshots-grid">
-          <ScreenshotThumb label="PRE" src={pre} onClick={() => pre && onViewImg(pre)} />
-          <ScreenshotThumb label="POST" src={post} onClick={() => post && onViewImg(post)} />
+      <div className="detail-card detail-evidence">
+        <div className="detail-kicker">
+          <span>Chart Evidence</span>
+          <strong>{[pre, post].filter(Boolean).length}/2</strong>
         </div>
-        <div className="meta-grid">
-          <MetaItem label="Entry" value={trade.entry} mono />
-          <MetaItem label="SL" value={trade.sl} mono />
-          <MetaItem label="TP" value={trade.tp} mono />
-          <MetaItem label="Pips" value={trade.pips || "+0"} mono />
+        <div className="screenshots-grid">
+          <ScreenshotThumb label="PRE CHART" src={pre} onClick={() => pre && onViewImg(pre)} />
+          <ScreenshotThumb label="POST CHART" src={post} onClick={() => post && onViewImg(post)} />
         </div>
       </div>
     </div>
@@ -532,6 +537,15 @@ function DetailTitle({ children }) {
   return <h4 className="detail-title">{children}</h4>;
 }
 
+function ContextItem({ label, value, tone }) {
+  return (
+    <div className="context-item">
+      <span>{label}</span>
+      <strong className={tone || ""}>{value}</strong>
+    </div>
+  );
+}
+
 function PillRow({ items, muted }) {
   return (
     <div className="pill-row">
@@ -552,15 +566,6 @@ function ScreenshotThumb({ label, src, onClick }) {
       <span>{label}</span>
       {src ? <img src={src} alt={`${label} chart screenshot`} loading="lazy" /> : <em>No image</em>}
     </button>
-  );
-}
-
-function MetaItem({ label, value, mono }) {
-  return (
-    <div className="meta-item">
-      <span className="k">{label}</span>
-      <span className={mono ? "v mono" : "v"}>{value || "-"}</span>
-    </div>
   );
 }
 
@@ -780,8 +785,7 @@ function journalCSS(T) {
       padding-top: 2px;
     }
 
-    .filter-chip,
-    .journal-view-toggle button {
+    .filter-chip {
       padding: 5px 11px;
       background: transparent;
       border: ${borderWidth} solid var(--line);
@@ -796,36 +800,16 @@ function journalCSS(T) {
       white-space: nowrap;
     }
 
-    .filter-chip:hover,
-    .journal-view-toggle button:hover:not(:disabled) {
+    .filter-chip:hover {
       color: var(--ink-2);
       border-color: var(--indigo);
     }
 
-    .filter-chip.active,
-    .journal-view-toggle button.active {
+    .filter-chip.active {
       background: rgba(129,140,248,0.15);
       color: var(--indigo);
       border-color: rgba(129,140,248,0.4);
       font-weight: 800;
-    }
-
-    .journal-view-toggle {
-      margin-left: auto;
-      display: flex;
-      gap: 4px;
-      align-items: center;
-    }
-
-    .journal-view-toggle button {
-      display: inline-flex;
-      gap: 6px;
-      align-items: center;
-    }
-
-    .journal-view-toggle button:disabled {
-      opacity: .42;
-      cursor: not-allowed;
     }
 
     .journal-divider {
@@ -907,6 +891,7 @@ function journalCSS(T) {
 
     .journal-table-wrap tbody tr.expanded {
       background: ${expanded};
+      box-shadow: inset 0 1px 0 rgba(129,140,248,.22), inset 0 -1px 0 rgba(129,140,248,.14);
     }
 
     .journal-table-wrap tbody tr.expanded::before {
@@ -1056,8 +1041,100 @@ function journalCSS(T) {
       border-top: ${borderWidth} solid var(--line);
       border-bottom: ${brutal ? `2px solid ${T.border}` : "2px solid var(--indigo)"};
       display: grid;
-      grid-template-columns: 1.5fr 1fr;
-      gap: 24px;
+      grid-template-columns: minmax(0, 1.05fr) minmax(340px, .95fr);
+      gap: 14px;
+    }
+
+    .detail-card {
+      position: relative;
+      background: ${isDark ? "linear-gradient(135deg, rgba(255,255,255,.035), rgba(255,255,255,.012))" : T.surface};
+      border: ${borderWidth} solid var(--line);
+      border-radius: ${brutal ? "4px" : "12px"};
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    .detail-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -18% -36% auto;
+      width: 220px;
+      height: 220px;
+      border-radius: 999px;
+      background: ${brutal ? "transparent" : "radial-gradient(circle, rgba(129,140,248,.13), transparent 62%)"};
+      pointer-events: none;
+    }
+
+    .detail-kicker {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .detail-kicker span {
+      color: var(--dim);
+      font-size: 10px;
+      font-weight: 850;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    .detail-kicker strong {
+      font-family: var(--font-geist-mono), 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--ink);
+      font-feature-settings: "tnum";
+    }
+
+    .detail-kicker strong.positive { color: var(--green); }
+    .detail-kicker strong.negative { color: var(--red); }
+
+    .detail-context-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin: 14px 0 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .context-item {
+      background: ${isDark ? "rgba(255,255,255,.025)" : T.surface2};
+      border: ${borderWidth} solid var(--line);
+      border-radius: ${brutal ? "3px" : "8px"};
+      padding: 9px 10px;
+      min-width: 0;
+    }
+
+    .context-item span {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--dim);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-weight: 750;
+    }
+
+    .context-item strong {
+      display: block;
+      color: var(--ink-2);
+      font-size: 11px;
+      font-weight: 800;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .context-item strong.green { color: var(--green); }
+    .context-item strong.red { color: var(--red); }
+
+    .detail-evidence {
+      min-width: 0;
     }
 
     .detail-title {
@@ -1075,6 +1152,13 @@ function journalCSS(T) {
       font-size: 13px;
       line-height: 1.6;
       max-width: 80ch;
+      position: relative;
+      z-index: 1;
+    }
+
+    .detail-notes.empty {
+      color: var(--dim);
+      font-style: italic;
     }
 
     .pill-row {
@@ -1082,6 +1166,8 @@ function journalCSS(T) {
       flex-wrap: wrap;
       gap: 5px;
       margin: -4px 0 14px;
+      position: relative;
+      z-index: 1;
     }
 
     .pill-row span {
@@ -1104,13 +1190,14 @@ function journalCSS(T) {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 10px;
-      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
     }
 
     .screenshot-thumb {
       position: relative;
-      aspect-ratio: 16 / 10;
-      border-radius: 8px;
+      aspect-ratio: 16 / 10.5;
+      border-radius: ${brutal ? "4px" : "10px"};
       border: ${borderWidth} solid var(--line);
       overflow: hidden;
       background: var(--surface);
@@ -1120,6 +1207,13 @@ function journalCSS(T) {
       display: grid;
       place-items: center;
       font-family: var(--font-geist-sans);
+      transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+    }
+
+    .screenshot-thumb:not(:disabled):hover {
+      transform: translateY(-2px);
+      border-color: rgba(129,140,248,.55);
+      box-shadow: ${brutal ? "none" : "0 14px 34px rgba(0,0,0,.22)"};
     }
 
     .screenshot-thumb:disabled {
@@ -1145,46 +1239,17 @@ function journalCSS(T) {
       height: 100%;
       object-fit: cover;
       display: block;
+      transition: transform .22s ease;
+    }
+
+    .screenshot-thumb:not(:disabled):hover img {
+      transform: scale(1.035);
     }
 
     .screenshot-thumb em {
       font-style: normal;
       font-size: 11px;
       color: var(--dim);
-    }
-
-    .meta-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-    }
-
-    .meta-item {
-      background: var(--surface);
-      border: ${borderWidth} solid var(--line);
-      border-radius: 8px;
-      padding: 10px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      min-width: 0;
-    }
-
-    .meta-item .k {
-      font-size: 9px;
-      color: var(--dim);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      font-weight: 700;
-    }
-
-    .meta-item .v {
-      font-size: 12px;
-      color: var(--ink);
-      font-weight: 650;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
     }
 
     @media (max-width: 768px) {
@@ -1210,10 +1275,6 @@ function journalCSS(T) {
         min-width: 100%;
       }
 
-      .journal-view-toggle {
-        margin-left: 0;
-      }
-
       .journal-table-wrap {
         overflow-x: auto;
       }
@@ -1229,6 +1290,14 @@ function journalCSS(T) {
       .detail-content {
         grid-template-columns: 1fr;
         padding: 16px;
+      }
+
+      .detail-context-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .screenshots-grid {
+        grid-template-columns: 1fr;
       }
     }
   `;
