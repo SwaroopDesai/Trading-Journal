@@ -68,6 +68,10 @@ CRON_SECRET=
 
 See [AGENTS.md](./AGENTS.md) for the full architecture overview, database schema, design system rules, and agent workflow.
 
+## Styling Direction
+
+See [STYLING.md](./STYLING.md) for the styling rules. New components use Tailwind CSS v4 + shadcn/ui. Existing inline-styled components should stay inline unless they are being intentionally migrated.
+
 ## Built With AI
 
 This project was built primarily with AI tools: Claude, Codex, and Claude Code. Every major component was shaped through conversation, iteration, and hands-on testing. The repo is a working example of what is possible when a domain expert pairs with AI agents.

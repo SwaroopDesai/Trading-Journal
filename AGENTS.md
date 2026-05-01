@@ -209,6 +209,7 @@ The codebase has inline styles + Tailwind + shadcn mixed. Going forward:
 - **EXISTING inline-styled components:** leave alone unless explicitly migrating
 - **NEVER** mix inline `style={{}}` with Tailwind classes in the same component
 - Use `T` theme tokens for legacy components, Tailwind classes for new ones
+- See `STYLING.md` for the full styling guide and migration rules.
 
 ### Database
 - **Always** filter by `user_id = auth.uid()` in queries
@@ -251,7 +252,7 @@ Encoding issues in: `constants.js`, `utils.js`, `Heatmap.jsx`, `AIAnalysis.jsx`,
 - `page4-debug.jsx` — old debug artifact in root
 
 ### Mixed styling
-Tailwind v4 + shadcn + inline styles + injected CSS all coexist. Pick a direction per-component.
+Tailwind v4 + shadcn + inline styles + injected CSS all coexist. Pick a direction per-component. See `STYLING.md`.
 
 ### No TypeScript
 JavaScript only. No generated Supabase types. Schema drift is possible.
@@ -348,7 +349,7 @@ CRON_SECRET
 - [ ] Remove dead code (`CommandPalette.jsx`, `screenshot-autofill/`, `CHECKLIST_RULES`, `page4-debug.jsx`)
 - [ ] Fix mojibake encoding across all files
 - [ ] Verify Supabase RLS policies live
-- [ ] Decide & document: Tailwind/shadcn vs inline styles direction
+- [x] Decide & document: Tailwind/shadcn vs inline styles direction
 - [ ] Update README.md (currently default Next.js)
 
 ### High-priority features
