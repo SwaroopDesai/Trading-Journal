@@ -23,12 +23,17 @@ import { fmtRR } from "@/lib/utils";
 
 const FONT_NUM = "'JetBrains Mono','Fira Code',monospace";
 
-function ChartShell({ T, title, meta, children }) {
+function ChartShell({ T, title, meta, children, tall = false }) {
   return (
     <Card
       size="sm"
-      className="min-h-[206px] gap-2 rounded-[14px] py-3"
-      style={{ background:T.surface, border:`1px solid ${T.border}`, color:T.text }}
+      className="gap-2 rounded-[14px] py-3"
+      style={{
+        background:T.surface,
+        border:`1px solid ${T.border}`,
+        color:T.text,
+        minHeight: tall ? 278 : 222,
+      }}
     >
       <CardHeader className="px-3">
         <CardTitle style={{
@@ -54,10 +59,10 @@ function ChartShell({ T, title, meta, children }) {
   );
 }
 
-function EmptyChart({ T, copy = "Log more trades to activate this chart." }) {
+function EmptyChart({ T, copy = "Log more trades to activate this chart.", tall = false }) {
   return (
     <div style={{
-      minHeight: 150,
+      minHeight: tall ? 214 : 162,
       display: "grid",
       placeItems: "center",
       color: T.textDim,
@@ -145,10 +150,10 @@ function buildDistribution(trades) {
   return buckets;
 }
 
-function PerformanceBars({ T, data, labelKey }) {
-  if (!data.length) return <EmptyChart T={T} />;
+function PerformanceBars({ T, data, labelKey, tall = false }) {
+  if (!data.length) return <EmptyChart T={T} tall={tall} />;
   return (
-    <div style={{ height: 154 }}>
+    <div style={{ height: tall ? 216 : 168 }}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} layout="vertical" margin={{ top: 2, right: 8, bottom: 0, left: 0 }}>
           <CartesianGrid stroke={T.border} strokeDasharray="2 8" horizontal={false} opacity={0.35} />
@@ -174,11 +179,11 @@ function PerformanceBars({ T, data, labelKey }) {
   );
 }
 
-function DistributionChart({ T, data }) {
+function DistributionChart({ T, data, tall = false }) {
   const active = data.some(item => item.count > 0);
-  if (!active) return <EmptyChart T={T} copy="No R distribution yet." />;
+  if (!active) return <EmptyChart T={T} copy="No R distribution yet." tall={tall} />;
   return (
-    <div style={{ height: 154 }}>
+    <div style={{ height: tall ? 216 : 168 }}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 8, right: 4, bottom: 0, left: -24 }}>
           <CartesianGrid stroke={T.border} strokeDasharray="2 8" vertical={false} opacity={0.35} />
@@ -196,26 +201,26 @@ function DistributionChart({ T, data }) {
   );
 }
 
-export default function DashboardCharts({ T, trades = [], isMobile = false }) {
+export default function DashboardCharts({ T, trades = [], isMobile = false, isUltraWide = false }) {
   const sessionData = useMemo(() => buildGrouped(trades, "session", "session"), [trades]);
   const setupData = useMemo(() => buildGrouped(trades, "setup", "setup"), [trades]);
   const distribution = useMemo(() => buildDistribution(trades), [trades]);
 
   return (
     <>
-      <div style={{ gridColumn: isMobile ? "auto" : "span 4" }}>
-        <ChartShell T={T} title="Session Edge" meta={`${sessionData.length} active`}>
-          <PerformanceBars T={T} data={sessionData} labelKey="session" />
+      <div style={{ gridColumn: isMobile ? "auto" : `span ${isUltraWide ? 5 : 4}` }}>
+        <ChartShell T={T} title="Session Edge" meta={`${sessionData.length} active`} tall={isUltraWide}>
+          <PerformanceBars T={T} data={sessionData} labelKey="session" tall={isUltraWide} />
         </ChartShell>
       </div>
-      <div style={{ gridColumn: isMobile ? "auto" : "span 4" }}>
-        <ChartShell T={T} title="Setup Edge" meta={`${setupData.length} tracked`}>
-          <PerformanceBars T={T} data={setupData} labelKey="setup" />
+      <div style={{ gridColumn: isMobile ? "auto" : `span ${isUltraWide ? 6 : 4}` }}>
+        <ChartShell T={T} title="Setup Edge" meta={`${setupData.length} tracked`} tall={isUltraWide}>
+          <PerformanceBars T={T} data={setupData} labelKey="setup" tall={isUltraWide} />
         </ChartShell>
       </div>
-      <div style={{ gridColumn: isMobile ? "auto" : "span 4" }}>
-        <ChartShell T={T} title="R Distribution" meta={`${trades.length} trades`}>
-          <DistributionChart T={T} data={distribution} />
+      <div style={{ gridColumn: isMobile ? "auto" : `span ${isUltraWide ? 5 : 4}` }}>
+        <ChartShell T={T} title="R Distribution" meta={`${trades.length} trades`} tall={isUltraWide}>
+          <DistributionChart T={T} data={distribution} tall={isUltraWide} />
         </ChartShell>
       </div>
     </>
