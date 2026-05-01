@@ -398,21 +398,21 @@ export function EmptyState({T, title, copy, action, compact, icon}) {
 export function ModalShell({T,title,subtitle,onClose,children,footer,width=640}) {
   return (
     <Overlay onClose={onClose}>
-      <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:18,width:`min(${width}px,96vw)`,maxHeight:"92vh",display:"flex",flexDirection:"column",boxShadow:`0 36px 90px ${T.bg}b0`,overflow:"hidden"}}>
-        <div style={{padding:"18px 22px 16px",borderBottom:`1px solid ${T.border}`,background:T.surface,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:16}}>
-          <div>
-            <div style={{fontFamily:"var(--font-geist-sans)",fontSize:24,fontWeight:900,color:T.text,letterSpacing:"-0.05em",lineHeight:1}}>{title}</div>
-            {subtitle&&<div style={{fontSize:12,color:T.textDim,marginTop:8,lineHeight:1.6,maxWidth:420}}>{subtitle}</div>}
+      <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:20,width:`min(${width}px,calc(100vw - 24px))`,maxHeight:"min(88vh, 920px)",display:"flex",flexDirection:"column",boxShadow:`0 38px 100px ${T.bg}b8`,overflow:"hidden"}}>
+        <div style={{padding:"20px 24px 17px",borderBottom:`1px solid ${T.border}`,background:T.surface,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:18}}>
+          <div style={{minWidth:0}}>
+            <div style={{fontFamily:"var(--font-geist-sans)",fontSize:22,fontWeight:900,color:T.text,letterSpacing:"-0.055em",lineHeight:1.02}}>{title}</div>
+            {subtitle&&<div style={{fontSize:12,color:T.textDim,marginTop:8,lineHeight:1.55,maxWidth:520}}>{subtitle}</div>}
           </div>
           <button
             onClick={onClose}
             aria-label="Close"
             className="fx-btn"
-            style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,cursor:"pointer",fontSize:18,width:40,height:40,borderRadius:12,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}
+            style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.textDim,cursor:"pointer",fontSize:16,width:38,height:38,borderRadius:13,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,lineHeight:1}}
           >×</button>
         </div>
-        <div style={{padding:"20px 22px",overflowY:"auto",flex:1,display:"flex",flexDirection:"column",gap:16}}>{children}</div>
-        {footer&&<div style={{padding:"15px 22px",borderTop:`1px solid ${T.border}`,display:"flex",gap:10,background:T.surface}}>{footer}</div>}
+        <div style={{padding:"22px 24px",overflowY:"auto",flex:1,display:"flex",flexDirection:"column",gap:18,scrollbarGutter:"stable"}}>{children}</div>
+        {footer&&<div style={{padding:"16px 24px",borderTop:`1px solid ${T.border}`,display:"flex",gap:10,background:T.surface,alignItems:"center",flexWrap:"wrap"}}>{footer}</div>}
       </div>
     </Overlay>
   )
@@ -442,14 +442,14 @@ export function Badge({color,children}){
 
 export function Toggle({T,value,opts,onChange}){
   return (
-    <div role="group" style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+    <div role="group" style={{display:"flex",gap:6,flexWrap:"wrap"}}>
       {opts.map(o=>(
         <button
           key={o.v||o}
           onClick={()=>onChange(o.v||o)}
           aria-pressed={(o.v||o)===value}
           className="fx-btn"
-          style={{background:(o.v||o)===value?`${T.accent}18`:`${T.surface2}70`,border:`1px solid ${(o.v||o)===value?T.accentBright:T.border}`,color:(o.v||o)===value?T.accentBright:T.textDim,padding:"8px 12px",borderRadius:999,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"var(--font-geist-sans)",minHeight:40}}
+          style={{background:(o.v||o)===value?`${T.accent}18`:`${T.surface2}70`,border:`1px solid ${(o.v||o)===value?T.accentBright:T.border}`,color:(o.v||o)===value?T.accentBright:T.textDim,padding:"8px 13px",borderRadius:10,fontSize:12,fontWeight:800,cursor:"pointer",fontFamily:"var(--font-geist-sans)",minHeight:38,letterSpacing:"-0.01em"}}
         >{o.l||o}</button>
       ))}
     </div>
@@ -461,7 +461,7 @@ export function Inp({T,type="text",label,...props}){
     <input
       type={type}
       aria-label={label}
-      style={{background:`${T.surface2}cc`,border:`1px solid ${T.border}`,color:T.text,fontFamily:"var(--font-geist-sans)",fontSize:13,padding:"12px 13px",width:"100%",outline:"none",borderRadius:14,transition:"border .15s, box-shadow .15s, background .15s"}}
+      style={{background:`${T.surface2}cc`,border:`1px solid ${T.border}`,color:T.text,fontFamily:"var(--font-geist-sans)",fontSize:13,padding:"12px 13px",width:"100%",outline:"none",borderRadius:12,transition:"border .15s, box-shadow .15s, background .15s",minHeight:44,fontWeight:650}}
       onFocus={e=>{e.target.style.borderColor=T.accentBright;e.target.style.boxShadow=`0 0 0 3px ${T.accentBright}22`}}
       onBlur={e=>{e.target.style.borderColor=T.border;e.target.style.boxShadow="none"}}
       {...props}
@@ -475,7 +475,7 @@ export function Sel({T,val,opts,on,label}){
       value={val}
       onChange={e=>on(e.target.value)}
       aria-label={label}
-      style={{background:`${T.surface2}cc`,border:`1px solid ${T.border}`,color:T.text,fontFamily:"var(--font-geist-sans)",fontSize:13,padding:"12px 13px",width:"100%",outline:"none",borderRadius:14,transition:"border .15s, box-shadow .15s, background .15s"}}
+      style={{background:`${T.surface2}cc`,border:`1px solid ${T.border}`,color:T.text,fontFamily:"var(--font-geist-sans)",fontSize:13,padding:"12px 13px",width:"100%",outline:"none",borderRadius:12,transition:"border .15s, box-shadow .15s, background .15s",minHeight:44,fontWeight:650}}
       onFocus={e=>{e.target.style.borderColor=T.accentBright;e.target.style.boxShadow=`0 0 0 3px ${T.accentBright}22`}}
       onBlur={e=>{e.target.style.borderColor=T.border;e.target.style.boxShadow="none"}}
     >
@@ -487,7 +487,7 @@ export function Sel({T,val,opts,on,label}){
 export function Textarea({T,...props}){
   return (
     <textarea
-      style={{background:`${T.surface2}cc`,border:`1px solid ${T.border}`,color:T.text,fontFamily:"var(--font-geist-sans)",fontSize:13,padding:"12px 13px",width:"100%",outline:"none",borderRadius:14,resize:"vertical",transition:"border .15s, box-shadow .15s, background .15s"}}
+      style={{background:`${T.surface2}cc`,border:`1px solid ${T.border}`,color:T.text,fontFamily:"var(--font-geist-sans)",fontSize:13,padding:"12px 13px",width:"100%",outline:"none",borderRadius:12,resize:"vertical",transition:"border .15s, box-shadow .15s, background .15s",lineHeight:1.55,fontWeight:550}}
       onFocus={e=>{e.target.style.borderColor=T.accentBright;e.target.style.boxShadow=`0 0 0 3px ${T.accentBright}22`}}
       onBlur={e=>{e.target.style.borderColor=T.border;e.target.style.boxShadow="none"}}
       {...props}
@@ -495,8 +495,8 @@ export function Textarea({T,...props}){
   )
 }
 
-export function FL({label,T,children,full}){return <div style={{gridColumn:full?"1/-1":"auto"}}><div style={{fontSize:12,fontWeight:600,color:T.textDim,marginBottom:6}}>{label}</div>{children}</div>}
-export function Section({T,title,children}){return <div><div style={{fontSize:11,fontWeight:700,color:T.accentBright,letterSpacing:"0.12em",textTransform:"uppercase",paddingBottom:8,borderBottom:`1px solid ${T.border}`,marginBottom:12}}>{title}</div>{children}</div>}
+export function FL({label,T,children,full}){return <div style={{gridColumn:full?"1/-1":"auto",minWidth:0}}><div style={{fontSize:10,fontWeight:850,color:T.textDim,marginBottom:7,letterSpacing:"0.08em",textTransform:"uppercase"}}>{label}</div>{children}</div>}
+export function Section({T,title,children}){return <section><div style={{display:"flex",alignItems:"center",gap:10,fontSize:10,fontWeight:900,color:T.accentBright,letterSpacing:"0.16em",textTransform:"uppercase",paddingBottom:9,borderBottom:`1px solid ${T.border}`,marginBottom:14}}><span style={{width:6,height:6,borderRadius:"50%",background:T.accentBright,boxShadow:`0 0 0 4px ${T.accent}16`}} aria-hidden="true"/>{title}</div>{children}</section>}
 
 // ─── Image compression (canvas → WebP, ~20-40x smaller, stays base64) ────
 function compressImage(file, { maxW = 1280, maxH = 960, quality = 0.82 } = {}) {
@@ -561,10 +561,10 @@ export function PasteImageInput({T, value, onChange, label, disabled}) {
         onPaste={handlePaste}
         ref={ref}
         style={{
-          border:`2px dashed ${value ? T.accentBright : T.border}`,
-          borderRadius:10, padding:"14px", textAlign:"center",
+          border:`1px dashed ${value ? T.accentBright : T.border}`,
+          borderRadius:14, padding:value ? 8 : "18px 14px", textAlign:"center",
           cursor: disabled ? "wait" : "pointer",
-          outline:"none", background:T.surface2, transition:"border .2s, box-shadow .2s",
+          outline:"none", background:`${T.surface2}d8`, transition:"border .2s, box-shadow .2s, background .2s",
           opacity: disabled ? 0.6 : 1,
         }}
         onFocus={e=>{ if(!disabled){e.currentTarget.style.borderColor=T.accentBright;e.currentTarget.style.boxShadow=`0 0 0 3px ${T.accentBright}22`} }}
@@ -572,18 +572,18 @@ export function PasteImageInput({T, value, onChange, label, disabled}) {
       >
         {value ? (
           <div style={{position:"relative"}}>
-            <img src={value} alt={label||"Chart screenshot"} loading="lazy" style={{width:"100%",maxHeight:180,objectFit:"cover",borderRadius:8}}/>
+            <img src={value} alt={label||"Chart screenshot"} loading="lazy" style={{width:"100%",maxHeight:220,objectFit:"cover",borderRadius:10,border:`1px solid ${T.border}`}}/>
             {!disabled && (
               <button
                 onClick={()=>onChange("")}
                 aria-label="Remove image"
-                style={{position:"absolute",top:6,right:6,background:T.surface,border:`1px solid ${T.border}`,color:T.text,borderRadius:"50%",width:32,height:32,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}
+                style={{position:"absolute",top:8,right:8,background:T.surface,border:`1px solid ${T.border}`,color:T.text,borderRadius:"50%",width:32,height:32,cursor:"pointer",fontSize:13,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center"}}
               >×</button>
             )}
           </div>
         ) : (
           <div style={{color:T.muted,fontSize:12}}>
-            <div style={{fontSize:11,fontWeight:800,letterSpacing:"0.14em",marginBottom:8,color:T.accentBright}} aria-hidden="true">{isLoading ? "LOAD" : "IMG"}</div>
+            <div style={{fontSize:10,fontWeight:900,letterSpacing:"0.16em",marginBottom:8,color:T.accentBright}} aria-hidden="true">{isLoading ? "LOAD" : "CHART"}</div>
             <div style={{fontWeight:600,color:T.textDim,marginBottom:2}}>
               {isLoading ? "Reading chart…" : "Ctrl+V to paste"}
             </div>
@@ -634,25 +634,26 @@ export function MultiImageInput({T, values, onChange, label, max=6}) {
         role="button"
         aria-label={`${label||"Screenshots"} — paste or upload. ${images.length} of ${max} added`}
         onPaste={handlePaste}
-        style={{border:`2px dashed ${images.length?T.accentBright:T.border}`,borderRadius:12,padding:"14px",textAlign:"center",outline:"none",background:T.surface2,transition:"border .2s, box-shadow .2s"}}
+        style={{border:`1px dashed ${images.length?T.accentBright:T.border}`,borderRadius:14,padding:"18px 14px",textAlign:"center",outline:"none",background:`${T.surface2}d8`,transition:"border .2s, box-shadow .2s, background .2s"}}
         onFocus={e=>{e.currentTarget.style.borderColor=T.accentBright;e.currentTarget.style.boxShadow=`0 0 0 3px ${T.accentBright}22`}}
         onBlur={e=>{e.currentTarget.style.borderColor=images.length?T.accentBright:T.border;e.currentTarget.style.boxShadow="none"}}
       >
         <div style={{color:T.muted,fontSize:12}}>
-          <div style={{fontWeight:700,color:T.textDim,marginBottom:4}}>{pasting?"Processing...":"Paste or upload screenshots"}</div>
-          <div>{images.length}/{max} added</div>
+          <div style={{fontSize:10,fontWeight:900,letterSpacing:"0.16em",color:T.accentBright,marginBottom:7}}>SCREENSHOTS</div>
+          <div style={{fontWeight:750,color:T.textDim,marginBottom:4}}>{pasting?"Processing...":"Paste or upload screenshots"}</div>
+          <div>{images.length}/{max} attached</div>
           <div style={{marginTop:6}}>or <label style={{color:T.accentBright,cursor:"pointer"}}><input type="file" accept="image/*" multiple style={{display:"none"}} onChange={handleFiles}/> browse files</label></div>
         </div>
       </div>
       {images.length>0&&(
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))",gap:10}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(136px,1fr))",gap:10}}>
           {images.map((src, index)=>(
-            <div key={`${label}-${index}`} style={{position:"relative",background:T.surface2,border:`1px solid ${T.border}`,borderRadius:12,overflow:"hidden"}}>
-              <img src={src} alt={`${label||"Screenshot"} ${index+1}`} loading="lazy" style={{width:"100%",height:100,objectFit:"cover"}}/>
+            <div key={`${label}-${index}`} style={{position:"relative",background:T.surface2,border:`1px solid ${T.border}`,borderRadius:14,overflow:"hidden"}}>
+              <img src={src} alt={`${label||"Screenshot"} ${index+1}`} loading="lazy" style={{width:"100%",height:108,objectFit:"cover"}}/>
               <button
                 onClick={()=>removeImage(index)}
                 aria-label={`Remove ${label||"screenshot"} ${index+1}`}
-                style={{position:"absolute",top:6,right:6,background:T.surface,border:`1px solid ${T.border}`,color:T.text,borderRadius:999,width:32,height:32,cursor:"pointer",fontSize:14,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center"}}
+                style={{position:"absolute",top:7,right:7,background:T.surface,border:`1px solid ${T.border}`,color:T.text,borderRadius:999,width:30,height:30,cursor:"pointer",fontSize:12,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center"}}
               >×</button>
             </div>
           ))}

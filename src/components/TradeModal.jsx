@@ -88,14 +88,14 @@ export default function TradeModal({T, userId, initial, defaults, onSave, onClos
   // ── QUICK LOG ─────────────────────────────────────────────────────────────
   if(quickLog) return (
     <ModalShell T={T} title={initial ? "Edit Trade" : "Log New Trade"}
-      subtitle="Quick Log — minimal fields, fast entry."
+      subtitle="Quick log - minimal fields, fast entry."
       onClose={requestClose} width={580} footer={footer}>
 
       <button onClick={() => setQL(false)} style={{
         background:`${T.accent}20`, border:`1px solid ${T.accentBright}`,
         color:T.accentBright, padding:"6px 14px", borderRadius:20,
-        fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"Inter,sans-serif",
-      }}>⚡ Quick Log ON</button>
+        fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"var(--font-geist-sans)",
+      }}>Quick Log ON</button>
 
       <Section T={T} title="Trade">
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
@@ -120,14 +120,14 @@ export default function TradeModal({T, userId, initial, defaults, onSave, onClos
   // ── FULL LOG ──────────────────────────────────────────────────────────────
   return (
     <ModalShell T={T} title={initial ? "Edit Trade" : "Log New Trade"}
-      subtitle="Full log — capture everything."
+      subtitle="Full log - capture context, execution, psychology, and screenshots."
       onClose={requestClose} width={620} footer={footer}>
 
       <button onClick={() => { setQL(true); upd("session", getAutoSession()); }} style={{
         background:"none", border:`1px solid ${T.border}`,
         color:T.textDim, padding:"6px 14px", borderRadius:20,
-        fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"Inter,sans-serif",
-      }}>⚡ Switch to Quick Log</button>
+        fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"var(--font-geist-sans)",
+      }}>Switch to Quick Log</button>
 
       {/* ── Section 1: Core ── */}
       <Section T={T} title="Trade">
