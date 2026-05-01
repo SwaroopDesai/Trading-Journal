@@ -26,8 +26,8 @@ const RANGES = [
 ];
 
 const MODES = [
-  { id: "trades", label: "Trades" },
   { id: "curve", label: "Curve" },
+  { id: "trades", label: "Trades" },
   { id: "daily", label: "Daily" },
   { id: "drawdown", label: "DD" },
 ];
@@ -189,7 +189,7 @@ function TooltipPill({ T, value, color }) {
 
 export default function EquityCurve({ T, data = [] }) {
   const [range, setRange] = useState("all");
-  const [mode, setMode] = useState("trades");
+  const [mode, setMode] = useState("curve");
   const [pair, setPair] = useState("all");
   const source = useMemo(() => buildChartData(data), [data]);
   const pairOptions = useMemo(() => {

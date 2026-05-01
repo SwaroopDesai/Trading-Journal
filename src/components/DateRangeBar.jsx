@@ -1,8 +1,5 @@
 "use client"
 
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-
 const PRESETS = [
   { id: "all", label: "All" },
   { id: "7d", label: "7D" },
@@ -17,42 +14,67 @@ export default function DateRangeBar({ T, value, onChange, count, total }) {
 
   return (
     <div
-      className="date-range-bar border-b px-6 py-1.5"
+      className="date-range-bar"
       style={{
-        borderBottomColor: T.border,
+        borderBottom: `1px solid ${T.border}`,
         background: T.bg,
+        padding: "8px 24px",
       }}
     >
-      <div className="flex w-full flex-wrap items-center gap-2">
-        <span className="shrink-0 text-[10px] font-black uppercase tracking-[0.16em]" style={{ color: T.muted }}>
+      <div style={{
+        maxWidth: 1680,
+        margin: "0 auto",
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        flexWrap: "wrap",
+      }}>
+        <span style={{
+          color: T.muted,
+          fontSize: 10,
+          fontWeight: 900,
+          letterSpacing: "0.16em",
+          textTransform: "uppercase",
+        }}>
           Period
         </span>
         <div
-          className="flex items-center gap-0.5 rounded-full border p-0.5"
-          style={{ borderColor: T.border, background: T.surface }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+            border: `1px solid ${T.border}`,
+            background: T.surface,
+            borderRadius: 999,
+            padding: 3,
+          }}
         >
           {PRESETS.map((p) => (
-            <Button
+            <button
               key={p.id}
               type="button"
-              variant="ghost"
-              size="xs"
               onClick={() => onChange(p.id)}
-              className={cn(
-                "fx-btn h-6 rounded-full border-0 px-2.5 text-[10px] font-black tracking-[0.04em] shadow-none",
-                value === p.id ? "text-primary-foreground" : "hover:bg-transparent"
-              )}
+              className="fx-btn"
               style={{
                 color: value === p.id ? "#fff" : T.textDim,
                 background: value === p.id ? T.accent : "transparent",
+                border: "none",
+                borderRadius: 999,
+                cursor: "pointer",
+                fontFamily: "'JetBrains Mono','Fira Code',monospace",
+                fontSize: 11,
+                fontWeight: 850,
+                minHeight: 28,
+                minWidth: 38,
+                padding: "4px 10px",
               }}
             >
               {p.label}
-            </Button>
+            </button>
           ))}
         </div>
         {isFiltered && (
-          <div className="shrink-0 text-[10px] font-semibold" style={{ color: T.textDim }}>
+          <div style={{ color: T.textDim, fontSize: 11, fontWeight: 700 }}>
             {count}/{total} trades
           </div>
         )}

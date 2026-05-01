@@ -112,6 +112,8 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
       flexDirection:"column",
       gap: 10,
       width: "100%",
+      maxWidth: 1680,
+      margin: "0 auto",
     }}>
 
       {/* ── KPI strip — one surface, four cells ── */}
@@ -217,7 +219,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28, delay: 0.06 }}
-          style={{ gridColumn: isMobile ? "auto" : `span ${isWide ? 11 : 8}`, minWidth: 0 }}
+          style={{ gridColumn: isMobile ? "auto" : `span ${isWide ? 10 : 8}`, minWidth: 0 }}
         >
           <EquityCurve T={T} data={stats.equityCurve} />
         </motion.div>
@@ -226,7 +228,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28, delay: 0.1 }}
-          style={{ gridColumn: isMobile ? "auto" : `span ${isWide ? 5 : 4}`, minWidth: 0 }}
+          style={{ gridColumn: isMobile ? "auto" : `span ${isWide ? 6 : 4}`, minWidth: 0 }}
         >
           <MonthlyReturns T={T} trades={trades} compact={!isMobile} />
         </motion.div>

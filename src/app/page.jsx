@@ -11,7 +11,6 @@ import Psychology from "@/components/Psychology";
 import Calculator from "@/components/Calculator";
 import MoreMenu from "@/components/MoreMenu";
 import LoginScreen from "@/components/LoginScreen";
-import CommandPalette from "@/components/CommandPalette";
 import Dashboard from "@/components/tabs/Dashboard";
 import Journal from "@/components/tabs/Journal";
 import DailyTab, { DailyModal } from "@/components/tabs/DailyTab";
@@ -557,36 +556,8 @@ export default function App() {
               {new Date().toLocaleDateString("en-GB",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}
             </span>
           </div>
-          {/* Right: theme swatches + session pill */}
+          {/* Right: session pill */}
           <div style={{display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
-            <CommandPalette
-              T={T}
-              tabs={ALL_TABS}
-              currentTab={tab}
-              onTab={changeTab}
-              onNewTrade={()=>setTradeModal("quick")}
-              onNewDaily={()=>setDailyModal("new")}
-              onNewWeekly={()=>setWeeklyModal("new")}
-              onNewMissed={()=>setMissedTradeModal("new")}
-              onTheme={changeTheme}
-            />
-            <div className="hide-mobile" style={{display:"flex",gap:5,alignItems:"center"}}>
-              {THEME_META.map(tm=>(
-                <button
-                  key={tm.id}
-                  onClick={()=>changeTheme(tm.id)}
-                  aria-label={`${tm.label} theme`}
-                  title={tm.label}
-                  style={{
-                    width:16,height:16,borderRadius:"50%",padding:0,cursor:"pointer",
-                    background:tm.swatch,
-                    border:themeKey===tm.id?`2px solid ${T.text}`:`2px solid ${tm.border?T.border:"transparent"}`,
-                    boxShadow:themeKey===tm.id?`0 0 0 1px ${T.accentBright}`:"none",
-                    transition:"all .15s",flexShrink:0,
-                  }}
-                />
-              ))}
-            </div>
             <SessionPill T={T} session={currentSession} compact={compactSession||isMobileViewport} mobile={isMobileViewport} open={sessionOpen} onToggle={()=>setSessionOpen(v=>!v)}/>
           </div>
         </div>
