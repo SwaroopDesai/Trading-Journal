@@ -12,50 +12,53 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { fmtRR } from "@/lib/utils";
 
 const FONT_NUM = "'JetBrains Mono','Fira Code',monospace";
 
 function ChartShell({ T, title, meta, children, tall = false }) {
   return (
-    <Card
-      size="sm"
-      className="gap-2 rounded-[14px] py-3"
-      style={{
-        background:T.surface,
-        border:`1px solid ${T.border}`,
-        color:T.text,
-        minHeight: tall ? 278 : 222,
-      }}
-    >
-      <CardHeader className="px-3">
-        <CardTitle style={{
+    <div style={{
+      background:T.surface,
+      border:`1px solid ${T.border}`,
+      borderRadius: 14,
+      color:T.text,
+      minHeight: tall ? 278 : 222,
+      padding: "14px 14px 12px",
+      overflow: "hidden",
+      display: "flex",
+      flexDirection: "column",
+      gap: 10,
+    }}>
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 12,
+        minHeight: 18,
+      }}>
+        <div style={{
           color: T.muted,
           fontSize: 11,
           fontWeight: 800,
           letterSpacing: "0.12em",
           textTransform: "uppercase",
-        }}>{title}</CardTitle>
+          lineHeight: 1.1,
+        }}>{title}</div>
         {meta && (
-          <CardAction style={{
+          <div style={{
             color: T.textDim,
             fontSize: 10,
             fontFamily: FONT_NUM,
             whiteSpace: "nowrap",
-          }}>{meta}</CardAction>
+            lineHeight: 1,
+          }}>{meta}</div>
         )}
-      </CardHeader>
-      <CardContent className="px-3">
+      </div>
+      <div style={{ flex: 1, minHeight: 0 }}>
         {children}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -153,9 +156,9 @@ function buildDistribution(trades) {
 function PerformanceBars({ T, data, labelKey, tall = false }) {
   if (!data.length) return <EmptyChart T={T} tall={tall} />;
   return (
-    <div style={{ height: tall ? 216 : 168 }}>
+    <div style={{ height: tall ? 226 : 174 }}>
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} layout="vertical" margin={{ top: 2, right: 8, bottom: 0, left: 0 }}>
+        <BarChart data={data} layout="vertical" margin={{ top: 6, right: 10, bottom: 4, left: 0 }}>
           <CartesianGrid stroke={T.border} strokeDasharray="2 8" horizontal={false} opacity={0.35} />
           <XAxis type="number" hide />
           <YAxis
@@ -183,9 +186,9 @@ function DistributionChart({ T, data, tall = false }) {
   const active = data.some(item => item.count > 0);
   if (!active) return <EmptyChart T={T} copy="No R distribution yet." tall={tall} />;
   return (
-    <div style={{ height: tall ? 216 : 168 }}>
+    <div style={{ height: tall ? 226 : 174 }}>
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 8, right: 4, bottom: 0, left: -24 }}>
+        <BarChart data={data} margin={{ top: 8, right: 10, bottom: 4, left: -16 }}>
           <CartesianGrid stroke={T.border} strokeDasharray="2 8" vertical={false} opacity={0.35} />
           <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: T.textDim, fontSize: 9, fontFamily: FONT_NUM }} />
           <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: T.muted, fontSize: 9, fontFamily: FONT_NUM }} />
