@@ -343,10 +343,10 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
             }}>{todayR >= 0 ? "+" : ""}{todayR.toFixed(2)}R</span>
           </div>
           {todayTrades.length === 0
-            ? <EmptyState T={T} icon="TRD" compact
+            ? <EmptyState T={T} icon="Trade" compact
                 title="No trades today"
                 copy="Log the first execution of the session."
-                action={<Btn T={T} onClick={onNewTrade}>+ Log Trade</Btn>}
+                action={<Btn onClick={onNewTrade}>+ Log Trade</Btn>}
               />
             : todayTrades.map((t, idx) => (
                 <div key={t._dbid} style={{
@@ -467,10 +467,10 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
                   </div>
                 )}
               </div>
-            : <EmptyState T={T} icon="DAY" compact
+            : <EmptyState T={T} icon="Plan" compact
                 title="No daily plan"
                 copy="Set the bias and levels before the session opens."
-                action={<Btn T={T} onClick={onNewDaily}>+ Add Plan</Btn>}
+                action={<Btn onClick={onNewDaily}>+ Add Plan</Btn>}
               />
           }
         </motion.div>
@@ -485,7 +485,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
         >
           <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
             <div aria-hidden="true" style={{
-              width: 28,
+              width: 42,
               height: 28,
               borderRadius: 9,
               display: "grid",
@@ -493,9 +493,9 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
               color: T.accentBright,
               background: isVoid ? "linear-gradient(135deg, rgba(99,102,241,0.22), rgba(236,72,153,0.12))" : T.surface2,
               border: `1px solid ${T.border}`,
-              fontSize: 11,
+              fontSize: 10,
               fontWeight: 900,
-            }}>PE</div>
+            }}>Edge</div>
             <div>
               <div style={{ fontSize: 13, fontWeight: 850, color: T.text, letterSpacing: "-0.02em" }}>Pair Edge</div>
               <div style={{ fontSize: 9, fontWeight: 800, color: T.muted, letterSpacing: "0.12em", textTransform: "uppercase", marginTop: 2 }}>Top performers</div>

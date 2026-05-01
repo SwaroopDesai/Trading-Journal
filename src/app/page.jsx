@@ -27,6 +27,23 @@ import MissedTradeModal from "@/components/MissedTradeModal"
 import EconomicCalendar from "@/components/tabs/EconomicCalendar"
 import PatternDetector from "@/components/tabs/PatternDetector"
 import OnboardingFlow from "@/components/OnboardingFlow"
+import {
+  BarChart3,
+  BookMarked,
+  BookOpenText,
+  Brain,
+  CalendarCheck,
+  CalendarDays,
+  Calculator as CalculatorIcon,
+  CircleSlash,
+  Download,
+  Flame,
+  Images,
+  LayoutDashboard,
+  ListChecks,
+  Radar,
+  Sparkles,
+} from "lucide-react"
 
 export default function App() {
   const supabase = useMemo(()=>createClient(),[])
@@ -457,24 +474,24 @@ export default function App() {
 
   // Mobile shows only 5 primary tabs; rest accessible via More
   const TABS=[
-    {id:"dashboard",label:"Dashboard",mobile:true},
-    {id:"journal",label:"Journal",mobile:true},
-    {id:"daily",label:"Daily",mobile:true},
-    {id:"heatmap",label:"Heatmap",mobile:true},
+    {id:"dashboard",label:"Dashboard",mobile:true,icon:LayoutDashboard},
+    {id:"journal",label:"Journal",mobile:true,icon:BookOpenText},
+    {id:"daily",label:"Daily",mobile:true,icon:CalendarCheck},
+    {id:"heatmap",label:"Heatmap",mobile:true,icon:Flame},
     {id:"more",label:"More",mobile:true},
     // Desktop sidebar + accessible via More on mobile
-    {id:"analytics",label:"Analytics",mobile:false},
-    {id:"weekly",label:"Weekly",mobile:false},
-    {id:"psychology",label:"Mind",mobile:false},
-    {id:"playbook",label:"Playbook",mobile:false},
-    {id:"calculator",label:"Calculator",mobile:false},
-    {id:"gallery",label:"Gallery",mobile:false},
-    {id:"review",label:"Review",mobile:false},
-    {id:"ai",label:"AI Analysis",mobile:false},
-    {id:"missed",label:"Missed",mobile:false},
-    {id:"calendar",label:"Calendar",mobile:false},
-    {id:"patterns",label:"Patterns",mobile:false},
-    {id:"export",label:"Export",mobile:false},
+    {id:"analytics",label:"Analytics",mobile:false,icon:BarChart3},
+    {id:"weekly",label:"Weekly",mobile:false,icon:CalendarDays},
+    {id:"psychology",label:"Mind",mobile:false,icon:Brain},
+    {id:"playbook",label:"Playbook",mobile:false,icon:BookMarked},
+    {id:"calculator",label:"Calculator",mobile:false,icon:CalculatorIcon},
+    {id:"gallery",label:"Gallery",mobile:false,icon:Images},
+    {id:"review",label:"Review",mobile:false,icon:ListChecks},
+    {id:"ai",label:"AI Analysis",mobile:false,icon:Sparkles},
+    {id:"missed",label:"Missed",mobile:false,icon:CircleSlash},
+    {id:"calendar",label:"Calendar",mobile:false,icon:CalendarDays},
+    {id:"patterns",label:"Patterns",mobile:false,icon:Radar},
+    {id:"export",label:"Export",mobile:false,icon:Download},
   ]
   const ALL_TABS=TABS.filter(t=>t.id!=="more")
   const MOBILE_PRIMARY=TABS.filter(t=>t.mobile)
@@ -539,7 +556,9 @@ export default function App() {
             <button key={t.id} className={`nav-btn ${tab===t.id?"nav-active":""}`}
               style={{color:tab===t.id?T.text:T.textDim}}
               onClick={()=>changeTab(t.id)}>
-              <span className="nav-icon-box" aria-hidden="true">{t.label.slice(0,2).toUpperCase()}</span>
+              <span className="nav-icon-box" aria-hidden="true">
+                {t.icon && <t.icon size={13} strokeWidth={2.2} />}
+              </span>
               <span>{t.label}</span>
             </button>
           ))}
@@ -550,13 +569,25 @@ export default function App() {
             <button key={t.id} className={`nav-btn ${tab===t.id?"nav-active":""}`}
               style={{color:tab===t.id?T.text:T.textDim}}
               onClick={()=>changeTab(t.id)}>
-              <span className="nav-icon-box" aria-hidden="true">{t.label.slice(0,2).toUpperCase()}</span>
+              <span className="nav-icon-box" aria-hidden="true">
+                {t.icon && <t.icon size={13} strokeWidth={2.2} />}
+              </span>
               <span>{t.label}</span>
             </button>
           ))}
         </div>
         <div style={{flex:1}}/>
-        <div style={{padding:"8px 20px",fontSize:11,color:T.muted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.email}</div>
+        <div style={{
+          margin:"8px 12px 4px",
+          padding:"10px 12px",
+          borderRadius:12,
+          border:`1px solid ${T.border}`,
+          background:T.surface2,
+          overflow:"hidden",
+        }}>
+          <div style={{fontSize:9,color:T.muted,letterSpacing:"0.14em",textTransform:"uppercase",fontWeight:800,marginBottom:5}}>Account</div>
+          <div title={user.email} style={{fontSize:11,color:T.textDim,lineHeight:1.35,wordBreak:"break-all"}}>{user.email}</div>
+        </div>
         <div style={{padding:"4px 20px 4px",fontSize:11,color:loading?T.amber:syncing?T.amber:T.green,cursor:"pointer"}} onClick={loadAll}>{loading?"Loading latest...":syncing?"Saving...":"Synced"}</div>
         <div style={{margin:"6px 16px 2px"}}>
           <div style={{fontSize:9,color:T.muted,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:8}}>Theme</div>
@@ -793,7 +824,7 @@ function buildCSS(T) {
     .nav-btn { display:flex; align-items:center; gap:10px; width:100%; padding:9px 14px 9px 12px; background:none; border:1px solid transparent; cursor:pointer; font-family:var(--font-geist-sans); font-size:13px; font-weight:700; text-align:left; transition:background .15s, color .15s, box-shadow .15s, border-color .15s; border-radius:10px; position:relative; }
     .nav-btn:hover { background:${T.accent}12; color:${T.text} !important; }
     .nav-active { background:${T.isDark && !brutal ? "linear-gradient(135deg, rgba(99,102,241,0.15), rgba(236,72,153,0.08))" : `${T.accent}18`} !important; color:${T.text} !important; border-color:${T.isDark && !brutal ? "rgba(99,102,241,0.3)" : "transparent"} !important; box-shadow:${T.isDark && !brutal ? "0 0 24px rgba(99,102,241,0.15)" : `inset 3px 0 0 ${T.accentBright}`} !important; }
-    .nav-icon-box { width:20px; height:20px; border-radius:7px; display:grid; place-items:center; flex-shrink:0; font-size:8px; font-weight:900; letter-spacing:-0.04em; color:${T.textDim}; background:${T.surface2}; border:1px solid ${T.border}; transition:transform .18s cubic-bezier(.16,1,.3,1), color .18s, border-color .18s; }
+    .nav-icon-box { width:22px; height:22px; border-radius:8px; display:grid; place-items:center; flex-shrink:0; color:${T.textDim}; background:${T.surface2}; border:1px solid ${T.border}; transition:transform .18s cubic-bezier(.16,1,.3,1), color .18s, border-color .18s; }
     .nav-active .nav-icon-box { color:${T.text}; border-color:rgba(99,102,241,0.42); background:${T.isDark && !brutal ? "linear-gradient(135deg, rgba(99,102,241,0.55), rgba(236,72,153,0.24))" : T.surface2}; box-shadow:${T.isDark && !brutal ? "0 0 16px rgba(99,102,241,0.2)" : "none"}; }
     .nav-btn:hover .nav-icon-box { transform:scale(1.08); }
     .bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; z-index:50; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); }
