@@ -1,68 +1,77 @@
-# FXEDGE Codex Prompts
+# FXEDGE
 
-This folder contains ready-to-paste prompts for Codex / Claude Code.
+> Premium trading journal for ICT/SMC forex traders.
 
-**How to use:**
-1. Open Codex in your VS Code
-2. Open the prompt file you want
-3. Copy entire content
-4. Paste into Codex
-5. Let it work
+**Live:** [fxedge.online](https://fxedge.online)
 
-**Always start every Codex session with:**
+## What It Does
+
+FXEDGE is a trading journal built specifically for forex traders using ICT (Inner Circle Trader) and SMC (Smart Money Concepts) methodology. It tracks every trade with the fields that matter: kill zones, manipulation type, POI, daily bias, weekly context, psychology, screenshots, and R-based performance.
+
+## Features
+
+- Full analytics dashboard with equity curve and drawdown
+- Daily and weekly bias planning
+- Pre-trade checklist and pattern tracking
+- Psychology and mistake tracking
+- Monthly P&L heatmap with calendar drilldown
+- AI coaching with Gemini on real trade data
+- Weekly AI debrief emails via Brevo
+- Screenshot gallery for pre/post trade review
+- Missed trade logging with opportunity-cost tracking
+- Economic calendar with cached red-folder news
+- CSV exports and printable reports
+- Dark, light, and brutalist themes
+- Keyboard shortcuts
+- Mobile-first responsive experience
+
+## Tech Stack
+
+- Next.js 16 App Router
+- React 19
+- Supabase Auth, Postgres, and Storage
+- Tailwind CSS v4 and shadcn/ui
+- Framer Motion
+- Recharts
+- TanStack Table
+- Gemini AI
+- Groq fallback AI
+- Brevo email
+- Vercel hosting and cron
+
+## Getting Started
+
+```bash
+npm install
+npm run dev
 ```
-Read AGENTS.md first. Then proceed with the task below.
+
+Open [http://localhost:3000](http://localhost:3000).
+
+## Required Environment Variables
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+GEMINI_API_KEY=
+GROQ_API_KEY=
+BREVO_API_KEY=
+BREVO_FROM_EMAIL=
+BREVO_FROM_NAME=
+CRON_SECRET=
 ```
 
----
+`NEXT_PUBLIC_SUPABASE_KEY` is the Supabase anon/public key used by the current app code.
 
-## Available Prompts
+## Project Structure
 
-### 🧹 Cleanup (do these first)
-- `01-cleanup-dead-code.md` — remove unused files
-- `02-fix-encoding-mojibake.md` — fix garbage characters
-- `03-update-readme.md` — replace default Next.js README
-- `04-verify-supabase-rls.md` — check database security
+See [AGENTS.md](./AGENTS.md) for the full architecture overview, database schema, design system rules, and agent workflow.
 
-### 🎨 Polish
-- `05-styling-direction.md` — pick Tailwind or inline, commit
-- `06-finish-shadcn-migration.md` — full migration plan
-- `07-encoding-utf8-sweep.md` — full UTF-8 sweep
+## Built With AI
 
-### 🚀 New Features (high priority)
-- `08-confluence-tracking.md` — biggest competitive gap
-- `09-hour-heatmap.md` — upgrade heatmap with hour grid
-- `10-breakeven-win-rate.md` — quick win
-- `11-pre-trade-checklist-widget.md` — compact non-blocking version
+This project was built primarily with AI tools: Claude, Codex, and Claude Code. Every major component was shaped through conversation, iteration, and hands-on testing. The repo is a working example of what is possible when a domain expert pairs with AI agents.
 
-### 🛡️ Quality
-- `12-smoke-test-checklist.md` — manual test plan
-- `13-typescript-migration.md` — long-term migration
+## License
 
-### 💰 Monetization (when ready)
-- `14-stripe-integration.md` — paid tier
-- `15-csv-import.md` — MT4/MT5 import
-
----
-
-## Recommended Order
-
-**Week 1 (cleanup):**
-1. 01-cleanup-dead-code.md
-2. 02-fix-encoding-mojibake.md
-3. 04-verify-supabase-rls.md
-4. 03-update-readme.md
-5. 05-styling-direction.md
-
-**Week 2 (features):**
-6. 08-confluence-tracking.md
-7. 09-hour-heatmap.md
-8. 10-breakeven-win-rate.md
-9. 11-pre-trade-checklist-widget.md
-
-**Week 3 (quality):**
-10. 12-smoke-test-checklist.md
-11. 06-finish-shadcn-migration.md
-
-**When ready to monetize:**
-12. 14-stripe-integration.md
+MIT
