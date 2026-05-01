@@ -94,7 +94,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
     background: T.surface,
     padding: "12px 14px",
     overflow: "hidden",
-    minHeight: 128,
+    minHeight: 136,
   }
   const secTitle = {
     fontSize: 11,
@@ -212,7 +212,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
         display: "grid",
         gridTemplateColumns: isMobile ? "1fr" : "repeat(12,minmax(0,1fr))",
         gap: 10,
-        alignItems: "start",
+        alignItems: "stretch",
       }}>
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -227,18 +227,26 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28, delay: 0.1 }}
-          style={{ gridColumn: isMobile ? "auto" : "span 4", minWidth: 0 }}
+          style={{ gridColumn: isMobile ? "auto" : "span 4", minWidth: 0, height: "100%" }}
         >
-          <MonthlyReturns T={T} trades={trades} compact={!isMobile} />
+          <MonthlyReturns T={T} trades={trades} compact={!isMobile} fill={!isMobile} />
         </motion.div>
+      </div>
 
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: isMobile ? "1fr" : "repeat(2,minmax(0,1fr))",
+        gap: 10,
+        alignItems: "start",
+      }}>
+        <div style={{display:"flex",flexDirection:"column",gap:10,minWidth:0}}>
         {/* Today's Trades */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28, delay: 0.14 }}
           whileHover={{ y: -2 }}
-          style={{ ...secondCard, gridColumn: isMobile ? "auto" : "span 6" }}
+          style={{ ...secondCard }}
         >
           <div style={{ ...secTitle, display:"flex", justifyContent:"space-between", gap:10 }}>
             <span>Today&apos;s Trades</span>
@@ -283,13 +291,62 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
           }
         </motion.div>
 
+        {/* Weekly Theme */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.28, delay: 0.22 }}
+          whileHover={{ y: -2 }}
+          style={{ ...secondCard }}
+        >
+          <div style={{ ...secTitle, display:"flex", justifyContent:"space-between" }}>
+            <span>Weekly Theme</span>
+            {latestWeekly && <span style={{ color: T.accent, fontWeight: 600, letterSpacing: 0, textTransform:"none", fontSize:11 }}>{latestWeekly.weekStart}</span>}
+          </div>
+          {latestWeekly
+            ? <div>
+                {Object.entries(getWeeklyPairNotes(latestWeekly))
+                  .filter(([, note]) => String(note || "").trim())
+                  .slice(0, 3).length > 0 && (
+                  <div style={{ display:"flex", gap:5, flexWrap:"wrap", marginBottom:8 }}>
+                    {Object.entries(getWeeklyPairNotes(latestWeekly))
+                      .filter(([, note]) => String(note || "").trim())
+                      .slice(0, 3).map(([pair]) => (
+                        <span key={pair} style={{
+                          fontSize: 10, fontWeight: 700, color: T.textDim,
+                          background: T.surface2, border: `1px solid ${T.border}`,
+                          padding: "3px 8px", borderRadius: 999,
+                        }}>{pair}</span>
+                      ))}
+                  </div>
+                )}
+                {latestWeekly.keyEvents && (
+                  <>
+                    <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, letterSpacing: "0.1em", textTransform:"uppercase", marginBottom: 3 }}>Key Events</div>
+                    <div style={{ fontSize: 12, color: T.amber, lineHeight: 1.5, marginBottom: 6 }}>{latestWeekly.keyEvents}</div>
+                  </>
+                )}
+                {latestWeekly.notes && (
+                  <div style={{ fontSize: 12, color: T.textDim, lineHeight: 1.5 }}>{latestWeekly.notes}</div>
+                )}
+              </div>
+            : <EmptyState T={T} icon="WK" compact
+                title="No weekly plan"
+                copy="Map the week before sessions open."
+                action={<Btn T={T} onClick={onNewWeekly}>+ Weekly Plan</Btn>}
+              />
+          }
+        </motion.div>
+        </div>
+
+        <div style={{display:"flex",flexDirection:"column",gap:10,minWidth:0}}>
         {/* Daily Bias */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28, delay: 0.18 }}
           whileHover={{ y: -2 }}
-          style={{ ...secondCard, gridColumn: isMobile ? "auto" : "span 6" }}
+          style={{ ...secondCard }}
         >
           <div style={{ ...secTitle, display:"flex", justifyContent:"space-between" }}>
             <span>Daily Bias</span>
@@ -332,60 +389,13 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
           }
         </motion.div>
 
-        {/* Weekly Theme */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.28, delay: 0.22 }}
-          whileHover={{ y: -2 }}
-          style={{ ...secondCard, gridColumn: isMobile ? "auto" : "span 6" }}
-        >
-          <div style={{ ...secTitle, display:"flex", justifyContent:"space-between" }}>
-            <span>Weekly Theme</span>
-            {latestWeekly && <span style={{ color: T.accent, fontWeight: 600, letterSpacing: 0, textTransform:"none", fontSize:11 }}>{latestWeekly.weekStart}</span>}
-          </div>
-          {latestWeekly
-            ? <div>
-                {Object.entries(getWeeklyPairNotes(latestWeekly))
-                  .filter(([, note]) => String(note || "").trim())
-                  .slice(0, 3).length > 0 && (
-                  <div style={{ display:"flex", gap:5, flexWrap:"wrap", marginBottom:8 }}>
-                    {Object.entries(getWeeklyPairNotes(latestWeekly))
-                      .filter(([, note]) => String(note || "").trim())
-                      .slice(0, 3).map(([pair]) => (
-                        <span key={pair} style={{
-                          fontSize: 10, fontWeight: 700, color: T.textDim,
-                          background: T.surface2, border: `1px solid ${T.border}`,
-                          padding: "3px 8px", borderRadius: 999,
-                        }}>{pair}</span>
-                      ))}
-                  </div>
-                )}
-                {latestWeekly.keyEvents && (
-                  <>
-                    <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, letterSpacing: "0.1em", textTransform:"uppercase", marginBottom: 3 }}>Key Events</div>
-                    <div style={{ fontSize: 12, color: T.amber, lineHeight: 1.5, marginBottom: 6 }}>{latestWeekly.keyEvents}</div>
-                  </>
-                )}
-                {latestWeekly.notes && (
-                  <div style={{ fontSize: 12, color: T.textDim, lineHeight: 1.5 }}>{latestWeekly.notes}</div>
-                )}
-              </div>
-            : <EmptyState T={T} icon="WK" compact
-                title="No weekly plan"
-                copy="Map the week before sessions open."
-                action={<Btn T={T} onClick={onNewWeekly}>+ Weekly Plan</Btn>}
-              />
-          }
-        </motion.div>
-
         {/* Asset Efficiency Matrix */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28, delay: 0.26 }}
           whileHover={{ y: -2 }}
-          style={{ ...secondCard, gridColumn: isMobile ? "auto" : "span 6" }}
+          style={{ ...secondCard }}
         >
           <div style={secTitle}>Pair Performance</div>
           {activePairs.length === 0
@@ -442,7 +452,16 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
               </div>
           }
         </motion.div>
+        </div>
 
+      </div>
+
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: isMobile ? "1fr" : "repeat(12,minmax(0,1fr))",
+        gap: 10,
+        alignItems: "start",
+      }}>
         <DashboardCharts T={T} trades={trades} isMobile={isMobile} />
 
       </div>

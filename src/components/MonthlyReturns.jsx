@@ -27,7 +27,7 @@ function cellColor(r, maxAbs, T) {
   return r > 0 ? `${T.green}${hex}` : `${T.red}${hex}`
 }
 
-export default function MonthlyReturns({ T, trades = [], compact = false }) {
+export default function MonthlyReturns({ T, trades = [], compact = false, fill = false }) {
   const map = buildMonthlyMap(trades)
   const years = Object.keys(map).map(Number).sort((a, b) => b - a)
 
@@ -51,16 +51,19 @@ export default function MonthlyReturns({ T, trades = [], compact = false }) {
         borderRadius: 14,
         border: `1px solid ${T.border}`,
         background: T.surface,
-        padding: "12px 14px",
+        padding: "14px",
         overflow: "hidden",
-        minHeight: 0,
+        minHeight: fill ? "100%" : 0,
+        height: fill ? "100%" : "auto",
+        display: "flex",
+        flexDirection: "column",
       }}>
         <div style={{
           display: "flex",
           justifyContent: "space-between",
           gap: 10,
           alignItems: "baseline",
-          marginBottom: 12,
+          marginBottom: 14,
         }}>
           <div>
             <div style={{
@@ -82,7 +85,10 @@ export default function MonthlyReturns({ T, trades = [], compact = false }) {
         <div style={{
           display: "grid",
           gridTemplateColumns: "repeat(4,minmax(0,1fr))",
-          gap: 5,
+          gridTemplateRows: fill ? "repeat(3,minmax(0,1fr))" : undefined,
+          gap: 8,
+          flex: fill ? 1 : "none",
+          minHeight: fill ? 0 : undefined,
         }}>
           {MONTHS.map((month, m) => {
             const v = map[latestYear]?.[m]
@@ -90,21 +96,21 @@ export default function MonthlyReturns({ T, trades = [], compact = false }) {
             const active = v !== undefined
             return (
               <div key={month} style={{
-                minHeight: 34,
-                borderRadius: 7,
+                minHeight: fill ? 0 : 44,
+                borderRadius: 9,
                 background: active ? bg : T.surface2,
                 border: `1px solid ${active ? (v >= 0 ? `${T.green}33` : `${T.red}33`) : T.border}`,
-                padding: "5px 6px",
+                padding: "8px 9px",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
-                gap: 4,
+                gap: 8,
               }}>
-                <span style={{ fontSize: 9, fontWeight: 800, color: T.textDim, letterSpacing: "0.05em" }}>{month}</span>
+                <span style={{ fontSize: 10, fontWeight: 850, color: T.textDim, letterSpacing: "0.05em" }}>{month}</span>
                 <span style={{
                   fontFamily: "'JetBrains Mono','Fira Code',monospace",
-                  fontSize: 10,
-                  fontWeight: 800,
+                  fontSize: 12,
+                  fontWeight: 850,
                   color: active ? (v >= 0 ? T.green : T.red) : T.muted,
                 }}>
                   {active ? (v >= 0 ? `+${v.toFixed(1)}` : v.toFixed(1)) : "-"}
