@@ -1,20 +1,15 @@
-# Prompt: Fix Encoding / Mojibake
+# Prompt: Fix Encoding Mojibake
 
 Read `AGENTS.md` first.
 
 ## Task
-Fix UTF-8 encoding issues across the codebase. Some files contain mojibake (garbage characters) from old encoding mistakes.
 
-## Symptoms to look for
-- `â€"` (should be `—` em dash)
-- `â€™` (should be `'` apostrophe)
-- `â€œ` and `â€` (should be `"` and `"` quotes)
-- `Ã©` (should be `é`)
-- `Ã¨` (should be `è`)
-- `â”€` (box drawing characters)
-- `Â` (random Â appearing before symbols)
+Fix obvious UTF-8 mojibake in source and documentation files.
 
-## Files to check (known affected)
+This is a focused cleanup pass for visible garbage characters such as broken em dashes, smart quotes, bullets, accented letters, and box-drawing characters.
+
+## Files to check first
+
 - `src/lib/constants.js`
 - `src/lib/utils.js`
 - `src/components/tabs/Heatmap.jsx`
@@ -22,43 +17,39 @@ Fix UTF-8 encoding issues across the codebase. Some files contain mojibake (garb
 - `src/components/tabs/WeeklyReview.jsx`
 - `src/components/tabs/ExportTab.jsx`
 - `PRODUCT.md`
-- `AGENTS.md` (if old version still exists)
+- `AGENTS.md`
 
-## Process
+## Common symptoms
 
-1. Open each file in VS Code
-2. Check encoding indicator at bottom right — should be "UTF-8"
-3. If encoding is wrong, use `Reopen with Encoding → UTF-8`
-4. Use Find & Replace (Ctrl+H) with these mappings:
-   ```
-   â€"     →  —
-   â€™     →  '
-   â€œ     →  "
-   â€      →  "
-   Ã©      →  é
-   Ã¨      →  è
-   â”€     →  —
-   Â       →  (delete — empty replacement)
-   ```
-5. Save with **UTF-8 without BOM**
-6. After fixing each file, do a quick visual scan for any remaining garbage characters
+Look for sequences like:
+
+- Broken em dashes
+- Broken apostrophes or smart quotes
+- Broken bullets or ellipses
+- Broken accented characters
+- Broken box-drawing characters
+- Random replacement characters
+
+## Rules
+
+- Do not change application logic.
+- Do not change UI styling.
+- Keep the fix text-only.
+- Prefer clear ASCII wording if the original intended symbol is uncertain.
+- Save files as UTF-8.
 
 ## Verification
 
-1. Run `npm run build` — must succeed
-2. Open the app in browser, navigate every tab
-3. Check that:
-   - All headings render properly
-   - Em dashes look like `—` not `â€"`
-   - Apostrophes look like `'` not `â€™`
-   - No random characters in any UI text
+Run:
 
-## Commit message
+```bash
+npm run build
 ```
+
+Then scan the changed files again and confirm no obvious mojibake remains.
+
+## Commit Message
+
+```text
 fix: clean UTF-8 encoding across all source files
 ```
-
-## What NOT to do
-- Don't change any logic or styling
-- Don't add or remove features
-- Pure encoding cleanup only

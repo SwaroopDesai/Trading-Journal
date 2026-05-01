@@ -3,63 +3,79 @@
 Read `AGENTS.md` first.
 
 ## Task
-Run a full encoding sweep across the entire codebase. Different from `02-fix-encoding-mojibake.md` — this is the comprehensive deep clean.
+
+Run a full encoding sweep across the entire codebase. This is the comprehensive version of the targeted mojibake cleanup.
 
 ## Process
 
-### 1. Set VS Code defaults
-File → Preferences → Settings:
+### 1. Set editor defaults
+
+If using VS Code, set:
+
 - `files.encoding`: `utf8`
 - `files.autoGuessEncoding`: `false`
 
-### 2. Find all files with mojibake
+### 2. Find files with mojibake
 
-Run this in terminal to scan:
-```bash
-# Windows PowerShell
-Get-ChildItem -Recurse -Include *.js,*.jsx,*.ts,*.tsx,*.md,*.json,*.css | Select-String -Pattern "â€|Ã©|Ã¨|â”|Â\s|Â—" | Select-Object -ExpandProperty Path -Unique
+Scan tracked source and documentation files for common suspicious characters and replacement markers.
+
+PowerShell example:
+
+```powershell
+Get-ChildItem -Recurse -Include *.js,*.jsx,*.ts,*.tsx,*.md,*.json,*.css |
+  Select-String -Pattern "\u00C3|\u00C2|\u00E2|\u00F0|\uFFFD" |
+  Select-Object -ExpandProperty Path -Unique
 ```
 
-Or in Git Bash:
+Git Bash example:
+
 ```bash
-grep -rl "â€\|Ã©\|Ã¨\|â”" --include="*.js" --include="*.jsx" --include="*.ts" --include="*.tsx" --include="*.md" .
+grep -rlP "\x{00C3}|\x{00C2}|\x{00E2}|\x{00F0}|\x{FFFD}" \
+  --include="*.js" \
+  --include="*.jsx" \
+  --include="*.ts" \
+  --include="*.tsx" \
+  --include="*.md" \
+  --include="*.json" \
+  --include="*.css" .
 ```
 
-### 3. For each file found
-1. Open in VS Code
-2. Click encoding indicator at bottom right
-3. Choose "Reopen with encoding" → UTF-8
-4. Use Find & Replace (Ctrl+H, click `.*` for regex):
+Exclude generated folders such as `node_modules`, `.next`, `.claude`, and `.agents`.
 
-| Find (regex) | Replace |
-|---|---|
-| `â€"` | `—` |
-| `â€™` | `'` |
-| `â€œ` | `"` |
-| `â€\u009d` | `"` |
-| `â€¢` | `•` |
-| `â€¦` | `…` |
-| `Ã©` | `é` |
-| `Ã¨` | `è` |
-| `Ã¡` | `á` |
-| `Ã ` | `à` |
-| `Â\s` | ` ` (single space) |
-| `Â—` | `—` |
-| `â”€` | `—` |
-| `â”` | `—` |
+### 3. Fix each file found
 
-5. Save with: File → Save with encoding → UTF-8 without BOM
+For each file:
 
-### 4. Verify each tab visually
-After fixing, open the app locally and click through every tab. Look for:
-- Headings (no garbage chars)
+1. Reopen/save as UTF-8.
+2. Replace mojibake with the intended character or plain ASCII text.
+3. If the original intent is unclear, prefer readable ASCII over decorative symbols.
+4. Keep the change text-only.
+
+Common replacements:
+
+| Broken text type | Replace with |
+| --- | --- |
+| Broken em dash | `-` |
+| Broken apostrophe | `'` |
+| Broken smart quotes | `"` |
+| Broken bullet | `-` |
+| Broken ellipsis | `...` |
+| Broken accented letters | the correct accented letter, or plain ASCII |
+| Broken box-drawing characters | plain ASCII tree/list formatting |
+
+### 4. Verify visually
+
+Open the app locally and click through every tab. Look for:
+
+- Headings
 - Empty state messages
 - Error messages
 - Modal titles
 - Button labels
 - Tooltips
 
-### 5. Files known to need attention
+### 5. Known files to check
+
 - `src/lib/constants.js`
 - `src/lib/utils.js`
 - `src/components/tabs/Heatmap.jsx`
@@ -70,12 +86,13 @@ After fixing, open the app locally and click through every tab. Look for:
 - `src/components/MissedTradeModal.jsx`
 - `src/components/EquityCurve.jsx`
 - `src/components/DashboardCharts.jsx`
-- All `*.md` files in root
+- Root `*.md` files
 
-### 6. Add `.editorconfig` to enforce UTF-8
+### 6. Add `.editorconfig`
 
-Create `.editorconfig` in repo root:
-```
+Create `.editorconfig` in the repo root:
+
+```ini
 root = true
 
 [*]
@@ -87,22 +104,23 @@ indent_style = space
 indent_size = 2
 ```
 
-### 7. Add to `.gitattributes`
+### 7. Add `.gitattributes`
 
 Create or update `.gitattributes`:
-```
+
+```gitattributes
 * text=auto eol=lf
 *.{js,jsx,ts,tsx,md,json,css} text working-tree-encoding=UTF-8
 ```
 
 ## Verification
-1. `npm run build` succeeds
-2. Visual scan of every tab
-3. Em dashes look like `—` everywhere
-4. Apostrophes look like `'` everywhere
-5. No random `Â` or garbage chars
 
-## Commit message
-```
+1. `npm run build` succeeds.
+2. No obvious mojibake remains in tracked source/docs.
+3. Visual scan of every tab is complete.
+
+## Commit Message
+
+```text
 fix: full UTF-8 encoding sweep + add .editorconfig + .gitattributes
 ```

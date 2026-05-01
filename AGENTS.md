@@ -347,7 +347,7 @@ CRON_SECRET
 
 ### Cleanup (do first)
 - [ ] Remove dead code (`CommandPalette.jsx`, `screenshot-autofill/`, `CHECKLIST_RULES`, `page4-debug.jsx`)
-- [ ] Fix mojibake encoding across all files
+- [x] Fix mojibake encoding across all files
 - [ ] Verify Supabase RLS policies live
 - [x] Decide & document: Tailwind/shadcn vs inline styles direction
 - [ ] Update README.md (currently default Next.js)

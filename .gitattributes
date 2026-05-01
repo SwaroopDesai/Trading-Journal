@@ -1,0 +1,2 @@
+* text=auto eol=lf
+*.{js,jsx,ts,tsx,md,json,css} text working-tree-encoding=UTF-8
