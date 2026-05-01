@@ -1,6 +1,5 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -14,40 +13,52 @@ const PRESETS = [
 ]
 
 export default function DateRangeBar({ T, value, onChange, count, total }) {
+  const isFiltered = value !== "all";
+
   return (
     <div
-      className="date-range-bar border-b bg-card px-7 py-2"
-      style={{ borderBottomColor:T.border, background:T.surface }}
+      className="date-range-bar border-b px-7 py-2"
+      style={{
+        borderBottomColor:T.border,
+        background:T.bg,
+      }}
     >
-      <div className="flex w-full flex-wrap items-center gap-2.5">
-        <span className="shrink-0 text-[11px] font-bold uppercase tracking-[0.12em]" style={{ color:T.muted }}>
-          Period
-        </span>
-        <div className="flex flex-wrap gap-1">
+      <div className="flex w-full flex-wrap items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="shrink-0 text-[10px] font-black uppercase tracking-[0.16em]" style={{ color:T.muted }}>
+            Range
+          </span>
+          <div
+            className="flex items-center gap-0.5 rounded-full border p-0.5"
+            style={{ borderColor:T.border, background:T.surface }}
+          >
           {PRESETS.map(p => (
             <Button
               key={p.id}
               type="button"
-              variant={value === p.id ? "secondary" : "outline"}
+              variant="ghost"
               size="xs"
               onClick={() => onChange(p.id)}
               className={cn(
-                "fx-btn rounded-full px-3 font-bold tracking-[0.05em]",
-                value === p.id && "border-primary bg-primary/10 text-primary"
+                "fx-btn h-6 rounded-full border-0 px-2.5 text-[10px] font-black tracking-[0.04em] shadow-none",
+                value === p.id ? "text-primary-foreground" : "hover:bg-transparent"
               )}
               style={{
-                color: value===p.id ? T.accentBright : T.textDim,
-                borderColor: value===p.id ? T.accentBright : T.border,
-                background: value===p.id ? `${T.accent}22` : "transparent",
+                color: value===p.id ? "#fff" : T.textDim,
+                background: value===p.id ? T.accent : "transparent",
               }}
             >{p.label}</Button>
           ))}
+          </div>
         </div>
-        {value !== "all" && (
-          <Badge variant="outline" className="ml-1 rounded-full font-normal" style={{ color:T.textDim, borderColor:T.border }}>
-            {count} trade{count !== 1 ? "s" : ""} - {total - count} outside range
-          </Badge>
-        )}
+        <div
+          className="shrink-0 text-[10px] font-medium"
+          style={{ color:isFiltered ? T.textDim : T.muted }}
+        >
+          {isFiltered
+            ? `${count} shown · ${Math.max(total - count, 0)} hidden`
+            : `${total} total trade${total === 1 ? "" : "s"}`}
+        </div>
       </div>
     </div>
   )
