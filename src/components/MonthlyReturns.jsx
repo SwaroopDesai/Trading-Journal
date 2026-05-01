@@ -50,25 +50,27 @@ export default function MonthlyReturns({ T, trades = [], compact = false, fill =
       <div style={{
         borderRadius: 14,
         border: `1px solid ${T.border}`,
-        background: T.surface,
-        padding: "14px",
+        background: T.isDark && !T.hardShadow ? "linear-gradient(135deg, rgba(255,255,255,0.026), rgba(255,255,255,0.006))" : T.surface,
+        padding: "16px",
         overflow: "hidden",
         minHeight: fill ? "100%" : 0,
         height: fill ? "100%" : "auto",
         display: "flex",
         flexDirection: "column",
+        backdropFilter: T.isDark && !T.hardShadow ? "blur(20px)" : undefined,
+        WebkitBackdropFilter: T.isDark && !T.hardShadow ? "blur(20px)" : undefined,
       }}>
         <div style={{
           display: "flex",
           justifyContent: "space-between",
           gap: 10,
           alignItems: "baseline",
-          marginBottom: 14,
+          marginBottom: 16,
         }}>
           <div>
             <div style={{
-              fontSize: 11, fontWeight: 700, color: T.muted,
-              letterSpacing: "0.1em", textTransform: "uppercase",
+              fontSize: 11, fontWeight: 800, color: T.muted,
+              letterSpacing: "0.12em", textTransform: "uppercase",
               marginBottom: 4,
             }}>Monthly Heatmap</div>
             <div style={{ fontSize: 11, color: T.textDim }}>{latestYear}</div>
@@ -86,7 +88,7 @@ export default function MonthlyReturns({ T, trades = [], compact = false, fill =
           display: "grid",
           gridTemplateColumns: "repeat(4,minmax(0,1fr))",
           gridTemplateRows: fill ? "repeat(3,minmax(0,1fr))" : undefined,
-          gap: 8,
+          gap: 9,
           flex: fill ? 1 : "none",
           minHeight: fill ? 0 : undefined,
         }}>
@@ -96,15 +98,16 @@ export default function MonthlyReturns({ T, trades = [], compact = false, fill =
             const active = v !== undefined
             return (
               <div key={month} style={{
-                minHeight: fill ? 0 : 44,
-                borderRadius: 9,
+                minHeight: fill ? 0 : 54,
+                borderRadius: 11,
                 background: active ? bg : T.surface2,
                 border: `1px solid ${active ? (v >= 0 ? `${T.green}33` : `${T.red}33`) : T.border}`,
-                padding: "8px 9px",
+                padding: "10px 11px",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
                 gap: 8,
+                boxShadow: active && T.isDark && !T.hardShadow ? `inset 0 1px 0 rgba(255,255,255,0.06), 0 12px 28px ${T.bg}44` : "none",
               }}>
                 <span style={{ fontSize: 10, fontWeight: 850, color: T.textDim, letterSpacing: "0.05em" }}>{month}</span>
                 <span style={{

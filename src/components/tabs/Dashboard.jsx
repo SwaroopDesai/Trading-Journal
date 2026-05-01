@@ -82,6 +82,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
   const activePairs   = stats.byPair
     .filter(p => p.count > 0)
     .sort((a, b) => b.totalR - a.totalR)
+  const todayLabel    = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "2-digit", month: "long" })
 
   const kpis = [
     {
@@ -140,26 +141,49 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
     <div style={{
       display:"flex",
       flexDirection:"column",
-      gap: 10,
+      gap: 12,
       width: "100%",
       maxWidth: isUltraWide ? "none" : 1800,
       margin: 0,
     }}>
 
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.24 }}
+        style={{
+          display: "flex",
+          alignItems: isMobile ? "flex-start" : "center",
+          justifyContent: "space-between",
+          gap: 14,
+          flexDirection: isMobile ? "column" : "row",
+          borderRadius: 16,
+          border: `1px solid ${T.border}`,
+          background: isVoid ? "linear-gradient(135deg, rgba(99,102,241,0.10), rgba(17,17,24,0.72) 44%, rgba(236,72,153,0.06))" : T.surface,
+          padding: isMobile ? "14px 15px" : "14px 18px",
+          overflow: "hidden",
+          position: "relative",
+        }}
+      >
+        {isVoid && <div aria-hidden="true" style={{ position: "absolute", inset: "-60% -20% auto auto", width: 360, height: 180, background: "radial-gradient(circle, rgba(99,102,241,0.18), transparent 68%)", filter: "blur(24px)" }} />}
+        <div style={{ position: "relative", minWidth: 0 }}>
+          <div style={{ fontSize: 10, fontWeight: 850, color: T.muted, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 5 }}>Trading Desk</div>
+          <div style={{ fontFamily: "var(--font-geist-sans)", fontSize: isMobile ? 20 : 24, fontWeight: 900, color: T.text, letterSpacing: "-0.055em", lineHeight: 1 }}>Welcome back.</div>
+          <div style={{ fontSize: 12, color: T.textDim, marginTop: 6 }}>{todayLabel} - {stats.total} trades in view - {activePairs.length} active pairs</div>
+        </div>
+        <div style={{ position: "relative", display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <span style={{ border: `1px solid ${T.border}`, background: T.surface2, color: T.textDim, borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800 }}>{stats.wins}W / {stats.losses}L</span>
+          <span style={{ border: `1px solid ${(stats.totalR >= 0 ? T.green : T.red)}55`, background: `${stats.totalR >= 0 ? T.green : T.red}12`, color: stats.totalR >= 0 ? T.green : T.red, borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 900, fontFamily: "'JetBrains Mono','Fira Code',monospace" }}>{fmtRR(stats.totalR)}</span>
+        </div>
+      </motion.div>
+
       {/* ── KPI strip — one surface, four cells ── */}
       <div style={{
         display: "grid",
         gridTemplateColumns: isMobile ? "repeat(2,1fr)" : "repeat(4,1fr)",
-        background: isVoid ? "linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))" : T.surface,
-        border: `1px solid ${T.border}`,
-        borderRadius: 14,
-        overflow: "hidden",
-        backdropFilter: isVoid ? "blur(20px)" : undefined,
-        WebkitBackdropFilter: isVoid ? "blur(20px)" : undefined,
+        gap: 12,
       }}>
         {kpis.map((k, idx) => {
-          const isLastCol  = isMobile ? idx % 2 === 1 : idx === 3
-          const isLastRow  = isMobile ? idx >= 2 : true
           return (
             <motion.div
               key={k.label}
@@ -169,12 +193,15 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
               whileHover={{ y: -2 }}
               style={{
                 position: "relative",
-                padding: "12px 14px 0",
+                padding: "16px 16px 0",
                 minWidth: 0,
                 overflow: "hidden",
                 background: isVoid ? "linear-gradient(135deg, rgba(255,255,255,0.035), rgba(255,255,255,0.008))" : undefined,
-                borderRight:  !isLastCol ? `1px solid ${T.border}` : "none",
-                borderBottom: !isLastRow ? `1px solid ${T.border}` : "none",
+                border: `1px solid ${T.border}`,
+                borderRadius: 16,
+                boxShadow: isVoid ? `0 20px 48px ${T.bg}55` : "none",
+                backdropFilter: isVoid ? "blur(20px)" : undefined,
+                WebkitBackdropFilter: isVoid ? "blur(20px)" : undefined,
               }}>
               {isVoid && (
                 <>
@@ -244,7 +271,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
               {/* Scale bar — 8px, breaks out of padding, reads as a real gauge */}
               <div style={{
                 height: 8,
-                margin: "0 -14px",
+                margin: "0 -16px",
                 background: T.surface2,
                 position: "relative",
                 overflow: "hidden",
@@ -456,7 +483,24 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
           whileHover={{ y: -2 }}
           style={{ ...secondCard }}
         >
-          <div style={secTitle}>Pair Performance</div>
+          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
+            <div aria-hidden="true" style={{
+              width: 28,
+              height: 28,
+              borderRadius: 9,
+              display: "grid",
+              placeItems: "center",
+              color: T.accentBright,
+              background: isVoid ? "linear-gradient(135deg, rgba(99,102,241,0.22), rgba(236,72,153,0.12))" : T.surface2,
+              border: `1px solid ${T.border}`,
+              fontSize: 11,
+              fontWeight: 900,
+            }}>PE</div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 850, color: T.text, letterSpacing: "-0.02em" }}>Pair Edge</div>
+              <div style={{ fontSize: 9, fontWeight: 800, color: T.muted, letterSpacing: "0.12em", textTransform: "uppercase", marginTop: 2 }}>Top performers</div>
+            </div>
+          </div>
           {activePairs.length === 0
             ? <div style={{ color: T.muted, fontSize: 12, textAlign:"center", padding: "16px 0" }}>Log trades to see pair performance</div>
             : <div style={{
@@ -471,40 +515,38 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
                   const barWidth  = `${Math.max(Math.abs(p.totalR) / maxAbs * 100, 4)}%`
                   return (
                     <div key={p.pair} style={{
-                      background: T.surface2,
-                      border: `1px solid ${T.border}`,
-                      borderRadius: 9,
-                      padding: "8px 9px",
+                      display: "grid",
+                      gridTemplateColumns: "74px minmax(0,1fr) 60px",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "6px 0",
+                      borderBottom: idx === activePairs.length - 1 ? "none" : `1px solid ${T.border}`,
                     }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                        <span style={{
-                          width: 18,
-                          color: T.muted,
-                          fontFamily: "'JetBrains Mono','Fira Code',monospace",
-                          fontSize: 10,
-                          fontWeight: 700,
-                        }}>{idx + 1}</span>
-                        <span style={{
+                      <div>
+                        <div style={{
                           fontFamily: "'JetBrains Mono','Fira Code',monospace",
                           fontSize: 12,
-                          fontWeight: 700,
+                          fontWeight: 850,
                           color: T.text,
-                          minWidth: 62,
                           letterSpacing: "0.03em",
-                        }}>{p.pair}</span>
-                        <span style={{ fontSize: 10, color: T.textDim }}>{p.count}t</span>
-                        <span style={{ fontSize: 10, color: T.textDim }}>{winPct}% WR</span>
-                        <span style={{
-                          marginLeft: "auto",
-                          fontFamily: "'JetBrains Mono','Fira Code',monospace",
-                          fontSize: 12,
-                          fontWeight: 700,
-                          color: topColor,
-                        }}>{p.totalR >= 0 ? "+" : ""}{p.totalR.toFixed(1)}R</span>
+                        }}>{p.pair}</div>
+                        <div style={{ fontSize: 9, color: T.textDim, marginTop: 2 }}>{p.count}t - {winPct}% WR</div>
                       </div>
-                      <div style={{ height: 3, background: T.surface, borderRadius: 999, marginTop: 7, overflow:"hidden" }}>
-                        <div style={{ height:"100%", width: barWidth, background: topColor, opacity: 0.75, borderRadius: 999 }} />
+                      <div style={{ height: 5, background: T.surface2, borderRadius: 999, overflow:"hidden", border: `1px solid ${T.border}` }}>
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: barWidth }}
+                          transition={{ duration: 0.5, delay: idx * 0.04 }}
+                          style={{ height:"100%", background: topColor, opacity: 0.82, borderRadius: 999 }}
+                        />
                       </div>
+                      <div style={{
+                        textAlign: "right",
+                        fontFamily: "'JetBrains Mono','Fira Code',monospace",
+                        fontSize: 12,
+                        fontWeight: 850,
+                        color: topColor,
+                      }}>{p.totalR >= 0 ? "+" : ""}{p.totalR.toFixed(1)}R</div>
                     </div>
                   )
                 })}

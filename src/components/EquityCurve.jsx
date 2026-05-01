@@ -242,10 +242,26 @@ export default function EquityCurve({ T, data = [] }) {
         justifyContent: "space-between",
         gap: 10,
         flexWrap: "wrap",
-        padding: "10px 14px 8px",
+        padding: "12px 14px 10px",
         borderBottom: `1px solid ${T.border}`,
       }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 9, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <div aria-hidden="true" style={{
+            width: 30,
+            height: 30,
+            borderRadius: 9,
+            display: "grid",
+            placeItems: "center",
+            color: T.accentBright,
+            background: isVoid ? "linear-gradient(135deg, rgba(99,102,241,0.24), rgba(52,211,153,0.12))" : T.surface2,
+            border: `1px solid ${T.border}`,
+            fontSize: 12,
+            fontWeight: 900,
+          }}>EQ</div>
+          <div style={{ minWidth: 118 }}>
+            <div style={{ fontSize: 13, fontWeight: 850, color: T.text, letterSpacing: "-0.02em" }}>Equity Curve</div>
+            <div style={{ fontSize: 9, fontWeight: 800, color: T.muted, letterSpacing: "0.12em", textTransform: "uppercase", marginTop: 2 }}>{pair === "all" ? "All pairs" : pair} - {mode}</div>
+          </div>
           <span style={{
             fontFamily: "'JetBrains Mono','Fira Code',monospace",
             color: netR >= 0 ? T.green : T.red,
