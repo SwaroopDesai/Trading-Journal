@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# FXEDGE Codex Prompts
 
-## Getting Started
+This folder contains ready-to-paste prompts for Codex / Claude Code.
 
-First, run the development server:
+**How to use:**
+1. Open Codex in your VS Code
+2. Open the prompt file you want
+3. Copy entire content
+4. Paste into Codex
+5. Let it work
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+**Always start every Codex session with:**
+```
+Read AGENTS.md first. Then proceed with the task below.
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Available Prompts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 🧹 Cleanup (do these first)
+- `01-cleanup-dead-code.md` — remove unused files
+- `02-fix-encoding-mojibake.md` — fix garbage characters
+- `03-update-readme.md` — replace default Next.js README
+- `04-verify-supabase-rls.md` — check database security
 
-## Learn More
+### 🎨 Polish
+- `05-styling-direction.md` — pick Tailwind or inline, commit
+- `06-finish-shadcn-migration.md` — full migration plan
+- `07-encoding-utf8-sweep.md` — full UTF-8 sweep
 
-To learn more about Next.js, take a look at the following resources:
+### 🚀 New Features (high priority)
+- `08-confluence-tracking.md` — biggest competitive gap
+- `09-hour-heatmap.md` — upgrade heatmap with hour grid
+- `10-breakeven-win-rate.md` — quick win
+- `11-pre-trade-checklist-widget.md` — compact non-blocking version
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 🛡️ Quality
+- `12-smoke-test-checklist.md` — manual test plan
+- `13-typescript-migration.md` — long-term migration
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 💰 Monetization (when ready)
+- `14-stripe-integration.md` — paid tier
+- `15-csv-import.md` — MT4/MT5 import
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Recommended Order
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Week 1 (cleanup):**
+1. 01-cleanup-dead-code.md
+2. 02-fix-encoding-mojibake.md
+3. 04-verify-supabase-rls.md
+4. 03-update-readme.md
+5. 05-styling-direction.md
+
+**Week 2 (features):**
+6. 08-confluence-tracking.md
+7. 09-hour-heatmap.md
+8. 10-breakeven-win-rate.md
+9. 11-pre-trade-checklist-widget.md
+
+**Week 3 (quality):**
+10. 12-smoke-test-checklist.md
+11. 06-finish-shadcn-migration.md
+
+**When ready to monetize:**
+12. 14-stripe-integration.md

@@ -1,0 +1,80 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// ORG — Opening Range Gap
+// Marks the 4:14 PM settlement, 9:30 AM open, and CE (50%) on any intraday chart.
+// Use on 1m / 5m. Works on ES, NQ, NAS100, SPX500, forex pairs.
+// ─────────────────────────────────────────────────────────────────────────────
+//@version=5
+indicator("ORG — Opening Range Gap", overlay=true, max_lines_count=20, max_boxes_count=10, max_labels_count=20)
+
+// ── Inputs ────────────────────────────────────────────────────────────────────
+c_top   = input.color(color.new(#FF4444, 0),  "9:30 Open Line")
+c_bot   = input.color(color.new(#4488FF, 0),  "4:14 Close Line")
+c_ce    = input.color(color.new(#FFD700, 0),  "CE Line")
+c_fill  = input.color(color.new(#AAAAAA, 90), "Gap Fill")
+c_hl    = input.color(color.new(#FFD700, 92), "Inside Gap Highlight")
+show_lbl  = input.bool(true, "Labels")
+show_hl   = input.bool(true, "Highlight when price inside gap")
+
+// ── Timing ────────────────────────────────────────────────────────────────────
+at_414 = hour == 16 and minute == 14
+at_930 = hour == 9  and minute == 30
+
+// ── State ─────────────────────────────────────────────────────────────────────
+var float prev_settle = na
+var float org_top     = na
+var float org_bot     = na
+var float ce_level    = na
+
+var line  l_top  = na
+var line  l_bot  = na
+var line  l_ce   = na
+var box   b_gap  = na
+var label lb_top = na
+var label lb_bot = na
+var label lb_ce  = na
+
+// ── Capture 4:14 PM settlement ────────────────────────────────────────────────
+if at_414
+    prev_settle := close
+
+// ── Draw ORG at 9:30 AM ───────────────────────────────────────────────────────
+if at_930 and not na(prev_settle)
+    org_top  := math.max(open, prev_settle)
+    org_bot  := math.min(open, prev_settle)
+    ce_level := math.avg(org_top, org_bot)
+
+    // Delete previous session drawings
+    line.delete(l_top),  line.delete(l_bot),  line.delete(l_ce)
+    box.delete(b_gap)
+    label.delete(lb_top), label.delete(lb_bot), label.delete(lb_ce)
+
+    // Lines — extend right through session
+    l_top := line.new(bar_index, org_top,  bar_index, org_top,  extend=extend.right, color=c_top, width=1)
+    l_bot := line.new(bar_index, org_bot,  bar_index, org_bot,  extend=extend.right, color=c_bot, width=1)
+    l_ce  := line.new(bar_index, ce_level, bar_index, ce_level, extend=extend.right, color=c_ce,  width=1, style=line.style_dashed)
+
+    // Shaded gap box
+    b_gap := box.new(bar_index, org_top, bar_index + 1, org_bot,
+         bgcolor=c_fill, border_color=color.new(color.white, 100), extend=extend.right)
+
+    // Labels
+    if show_lbl
+        lb_top := label.new(bar_index + 2, org_top,  "9:30 Open",
+             style=label.style_label_right,
+             color=color.new(color.black, 100), textcolor=c_top, size=size.small)
+        lb_bot := label.new(bar_index + 2, org_bot,  "4:14 Close",
+             style=label.style_label_right,
+             color=color.new(color.black, 100), textcolor=c_bot, size=size.small)
+        lb_ce  := label.new(bar_index + 2, ce_level, "CE  " + str.tostring(ce_level, format.mintick),
+             style=label.style_label_right,
+             color=color.new(color.black, 100), textcolor=c_ce,  size=size.small)
+
+// ── Highlight bars inside the gap ─────────────────────────────────────────────
+inside_gap = show_hl and not na(org_top) and not na(org_bot) and
+     close <= org_top and close >= org_bot
+
+bgcolor(inside_gap ? c_hl : na, title="Inside Gap")
+
+// ── CE fill alert ─────────────────────────────────────────────────────────────
+ce_touched = not na(ce_level) and low <= ce_level and high >= ce_level
+alertcondition(ce_touched, "CE Touched", "Price reached ORG CE level")

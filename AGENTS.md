@@ -1,190 +1,391 @@
-# FXEDGE — Agent Context
+# AGENTS.md
 
-Read this before touching anything. This is the source of truth for how the project is built and what decisions have already been made.
-
----
-
-## Stack
-
-- **Next.js 16.2.1** App Router, React 19
-- **Supabase** — auth + database (Postgres)
-- **Vercel** — deployment target, domain: `fxedge.online`
-- No Tailwind. No CSS modules. **All styling is inline styles** passed as JS objects.
-- One global CSS file: `src/app/globals.css` — minimal, only layout classes and animations.
+> **Purpose:** Source of truth for any AI agent (Claude, Codex, Cursor, Claude Code) working on this project.
+> **Last updated:** 2026-05-01
+> **App:** FXEDGE — trading journal for ICT/SMC forex traders
+> **Live:** fxedge.online
+> **Repo:** SwaroopDesai/Trading-Journal
 
 ---
 
-## File Structure
+## 🎯 What is FXEDGE
 
-Do not create new folders or restructure. The layout is fixed:
+A premium trading journal web app built specifically for ICT/SMC forex traders. Logging trades, planning daily/weekly bias, tracking psychology, and getting AI coaching. Production app, real users, deployed on Vercel.
 
+**Audience:** Forex traders using ICT (Inner Circle Trader) or SMC (Smart Money Concepts) methodology. They need fields like Kill Zone, manipulation type, POI, daily bias — things generic journals (Tradezella, Edgewonk) don't have.
+
+**Owner:** Solo founder. Non-developer. Builds with AI agents (Claude Code, Codex). Trader first, builder second.
+
+---
+
+## ⚙️ Tech Stack
+
+### Runtime
+- **Next.js 16.2.1** (App Router)
+- **React 19.2.4**
+- **JavaScript only** (no TypeScript yet)
+- **Vercel** for hosting + cron + analytics
+
+### Backend
+- **Supabase** — auth (magic link), Postgres, Storage, user metadata
+- **Project ref:** `mrdtmaihghmkbilhqjgo`
+- **Region:** `ap-south-1`
+- **Storage bucket:** `journal-images` (public read, authenticated write)
+
+### UI Stack
+- **Tailwind CSS v4** + **shadcn/ui** (primary going forward)
+- **FXEDGE custom primitives** in `src/components/ui.jsx` (legacy, being migrated)
+- **Recharts** for all charts
+- **Framer Motion** for animations
+- **TanStack Table v8** for the Journal table
+- **Sonner** for toasts
+- **Lucide React** for icons
+- **Geist** + **Geist Mono** fonts
+
+### AI / Email
+- **Gemini** (`gemini-2.5-flash-lite`) — primary AI
+- **Groq** (Llama 4 Scout) — fallback for screenshot autofill
+- **Brevo** — transactional email (weekly debrief)
+
+---
+
+## 🏗️ Architecture
+
+### Folder structure
 ```
 src/
-  app/
-    page.jsx          <- root app shell (auth, state, routing, theme, buildCSS)
-    layout.js         <- Geist font loaded here via next/font/google
-    globals.css       <- layout classes only (.app-main, .topbar, .tab-content, etc.)
-    api/              <- server routes (analysis, news, screenshot-autofill, weekly-debrief)
-    auth/callback/    <- Supabase auth callback
-    dashboard/        <- redirect shim
-    login/            <- redirect shim
-  components/
-    ui.jsx            <- shared primitives (Spinner, Btn, Badge, Card, EmptyState, HeaderMeta, SessionPill, etc.)
-    EquityCurve.jsx   <- SVG equity curve with Y-axis + drawdown pane
-    MonthlyReturns.jsx <- monthly R heatmap (year x month grid)
-    InsightCards.jsx  <- AI pattern insight strip
-    TradeModal.jsx    <- log/edit trade modal
-    LoginScreen.jsx   <- full-page landing/auth screen
-    DateRangeBar.jsx  <- global date filter bar
-    tabs/
-      Dashboard.jsx   <- main dashboard tab
-      Journal.jsx     <- trade log table
-      Analytics.jsx   <- performance analytics
-      DailyTab.jsx    <- daily bias planning
-      WeeklyTab.jsx   <- weekly planning
-      Heatmap.jsx     <- calendar heatmap
-      AIAnalysis.jsx  <- AI coaching tab
-      WeeklyReview.jsx
-      PatternDetector.jsx
-      Playbook.jsx
-      ScreenshotGallery.jsx
-      ExportTab.jsx
-      MissedTrades.jsx
-      EconomicCalendar.jsx
-  lib/
-    constants.js      <- themes (VOID, PAPER, BRUTALIST), PAIRS, SESSIONS, field strings
-    utils.js          <- fmtDate, fmtRR, getWeeklyPairNotes, etc.
-    supabase.js       <- createClient helper
+├── app/
+│   ├── layout.js              # Root layout, fonts, Toaster, Analytics
+│   ├── globals.css             # Tailwind + base CSS + responsive helpers
+│   ├── page.jsx                # Main app shell, auth, routing, state
+│   ├── auth/callback/route.js  # PKCE auth callback
+│   ├── dashboard/page.js       # Redirect to root
+│   ├── login/page.js           # Redirect to root
+│   └── api/
+│       ├── analysis/route.js          # Manual AI analysis
+│       ├── screenshot-autofill/...    # ⚠️ likely dead, remove if unused
+│       ├── news/route.js              # Forex calendar with cache
+│       └── weekly-debrief/route.js    # Sunday cron + Brevo email
+├── components/
+│   ├── tabs/                   # One file per tab (14 tabs)
+│   ├── ui/                     # shadcn primitives
+│   ├── ui.jsx                  # FXEDGE custom primitives (legacy)
+│   ├── TradeModal.jsx
+│   ├── MissedTradeModal.jsx
+│   ├── EquityCurve.jsx
+│   ├── DashboardCharts.jsx
+│   ├── MonthlyReturns.jsx
+│   ├── InsightCards.jsx
+│   ├── DateRangeBar.jsx
+│   ├── CommandPalette.jsx      # ⚠️ likely dead, remove if unused
+│   ├── MoreMenu.jsx
+│   ├── OnboardingFlow.jsx
+│   └── LoginScreen.jsx
+└── lib/
+    ├── constants.js            # Theme tokens, PAIRS, SESSIONS, select strings
+    ├── utils.js                # Formatting, image helpers, draft helpers
+    └── supabase.js             # Browser Supabase client
+```
+
+### Tabs
+Dashboard, Journal, Daily, Weekly, Heatmap, Analytics, Mind (Psychology), Playbook, Calculator, Gallery, Review, AI Analysis, Missed Trades, Pattern Detector, Economic Calendar, Export.
+
+---
+
+## 🗄️ Database Schema
+
+### Tables
+
+**`trades`** — Main trade log
+```
+id (uuid, PK)
+user_id (uuid, FK)
+created_at (timestamptz)
+pair, date, direction, session, killzone (legacy)
+dailyBias, weeklyBias (legacy), marketProfile
+manipulation, poi, setup
+entry, sl, tp (numeric, hidden in Journal cards)
+result (WIN/LOSS/BREAKEVEN), rr, pips
+emotion, mistakes, notes
+tags (jsonb/text[])
+preScreenshot, postScreenshot (text — public URLs)
+```
+
+**`daily_plans`** — Daily bias plans
+```
+id, user_id, created_at
+date, pairs (jsonb), biases (jsonb)
+weeklyTheme (used as day focus)
+manipulation (session expectation)
+watchlist (text — embeds pair notes via __FXEDGE_PAIR_NOTES__::)
+chartImage (text — serialized list of screenshots)
+```
+
+**`weekly_plans`** — Weekly plans + reviews
+```
+id, user_id, created_at
+weekStart, weekEnd
+pairs (jsonb)
+keyEvents, notes, review
+premiumDiscount (jsonb — embeds screenshots & pair notes)
+```
+
+**`missed_trades`** — Missed opportunity log
+```
+id, user_id, created_at
+date, pair, direction, setup, reason
+rr (manual), outcome
+notes (json-backed with screenshot metadata)
+```
+
+**`calendar_cache`** — Forex calendar cache
+```
+week_key (text PK), events (jsonb), fetched_at
+```
+
+**`waitlist`** — Landing page request access
+```
+id, email, created_at, status
+```
+
+### RLS Policies
+All user-owned tables: `user_id = auth.uid()` for SELECT/INSERT/UPDATE/DELETE.
+`waitlist`: anonymous insert allowed.
+`calendar_cache`: server-side access via REST.
+`storage.objects`: authenticated write to `journal-images`, public read.
+
+### Storage paths
+```
+{userId}/trades/pre/...
+{userId}/trades/post/...
+{userId}/daily-plans/...
+{userId}/weekly-plans/...
+{userId}/missed-trades/...
 ```
 
 ---
 
-## Theme System
+## 🎨 Design System
 
-Three themes defined in `src/lib/constants.js`: `VOID` (dark), `PAPER` (light), `BRUTALIST`.
+### Themes (3)
+- **VOID** (dark, default) — primary professional terminal feel
+- **PAPER** (light) — clean light mode
+- **BRUTALIST** — high-contrast, harder edges
 
-Every component receives the active theme as a `T` prop. Use token names only — never hardcode colors.
+Stored as `T` object passed through props. Persisted to localStorage `fx-theme` and Supabase user metadata.
 
-```js
-// Available tokens on every T object:
-T.bg           // page background
-T.surface      // card / panel background
-T.surface2     // inset / secondary surface
-T.border       // divider and border color
-T.text         // primary text
-T.textDim      // secondary text (use this for visible secondary info)
-T.muted        // placeholder / disabled text (very faint, use sparingly)
-T.accent       // primary accent (indigo on VOID, emerald on PAPER)
-T.accentBright // brighter variant of accent
-T.green        // profit / win
-T.red          // loss
-T.amber        // caution / neutral
-T.pink         // secondary accent
-T.isDark       // boolean
+### Theme tokens
+```
+T.bg, T.surface, T.surface2, T.border
+T.text, T.textDim, T.muted
+T.accent, T.accentBright
+T.green, T.red, T.amber, T.pink
+T.isDark (boolean)
 ```
 
-Default theme: `"dark"` (VOID). Theme choice persists to `localStorage` key `"fx-theme"` and also syncs to Supabase user metadata.
+### Fonts
+- **Geist** — UI font (loaded in layout.js)
+- **Geist Mono** — numbers, prices, monospace
+
+### Animation patterns
+- Modal slide/fade entrance (Framer Motion)
+- Tab content fade transitions
+- KPI counters animate on value change
+- Card hover lift (subtle, y: -2)
+- Reduced motion respected
+
+### Mobile breakpoint
+- Primary: `max-width: 768px`
+- Bottom nav with 5 primary tabs + More menu
+- Tabs stay mounted to preserve scroll position
 
 ---
 
-## Fonts
+## ⚠️ Critical Rules for AI Agents
 
-- **UI font**: Geist — loaded in `src/app/layout.js` via `next/font/google`, available as CSS variable `--font-geist-sans` on `<html>`. Reference it as `fontFamily: "var(--font-geist-sans)"` in inline styles.
-- **Numbers**: JetBrains Mono — loaded via Google Fonts `@import` inside `buildCSS()` in `page.jsx`. Reference as `fontFamily: "'JetBrains Mono','Fira Code',monospace"`.
-- **Do not** load any other font families. Fontshare (Cabinet Grotesk, Satoshi) was removed intentionally from every file.
+### Styling direction (PICK ONE)
+The codebase has inline styles + Tailwind + shadcn mixed. Going forward:
+- **NEW components:** use Tailwind + shadcn
+- **EXISTING inline-styled components:** leave alone unless explicitly migrating
+- **NEVER** mix inline `style={{}}` with Tailwind classes in the same component
+- Use `T` theme tokens for legacy components, Tailwind classes for new ones
 
----
+### Database
+- **Always** filter by `user_id = auth.uid()` in queries
+- **Always** clean payloads with `clean()` helper before insert/update
+- **Never** store base64 images in tables — use Supabase Storage
+- **Never** add columns without checking RLS policies
 
-## Styling Rules
+### Component patterns
+- Pass `T` (theme) through props, not context
+- Use `_dbid` for internal row tracking (not `id`)
+- Use `Overlay` component for all modals
+- Use `Btn` component for primary actions
 
-1. **Inline styles only** in components. No class-based styling except for the layout helper classes defined in `globals.css` and `buildCSS()`.
-2. `buildCSS(T)` in `page.jsx` returns a CSS string injected via `<style>` — it handles layout classes, responsive overrides, theme-specific rules, and the BRUTALIST variant.
-3. No `border-left` or `border-right` > 1px as a colored accent (side-stripe anti-pattern). Use full borders, background tints, or top borders instead.
-4. No gradient text (`background-clip: text`). Colors convey meaning, never decoration.
-5. No glassmorphism as a default pattern.
-6. Cards are used sparingly. Nested cards are never correct.
+### File rules
+- **Never** put more than 500 lines in `page.jsx` — split into components
+- Tab components live in `src/components/tabs/`
+- Shared primitives in `src/components/ui.jsx` or `src/components/ui/`
+- Constants in `src/lib/constants.js` only
+- Helpers in `src/lib/utils.js` only
 
----
-
-## Key Component Patterns
-
-### Passing theme
-```jsx
-// Every component that renders UI receives T:
-<MyComponent T={T} ... />
-```
-
-### KPI strip (Dashboard.jsx)
-- One unified surface (`T.surface`, `1px solid T.border`, `borderRadius: 14`)
-- Four cells separated by `1px solid T.border` hairlines (border-right on desktop, border-right + border-bottom on mobile 2x2)
-- Each cell: 3px solid top bar in KPI color (position absolute, full width), label (9px muted uppercase), value (21px JetBrains Mono, KPI color), sub (10px T.textDim), 8px scale bar flush to bottom breaking out of padding with negative margin
-
-### Equity curve (EquityCurve.jsx)
-- Pure SVG, monotone cubic Hermite spline
-- Y-axis: 42px left column (`YAX = 42`) with labeled round ticks computed via `niceTicks()`, using JetBrains Mono 9px
-- Segments colored by drawdown state: green (new high), amber (moderate DD <45%), red (deep DD)
-- Drawdown pane below main chart: red gradient fill area + polyline, only renders when `maxDD < 0`
-- Main chart height: `w * 0.13`, min 96px. Drawdown pane: `w * 0.045`, min 36px.
-- Hover crosshair with tooltip showing trade R + cumulative R
-
-### Monthly returns (MonthlyReturns.jsx)
-- Year x month table (Jan-Dec columns, years as rows, newest year first)
-- Cell background intensity scales with absolute R value relative to max across all data
-- Green = profit, red = loss, T.surface2 = zero/no data
-- Year totals in right column, color legend at bottom
-
-### Topbar (page.jsx)
-- Single compact row: tab name (15px, weight 700, T.text) + date (11px, T.textDim) baseline-aligned on left; theme swatches + SessionPill on right
-- Padding: `10px 24px` desktop, `12px 16px` mobile
-- Sticky, backdrop-blur, T.surface background at f4 opacity
-- Date is hidden on mobile (className="hide-mobile")
+### Encoding
+- Files saved as **UTF-8 only**
+- If you see characters like `â€"` or `Ã©` — that's mojibake, fix immediately
+- Em dashes: `—` (use the actual character, not `&mdash;`)
 
 ---
 
-## Deploy Workflow
+## 🚫 Known Issues / Tech Debt
 
-After every change:
+### Documentation drift (this file fixes that)
+Old `AGENTS.md` said "no Tailwind." Current code has Tailwind. This file is the new truth.
+
+### Mojibake in some files
+Encoding issues in: `constants.js`, `utils.js`, `Heatmap.jsx`, `AIAnalysis.jsx`, `WeeklyReview.jsx`, `ExportTab.jsx`, `PRODUCT.md`.
+
+### Likely dead code
+- `CommandPalette.jsx` — topbar entry was removed
+- `src/app/api/screenshot-autofill/route.js` — feature was removed from TradeModal
+- `CHECKLIST_RULES` constant — pre-trade checklist was simplified out
+- `page4-debug.jsx` — old debug artifact in root
+
+### Mixed styling
+Tailwind v4 + shadcn + inline styles + injected CSS all coexist. Pick a direction per-component.
+
+### No TypeScript
+JavaScript only. No generated Supabase types. Schema drift is possible.
+
+### No tests
+No test suite. Manual smoke testing only.
+
+---
+
+## 🛠️ Workflow
+
+### Development
 ```bash
-git add <changed files>
-git commit -m "description
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
-vercel --prod --yes
+npm run dev       # local dev
+npm run build     # production build
+npm run lint      # ESLint
 ```
 
-The project is already linked to Vercel. Alias: `fxedge.online`. Always deploy to production.
+### Deployment
+Push to `main` → Vercel auto-deploys to fxedge.online.
+
+### Env vars (Vercel)
+```
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY
+GEMINI_API_KEY
+GROQ_API_KEY
+BREVO_API_KEY
+BREVO_FROM_EMAIL
+BREVO_FROM_NAME
+CRON_SECRET
+```
+
+### Cron jobs (vercel.json)
+```
+30 15 * * 0  →  /api/weekly-debrief  (Sunday 21:00 IST)
+```
 
 ---
 
-## What Was Recently Changed (latest first)
+## 🎯 Product Philosophy
 
-| Change | Files |
-|--------|-------|
-| Topbar date color T.muted -> T.textDim for visibility | `page.jsx` |
-| Theme persists to localStorage, default dark | `page.jsx` |
-| Topbar collapsed: stacked H1/eyebrow/date -> single compact row | `page.jsx` |
-| KPI strip: unified surface, hairline dividers, 3px top bar, 8px gauge bar | `Dashboard.jsx` |
-| Equity curve height compacted (w*0.13 / w*0.045) | `EquityCurve.jsx` |
-| Equity curve: Y-axis labels + drawdown depth pane added | `EquityCurve.jsx` |
-| MonthlyReturns heatmap component created + added to Dashboard | `MonthlyReturns.jsx`, `Dashboard.jsx` |
-| Font sweep: removed Fontshare CDN, all files use Geist + JetBrains Mono | All components |
+### What FXEDGE is
+- **Fast** — log a trade in under 30 seconds
+- **Specific** — every field maps to ICT/SMC methodology
+- **Honest** — shows you the data, not generic motivation
+- **Premium** — looks like a Linear/Stripe-quality app
 
----
+### What FXEDGE is not
+- Not for stock/crypto traders (FX/CFD only)
+- Not a generic spreadsheet replacement
+- Not gamified
+- Not feature-bloated — every feature must earn its place
 
-## Design Principles (non-negotiable)
-
-1. **Scan before read.** Most important number lands in under 2 seconds without reading a word.
-2. **Density earns trust.** Generous padding signals inexperience. Compact, well-spaced data signals craft.
-3. **Color = meaning only.** Green is profit. Red is loss. Amber is caution. Never use color decoratively.
-4. **Chrome recedes.** Cards, borders, and labels are background infrastructure. Data is the foreground.
-5. **No redundancy.** If a label repeats information visible elsewhere, remove it.
-
-Anti-references (never do these): neon crypto dashboards, glassmorphism, gradient text (`background-clip:text`), hero-metric SaaS card templates, side-stripe borders (`border-left/right > 1px` as accent), identical card grids.
+### Design principles
+1. **Density over whitespace** — traders want data fast
+2. **Numbers always tabular** — use Geist Mono for prices/RR
+3. **Color = signal** — green/red mean P&L, never decoration
+4. **Click-to-drill** — every stat clicks into detail
+5. **Mobile must work** — half of users will visit on phones
 
 ---
 
-## Users
+## 🚦 What's Built
 
-Retail forex/CFD traders. They open the dashboard at 8am before the London open, scan performance in under 10 seconds, then go back to their charts. They are not reading — they are scanning. Power users log 5-20 trades per week.
+### Working features
+- Magic link auth + onboarding flow + waitlist
+- Trade logging (full + quick mode) with screenshots
+- Daily + weekly planning with embedded screenshots
+- Analytics (session, kill zone, setup, manipulation, day×session)
+- Equity curve + drawdown chart + monthly heatmap
+- Pre-trade journey + Pattern Detector
+- AI Analysis (Gemini)
+- Weekly debrief email (Sunday cron + Brevo)
+- Screenshot Gallery
+- Missed Trades log
+- Economic Calendar (cached)
+- CSV exports + printable PDF report
+- 3 themes + dark/light toggle
+- Mobile bottom nav + safe area handling
+- Keyboard shortcuts (n, j, d, w, a, h, Esc)
+- PWA install
+- Sonner toasts with deduplication
+- Framer Motion animations everywhere
+- TanStack Table for Journal
+- shadcn primitives initialized
 
-The app is called **FXEDGE**. Brand personality: precise, fast, trusted. Like a tool a serious trader would build for themselves if they could code.
+---
+
+## 🗺️ Roadmap
+
+### Cleanup (do first)
+- [ ] Remove dead code (`CommandPalette.jsx`, `screenshot-autofill/`, `CHECKLIST_RULES`, `page4-debug.jsx`)
+- [ ] Fix mojibake encoding across all files
+- [ ] Verify Supabase RLS policies live
+- [ ] Decide & document: Tailwind/shadcn vs inline styles direction
+- [ ] Update README.md (currently default Next.js)
+
+### High-priority features
+- [ ] **Confluence Tracking** — checkboxes per trade, analytics on which confluences predict wins (biggest competitive gap)
+- [ ] **Day × Hour heatmap** — upgrade existing heatmap with hour breakdown
+- [ ] **Optional pre-trade checklist widget** — non-blocking compact version
+- [ ] **Breakeven win rate** — minimum WR needed at current RR
+- [ ] **Smoke test checklist** — 8-point manual test before each deploy
+
+### Future
+- [ ] TypeScript migration with generated Supabase types
+- [ ] Stripe integration for paid tier
+- [ ] CSV import (MT4/MT5)
+- [ ] Mobile swipe gestures on trade cards
+- [ ] Real test suite (Vitest + Playwright)
+
+---
+
+## 📞 How to ask AI agents for help
+
+Always include:
+1. **Context** — "This is FXEDGE, a Next.js + Supabase trading journal. See AGENTS.md."
+2. **Scope** — exactly what file/feature to change
+3. **Style direction** — "Use Tailwind + shadcn for new code"
+4. **Constraints** — "Don't break existing inline-styled components"
+
+Example good prompt:
+```
+Read AGENTS.md first.
+Add confluence tracking to FXEDGE.
+- New table column: trades.confluences (jsonb)
+- Update TradeModal.jsx to add a Confluences section with checkboxes
+- Add new tab Confluences to analytics
+- Use Tailwind + shadcn for new UI
+- Follow existing T theme token patterns for colors
+```
+
+---
+
+**End of AGENTS.md**
