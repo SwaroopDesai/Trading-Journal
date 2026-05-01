@@ -124,7 +124,10 @@ function getHolidaysForDays(days, filterCurrencies) {
 function useCountdown(events) {
   const [state, setState] = useState(null)
   const ref = useRef(events)
-  ref.current = events
+
+  useEffect(() => {
+    ref.current = events
+  }, [events])
 
   useEffect(() => {
     const tick = () => {

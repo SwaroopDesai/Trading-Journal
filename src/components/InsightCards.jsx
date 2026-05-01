@@ -139,27 +139,24 @@ function getColor(T, type, key) {
 const DISMISS_KEY = "fx_dismissed_insights"
 
 export default function InsightCards({ T, trades, collapseEmpty = false }) {
-  const [dismissed, setDismissed] = useState([])
-  const [aiInsight, setAiInsight] = useState(null)
-  const [aiLoading, setAiLoading] = useState(false)
-
-  // Load dismissed list from localStorage
-  useEffect(() => {
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window === "undefined") return []
     try {
-      const stored = JSON.parse(localStorage.getItem(DISMISS_KEY)||"[]")
-      setDismissed(stored)
-    } catch {}
-  }, [])
-
-  // Load cached AI insight
-  useEffect(() => {
+      return JSON.parse(localStorage.getItem(DISMISS_KEY)||"[]")
+    } catch {
+      return []
+    }
+  })
+  const [aiInsight, setAiInsight] = useState(() => {
+    if (typeof window === "undefined") return null
     try {
       const cached = JSON.parse(localStorage.getItem("fx_ai_insight")||"null")
-      if (cached && Date.now() - cached.ts < 7 * 24 * 60 * 60 * 1000) {
-        setAiInsight(cached.text)
-      }
-    } catch {}
-  }, [])
+      return cached && Date.now() - cached.ts < 7 * 24 * 60 * 60 * 1000 ? cached.text : null
+    } catch {
+      return null
+    }
+  })
+  const [aiLoading, setAiLoading] = useState(false)
 
   const insights = useMemo(() => computeInsights(trades), [trades])
   const visible = insights.filter(i => !dismissed.includes(i.id))

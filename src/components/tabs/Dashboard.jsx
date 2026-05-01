@@ -20,7 +20,6 @@ function AnimatedNumber({ target, active, format }) {
     const reduceMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches
     if(reduceMotion || !active){
       value.set(target)
-      setDisplay(format(target))
       return
     }
     value.set(0)
