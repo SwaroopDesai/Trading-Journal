@@ -37,10 +37,10 @@ export default function MissedTradeModal({ T, initial, onSave, onClose, syncing 
       subtitle="Record a setup you saw but did not take. Add the chart, your reason, and the R you missed."
       onClose={onClose}
       footer={<>
-        <Btn T={T} onClick={() => onSave(f)} disabled={!canSave || syncing}>
+        <Btn onClick={() => onSave(f)} disabled={!canSave || syncing}>
           {syncing ? "Saving..." : "Save"}
         </Btn>
-        <Btn T={T} ghost onClick={onClose}>Cancel</Btn>
+        <Btn ghost onClick={onClose}>Cancel</Btn>
       </>}
     >
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>

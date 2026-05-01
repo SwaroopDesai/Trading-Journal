@@ -1,6 +1,7 @@
 "use client"
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
+import { Button as ShadcnButton } from "@/components/ui/button";
 import { normalizeImageList } from "@/lib/utils";
 import { DARK } from "@/lib/constants";
 
@@ -172,41 +173,19 @@ export function BottomNav({T,tab,setTab,TABS,MOBILE_PRIMARY}){
 }
 
 // ─── Button ────────────────────────────────────────────────────────────────
-export function Btn({T,onClick,children,ghost,danger,disabled,ariaLabel}){
-  const brutal = !!T.hardShadow
-  const bg = brutal
-    ? (danger ? T.red : ghost ? T.surface : (T.accentFill || T.accentBright))
-    : (danger ? T.red : ghost ? "none" : T.accentBright)
-  const border = brutal
-    ? `2px solid ${T.border}`
-    : (ghost ? `1px solid ${T.border}` : "none")
-  const color = brutal ? T.text : (ghost ? T.textDim : T.bg)
-  const shadow = brutal ? T.hardShadow : undefined
-
-  const baseStyle = {
-    background:bg, color, border,
-    padding:"10px 18px",
-    fontFamily: "var(--font-geist-sans)",
-    fontWeight:800, fontSize:13,
-    letterSpacing:"0.01em",
-    borderRadius: brutal ? 3 : 999,
-    cursor:disabled?"not-allowed":"pointer",
-    whiteSpace:"nowrap", opacity:disabled?0.6:1,
-    minHeight:44,
-    transition: brutal ? "transform .08s ease, box-shadow .08s ease" : "opacity .15s, background .15s, border-color .15s",
-    boxShadow: shadow,
-  }
-
+export function Btn({onClick,children,ghost,danger,disabled,ariaLabel,type="button"}){
   return (
-    <button
+    <ShadcnButton
+      type={type}
       disabled={disabled}
       onClick={onClick}
       aria-label={ariaLabel}
-      className="fx-btn"
-      style={baseStyle}
+      className="fx-btn min-h-11 rounded-full px-5 text-[13px] font-extrabold tracking-[0.01em]"
+      variant={danger ? "destructive" : ghost ? "outline" : "default"}
+      size="lg"
     >
       {children}
-    </button>
+    </ShadcnButton>
   )
 }
 

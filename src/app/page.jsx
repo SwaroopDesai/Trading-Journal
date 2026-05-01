@@ -481,12 +481,45 @@ export default function App() {
   const SIDEBAR_PRIMARY=ALL_TABS.filter(t=>["dashboard","journal","daily","heatmap"].includes(t.id))
   const SIDEBAR_SECONDARY=ALL_TABS.filter(t=>!["dashboard","journal","daily","heatmap"].includes(t.id))
 
+  const shadcnThemeVars = {
+    "--background": T.bg,
+    "--foreground": T.text,
+    "--card": T.surface,
+    "--card-foreground": T.text,
+    "--popover": T.surface,
+    "--popover-foreground": T.text,
+    "--primary": T.hardShadow ? (T.accentFill || T.accentBright) : T.accentBright,
+    "--primary-foreground": T.hardShadow ? T.text : T.bg,
+    "--secondary": T.surface2,
+    "--secondary-foreground": T.text,
+    "--muted": T.surface2,
+    "--muted-foreground": T.textDim,
+    "--accent": T.surface2,
+    "--accent-foreground": T.text,
+    "--destructive": T.red,
+    "--border": T.border,
+    "--input": T.border,
+    "--ring": T.accentBright,
+    "--sidebar": T.surface,
+    "--sidebar-foreground": T.text,
+    "--sidebar-primary": T.accentBright,
+    "--sidebar-primary-foreground": T.bg,
+    "--sidebar-accent": T.surface2,
+    "--sidebar-accent-foreground": T.text,
+    "--sidebar-border": T.border,
+    "--sidebar-ring": T.accentBright,
+  }
+
   const css = buildCSS(T)
 
   if(authLoading) return <Spinner T={T}/>
   if(!user) return <LoginScreen supabase={supabase}/>
   return (
-    <div className="fx-app-root" style={{display:"flex",minHeight:"100vh",background:T.bg,color:T.text,fontFamily:"var(--font-geist-sans)",transition:"background .3s, color .3s",position:"relative",overflowX:"hidden"}}>
+    <div
+      className="fx-app-root"
+      data-theme={themeKey === "dark" ? "void" : themeKey}
+      style={{...shadcnThemeVars,display:"flex",minHeight:"100vh",background:T.bg,color:T.text,fontFamily:"var(--font-geist-sans)",transition:"background .3s, color .3s",position:"relative",overflowX:"hidden"}}
+    >
       <style>{css}</style>
       {T.isDark && !T.hardShadow && (
         <>

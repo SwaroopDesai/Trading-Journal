@@ -80,8 +80,8 @@ export default function TradeModal({T, userId, initial, defaults, onSave, onClos
 
   const footer = (
     <>
-      <Btn T={T} onClick={submit}>{syncing ? "Saving..." : initial ? "Update Trade" : "Log Trade"}</Btn>
-      <Btn T={T} ghost onClick={requestClose}>Cancel</Btn>
+      <Btn onClick={submit}>{syncing ? "Saving..." : initial ? "Update Trade" : "Log Trade"}</Btn>
+      <Btn ghost onClick={requestClose}>Cancel</Btn>
     </>
   );
 
