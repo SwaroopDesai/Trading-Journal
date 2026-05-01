@@ -732,7 +732,7 @@ Representative commits:
 
 ### Encoding/mojibake
 
-Several files include corrupted text in comments or older UI strings, such as `â€”`, `â”€`, or `Ãƒ...`.
+Several files include corrupted text in comments or older UI strings. Examples include mojibake sequences, broken box-drawing characters, or double-encoded UTF-8.
 
 Files with visible examples include:
 

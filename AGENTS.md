@@ -231,7 +231,7 @@ The codebase has inline styles + Tailwind + shadcn mixed. Going forward:
 
 ### Encoding
 - Files saved as **UTF-8 only**
-- If you see characters like `â€"` or `Ã©` — that's mojibake, fix immediately
+- If you see mojibake sequences or random replacement characters, fix them immediately
 - Em dashes: `—` (use the actual character, not `&mdash;`)
 
 ---
