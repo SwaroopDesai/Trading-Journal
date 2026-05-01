@@ -196,24 +196,24 @@ function DistributionChart({ T, data }) {
   );
 }
 
-export default function DashboardCharts({ T, trades = [], isMobile = false, isWide = false }) {
+export default function DashboardCharts({ T, trades = [], isMobile = false }) {
   const sessionData = useMemo(() => buildGrouped(trades, "session", "session"), [trades]);
   const setupData = useMemo(() => buildGrouped(trades, "setup", "setup"), [trades]);
   const distribution = useMemo(() => buildDistribution(trades), [trades]);
 
   return (
     <>
-      <div style={{ gridColumn: isMobile ? "auto" : `span ${isWide ? 5 : 4}` }}>
+      <div style={{ gridColumn: isMobile ? "auto" : "span 4" }}>
         <ChartShell T={T} title="Session Edge" meta={`${sessionData.length} active`}>
           <PerformanceBars T={T} data={sessionData} labelKey="session" />
         </ChartShell>
       </div>
-      <div style={{ gridColumn: isMobile ? "auto" : `span ${isWide ? 6 : 4}` }}>
+      <div style={{ gridColumn: isMobile ? "auto" : "span 4" }}>
         <ChartShell T={T} title="Setup Edge" meta={`${setupData.length} tracked`}>
           <PerformanceBars T={T} data={setupData} labelKey="setup" />
         </ChartShell>
       </div>
-      <div style={{ gridColumn: isMobile ? "auto" : `span ${isWide ? 5 : 4}` }}>
+      <div style={{ gridColumn: isMobile ? "auto" : "span 4" }}>
         <ChartShell T={T} title="R Distribution" meta={`${trades.length} trades`}>
           <DistributionChart T={T} data={distribution} />
         </ChartShell>

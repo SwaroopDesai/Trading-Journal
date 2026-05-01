@@ -22,8 +22,8 @@ export default function DateRangeBar({ T, value, onChange, count, total }) {
       }}
     >
       <div style={{
-        maxWidth: 1680,
-        margin: "0 auto",
+        maxWidth: 1800,
+        margin: 0,
         display: "flex",
         alignItems: "center",
         gap: 10,
