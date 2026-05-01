@@ -488,6 +488,12 @@ export default function App() {
   return (
     <div className="fx-app-root" style={{display:"flex",minHeight:"100vh",background:T.bg,color:T.text,fontFamily:"var(--font-geist-sans)",transition:"background .3s, color .3s",position:"relative",overflowX:"hidden"}}>
       <style>{css}</style>
+      {T.isDark && !T.hardShadow && (
+        <>
+          <div className="ambient-glow ambient-glow-a" aria-hidden="true" />
+          <div className="ambient-glow ambient-glow-b" aria-hidden="true" />
+        </>
+      )}
 
       {/* Sidebar */}
       <nav className="sidebar" style={{background:T.surface,borderRight:`1px solid ${T.border}`}}>
@@ -500,6 +506,7 @@ export default function App() {
             <button key={t.id} className={`nav-btn ${tab===t.id?"nav-active":""}`}
               style={{color:tab===t.id?T.text:T.textDim}}
               onClick={()=>changeTab(t.id)}>
+              <span className="nav-icon-box" aria-hidden="true">{t.label.slice(0,2).toUpperCase()}</span>
               <span>{t.label}</span>
             </button>
           ))}
@@ -510,6 +517,7 @@ export default function App() {
             <button key={t.id} className={`nav-btn ${tab===t.id?"nav-active":""}`}
               style={{color:tab===t.id?T.text:T.textDim}}
               onClick={()=>changeTab(t.id)}>
+              <span className="nav-icon-box" aria-hidden="true">{t.label.slice(0,2).toUpperCase()}</span>
               <span>{t.label}</span>
             </button>
           ))}
@@ -730,19 +738,31 @@ function buildCSS(T) {
       0%,100% { opacity:.4; }
       50%     { opacity:.9; }
     }
+    @keyframes driftA {
+      0%,100% { transform:translate3d(0,0,0) scale(1); }
+      50% { transform:translate3d(28px,24px,0) scale(1.06); }
+    }
+    @keyframes driftB {
+      0%,100% { transform:translate3d(0,0,0) scale(1); }
+      50% { transform:translate3d(-34px,-22px,0) scale(1.05); }
+    }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
     }
 
     /* ── Layout ────────────────────────────────────────────── */
     .fx-app-root::selection{background:${T.accentBright}44;color:${T.text};}
+    .ambient-glow{position:fixed;width:50vw;height:70vh;filter:blur(80px);pointer-events:none;z-index:0;opacity:.16;}
+    .ambient-glow-a{top:-26vh;left:-18vw;background:radial-gradient(circle, rgba(99,102,241,.72), transparent 64%);animation:driftA 22s ease-in-out infinite;}
+    .ambient-glow-b{right:-22vw;bottom:-34vh;background:radial-gradient(circle, rgba(236,72,153,.62), transparent 66%);animation:driftB 25s ease-in-out infinite;}
     h1,h2,h3,h4,h5,h6{font-family:var(--font-geist-sans);}
     .sidebar { width:224px; position:fixed; top:0; left:0; height:100vh; z-index:50; overflow-y:auto; display:flex; flex-direction:column; }
-    .nav-btn { display:flex; align-items:center; gap:10px; width:100%; padding:9px 14px 9px 16px; background:none; border:none; cursor:pointer; font-family:var(--font-geist-sans); font-size:13px; font-weight:700; text-align:left; transition:background .15s, color .15s, box-shadow .15s; border-radius:10px; position:relative; }
+    .nav-btn { display:flex; align-items:center; gap:10px; width:100%; padding:9px 14px 9px 12px; background:none; border:1px solid transparent; cursor:pointer; font-family:var(--font-geist-sans); font-size:13px; font-weight:700; text-align:left; transition:background .15s, color .15s, box-shadow .15s, border-color .15s; border-radius:10px; position:relative; }
     .nav-btn:hover { background:${T.accent}12; color:${T.text} !important; }
-    .nav-active { background:${T.accent}18 !important; color:${T.text} !important; box-shadow:inset 3px 0 0 ${T.accentBright} !important; }
-    .nav-icon { font-size:15px; line-height:1; width:18px; text-align:center; flex-shrink:0; transition:transform .18s cubic-bezier(.16,1,.3,1); }
-    .nav-btn:hover .nav-icon { transform:scale(1.12); }
+    .nav-active { background:${T.isDark && !brutal ? "linear-gradient(135deg, rgba(99,102,241,0.15), rgba(236,72,153,0.08))" : `${T.accent}18`} !important; color:${T.text} !important; border-color:${T.isDark && !brutal ? "rgba(99,102,241,0.3)" : "transparent"} !important; box-shadow:${T.isDark && !brutal ? "0 0 24px rgba(99,102,241,0.15)" : `inset 3px 0 0 ${T.accentBright}`} !important; }
+    .nav-icon-box { width:20px; height:20px; border-radius:7px; display:grid; place-items:center; flex-shrink:0; font-size:8px; font-weight:900; letter-spacing:-0.04em; color:${T.textDim}; background:${T.surface2}; border:1px solid ${T.border}; transition:transform .18s cubic-bezier(.16,1,.3,1), color .18s, border-color .18s; }
+    .nav-active .nav-icon-box { color:${T.text}; border-color:rgba(99,102,241,0.42); background:${T.isDark && !brutal ? "linear-gradient(135deg, rgba(99,102,241,0.55), rgba(236,72,153,0.24))" : T.surface2}; box-shadow:${T.isDark && !brutal ? "0 0 16px rgba(99,102,241,0.2)" : "none"}; }
+    .nav-btn:hover .nav-icon-box { transform:scale(1.08); }
     .bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; z-index:50; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); }
     .topbar{padding:10px 24px;}
     .tab-content{padding:28px 32px;background:${T.bg};}

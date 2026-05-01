@@ -1,5 +1,6 @@
 "use client"
 import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
 import { PAIRS, SESSIONS, SETUPS } from "@/lib/constants";
 import { fmtDate, fmtRR, normalizeImageList } from "@/lib/utils";
 import { Card, CardTitle, SectionLead, Btn, Chip, EmptyState, Badge, Overlay } from "@/components/ui";
@@ -7,6 +8,7 @@ import { Card, CardTitle, SectionLead, Btn, Chip, EmptyState, Badge, Overlay } f
 function Heatmap({T, trades, viewportWidth, onViewImg}) {
   const now = new Date()
   const isMobile = viewportWidth ? viewportWidth < 760 : false
+  const isVoid = T.isDark && !T.hardShadow
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth())
   const [activeView, setActiveView] = useState("calendar") // calendar | weekday | session | streak | drawdown
@@ -134,6 +136,11 @@ function Heatmap({T, trades, viewportWidth, onViewImg}) {
   const getCalColor=(data,isWeekend)=>{
     if(isWeekend) return T.surface
     if(!data) return T.surface2
+    if(isVoid) {
+      if(data.r>=4) return "linear-gradient(135deg, rgba(52,211,153,0.35), rgba(16,185,129,0.12))"
+      if(data.r>0)  return "linear-gradient(135deg, rgba(52,211,153,0.18), rgba(16,185,129,0.06))"
+      return "linear-gradient(135deg, rgba(251,113,133,0.18), rgba(190,18,60,0.06))"
+    }
     if(data.r>=4) return `${T.green}38`
     if(data.r>=2) return `${T.green}2c`
     if(data.r>0)  return `${T.green}20`
@@ -262,13 +269,19 @@ function Heatmap({T, trades, viewportWidth, onViewImg}) {
                 if(!cell) return <div key={i} style={{minHeight:isMobile?58:74}}/>
                 const isToday=cell.dateStr===new Date().toISOString().split("T")[0]
                 return (
-                  <div key={cell.dateStr} onClick={()=>cell.data&&setSelectedDay(cell.dateStr)} style={{
-                    minHeight:isMobile?58:74,borderRadius:isMobile?12:14,padding:isMobile?"6px 6px":"7px 8px",
+                  <motion.div
+                    key={cell.dateStr}
+                    onClick={()=>cell.data&&setSelectedDay(cell.dateStr)}
+                    whileHover={isVoid && cell.data ? { y: -2, borderColor: cell.data.r >= 0 ? "rgba(52,211,153,0.65)" : "rgba(251,113,133,0.65)" } : undefined}
+                    transition={{ duration: 0.16 }}
+                    style={{
+                    minHeight:isMobile?58:74,borderRadius:isVoid?6:(isMobile?12:14),padding:isMobile?"6px 6px":"7px 8px",
                     background:getCalColor(cell.data,cell.isWeekend),
                     border:getCellBorder(cell.data,isToday),
                     display:"flex",flexDirection:"column",justifyContent:"space-between",
                     position:"relative",cursor:cell.data?"pointer":"default",
                     boxShadow:isToday?`0 0 0 2px ${T.accentBright}40`:`inset 0 1px 0 rgba(255,255,255,0.02)`,
+                    transition:"border-color .18s ease, transform .18s ease",
                   }}>
                     <div style={{fontSize:isMobile?10:11,fontWeight:700,color:cell.isWeekend?T.muted:cell.data?(cell.data.r>=0?T.green:T.red):T.textDim}}>{cell.dayNum}</div>
                     {cell.data&&(
@@ -278,7 +291,7 @@ function Heatmap({T, trades, viewportWidth, onViewImg}) {
                       </>
                     )}
                     {isToday&&<div style={{position:"absolute",top:4,right:5,width:5,height:5,borderRadius:"50%",background:T.accentBright}}/>}
-                  </div>
+                  </motion.div>
                 )
               })}
             </div>

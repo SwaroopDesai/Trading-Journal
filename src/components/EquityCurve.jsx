@@ -191,6 +191,7 @@ export default function EquityCurve({ T, data = [] }) {
   const [range, setRange] = useState("all");
   const [mode, setMode] = useState("curve");
   const [pair, setPair] = useState("all");
+  const isVoid = T.isDark && !T.hardShadow;
   const source = useMemo(() => buildChartData(data), [data]);
   const pairOptions = useMemo(() => {
     const pairs = [...new Set(source.map(point => point.pair).filter(Boolean))].sort();
@@ -340,6 +341,10 @@ export default function EquityCurve({ T, data = [] }) {
                 <stop offset="0%" stopColor={T.red} stopOpacity="0.34" />
                 <stop offset="100%" stopColor={T.red} stopOpacity="0.04" />
               </linearGradient>
+              <linearGradient id="fx-equity-line" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#6366f1" />
+                <stop offset="100%" stopColor="#34d399" />
+              </linearGradient>
             </defs>
             <CartesianGrid stroke={T.border} strokeDasharray="2 10" vertical={false} opacity={0.36} />
             <XAxis
@@ -427,14 +432,26 @@ export default function EquityCurve({ T, data = [] }) {
                 yAxisId="equity"
                 type={mode === "trades" ? "stepAfter" : "monotone"}
                 dataKey="r"
-                stroke={netR >= 0 ? T.green : T.red}
-                strokeWidth={3}
+                stroke={isVoid ? "url(#fx-equity-line)" : (netR >= 0 ? T.green : T.red)}
+                strokeWidth={isVoid ? 2.5 : 3}
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 dot={point => {
                   const payload = point.payload;
                   const color = payload.result === "LOSS" ? T.red : payload.result === "WIN" ? T.green : T.amber;
+                  const isLast = isVoid && point.index === activeData.length - 1;
+                  if (isLast) {
+                    return (
+                      <g key={`equity-dot-${payload.idx}`}>
+                        <circle cx={point.cx} cy={point.cy} r={13} fill={color} opacity="0.15" />
+                        <circle cx={point.cx} cy={point.cy} r={9} fill={color} opacity="0.30" />
+                        <circle cx={point.cx} cy={point.cy} r={5} fill={color} stroke={T.surface} strokeWidth={2} />
+                      </g>
+                    );
+                  }
                   return <circle key={`equity-dot-${payload.idx}`} cx={point.cx} cy={point.cy} r={3.5} fill={color} stroke={T.surface} strokeWidth={2} />;
                 }}
-                activeDot={{ r: 6, stroke: T.surface, strokeWidth: 3 }}
+                activeDot={isVoid ? { r: 7, stroke: "#34d399", strokeWidth: 2, fill: T.surface } : { r: 6, stroke: T.surface, strokeWidth: 3 }}
                 isAnimationActive
                 animationDuration={650}
               />

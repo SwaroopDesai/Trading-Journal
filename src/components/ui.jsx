@@ -273,6 +273,7 @@ export function HeaderMeta({T,eyebrow,title,subtitle,actions}) {
 
 // ─── Session pill / clock dropdown ────────────────────────────────────────
 export function SessionPill({T,session,compact,mobile,open,onToggle}) {
+  const isVoid = T.isDark && !T.hardShadow
   const tones = {
     overlap: { dot:T.amber, glow:`${T.amber}33`, bg:`${T.amber}16` },
     london:  { dot:T.accentBright, glow:`${T.accentBright}33`, bg:`${T.accent}16` },
@@ -291,10 +292,13 @@ export function SessionPill({T,session,compact,mobile,open,onToggle}) {
         onClick={onToggle}
         aria-label={`${session?.label} session. ${open?"Close":"Open"} session details`}
         aria-expanded={open}
-        style={{minWidth:mobile?0:(compact?118:220),width:mobile?"100%":"auto",padding:mobile?"9px 10px":compact?"8px 10px":"10px 12px",borderRadius:18,background:tone.bg,border:`1px solid ${open?tone.dot:T.border}`,display:"flex",alignItems:"center",gap:mobile?8:10,boxShadow:open?`0 18px 36px ${tone.glow}`:`0 10px 30px ${T.cardGlow}`,cursor:"pointer",textAlign:"left",position:"relative"}}
+        style={{minWidth:mobile?0:(compact?118:220),width:mobile?"100%":"auto",padding:mobile?"9px 10px":compact?"8px 10px":"10px 12px",borderRadius:isVoid?100:18,background:isVoid?"rgba(17,17,26,0.72)":tone.bg,border:`1px solid ${open?tone.dot:(isVoid?"rgba(255,255,255,0.1)":T.border)}`,display:"flex",alignItems:"center",gap:mobile?8:10,boxShadow:open?`0 18px 36px ${tone.glow}`:`0 10px 30px ${T.cardGlow}`,cursor:"pointer",textAlign:"left",position:"relative",backdropFilter:isVoid?"blur(20px)":undefined,WebkitBackdropFilter:isVoid?"blur(20px)":undefined}}
       >
-        {session?.tone !== "closed" && (
+        {session?.tone !== "closed" && !isVoid && (
           <span aria-label="Market open" style={{position:"absolute",top:-3,right:-3,width:9,height:9,borderRadius:"50%",background:tone.dot,border:`2px solid ${T.bg}`,animation:"livePulse 2s ease-in-out infinite",pointerEvents:"none"}}/>
+        )}
+        {session?.tone !== "closed" && isVoid && (
+          <span aria-label="Market open" style={{position:"absolute",top:10,right:10,width:7,height:7,borderRadius:"50%",background:T.green,boxShadow:`0 0 0 4px ${T.green}18, 0 0 18px ${T.green}`,animation:"livePulse 2s ease-in-out infinite",pointerEvents:"none"}}/>
         )}
         <div style={{width:compact?28:34,height:compact?28:34,borderRadius:12,background:`${tone.dot}14`,border:`1px solid ${tone.dot}55`,display:"grid",placeItems:"center",flexShrink:0}}>
           <span style={{fontSize:compact?10:11,fontWeight:800,color:tone.dot,letterSpacing:"0.08em"}}>{sessionCode}</span>

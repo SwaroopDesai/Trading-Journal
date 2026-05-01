@@ -42,6 +42,31 @@ function AnimatedNumber({ target, active, format }) {
   )
 }
 
+function MiniSparkline({ T, data = [], color }) {
+  const points = data.slice(-7).map(point => Number(point?.r) || 0)
+  if (points.length < 2) {
+    return <div style={{ height: 30, margin: "2px 0 5px" }} aria-hidden="true" />
+  }
+
+  const min = Math.min(...points)
+  const max = Math.max(...points)
+  const range = max - min || 1
+  const width = 112
+  const height = 30
+  const path = points.map((value, index) => {
+    const x = (index / (points.length - 1)) * width
+    const y = height - 5 - ((value - min) / range) * (height - 10)
+    return `${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`
+  }).join(" ")
+
+  return (
+    <svg width="100%" height="30" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" aria-hidden="true" style={{ display: "block", margin: "2px 0 5px", opacity: 0.88 }}>
+      <path d={`M 0 ${height - 5} L ${width} ${height - 5}`} stroke={T.border} strokeWidth="1" strokeDasharray="4 6" opacity="0.45" />
+      <path d={path} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 
 function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNewDaily, onNewWeekly, viewportWidth, active }) {
   const today        = new Date().toISOString().split("T")[0]
@@ -51,6 +76,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
   const bestPair     = [...stats.byPair].sort((a,b) => b.totalR - a.totalR)[0]
   const isMobile     = viewportWidth < 768
   const isUltraWide  = viewportWidth >= 2200
+  const isVoid       = T.isDark && !T.hardShadow
   const gridTemplate  = isMobile ? "1fr" : `repeat(${isUltraWide ? 16 : 12},minmax(0,1fr))`
   const todayR        = todayTrades.reduce((sum, t) => sum + (Number(t.rr) || 0), 0)
   const activePairs   = stats.byPair
@@ -64,6 +90,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
       color:    stats.totalR >= 0 ? T.green : T.red,
       sub:      `${stats.total} trades`,
       barWidth: `${Math.min(Math.abs(stats.totalR) / 20 * 100, 100)}%`,
+      sparkline: stats.equityCurve,
     },
     {
       label:    "Win Rate",
@@ -71,6 +98,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
       color:    stats.winRate >= 55 ? T.green : stats.winRate >= 45 ? T.amber : T.red,
       sub:      `${stats.wins}W / ${stats.losses}L / ${stats.be}BE`,
       barWidth: `${Math.min(stats.winRate, 100)}%`,
+      sparkline: stats.equityCurve,
     },
     {
       label:    "Avg RR",
@@ -78,6 +106,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
       color:    stats.avgRR >= 2 ? T.green : stats.avgRR >= 1 ? T.amber : T.red,
       sub:      "on winning trades",
       barWidth: `${Math.min(stats.avgRR / 3 * 100, 100)}%`,
+      sparkline: stats.equityCurve,
     },
     {
       label:    "Best Pair",
@@ -85,6 +114,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
       color:    T.accentBright,
       sub:      `${(bestPair?.totalR || 0) >= 0 ? "+" : ""}${(bestPair?.totalR || 0).toFixed(1)}R total`,
       barWidth: `${Math.min(Math.abs(bestPair?.totalR || 0) / 20 * 100, 100)}%`,
+      sparkline: stats.equityCurve,
     },
   ]
 
@@ -120,10 +150,12 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
       <div style={{
         display: "grid",
         gridTemplateColumns: isMobile ? "repeat(2,1fr)" : "repeat(4,1fr)",
-        background: T.surface,
+        background: isVoid ? "linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))" : T.surface,
         border: `1px solid ${T.border}`,
         borderRadius: 14,
         overflow: "hidden",
+        backdropFilter: isVoid ? "blur(20px)" : undefined,
+        WebkitBackdropFilter: isVoid ? "blur(20px)" : undefined,
       }}>
         {kpis.map((k, idx) => {
           const isLastCol  = isMobile ? idx % 2 === 1 : idx === 3
@@ -136,12 +168,36 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
               transition={{ duration: 0.28, delay: idx * 0.04 }}
               whileHover={{ y: -2 }}
               style={{
-              position: "relative",
-              padding: "12px 14px 0",
-              minWidth: 0,
-              borderRight:  !isLastCol ? `1px solid ${T.border}` : "none",
-              borderBottom: !isLastRow ? `1px solid ${T.border}` : "none",
-            }}>
+                position: "relative",
+                padding: "12px 14px 0",
+                minWidth: 0,
+                overflow: "hidden",
+                background: isVoid ? "linear-gradient(135deg, rgba(255,255,255,0.035), rgba(255,255,255,0.008))" : undefined,
+                borderRight:  !isLastCol ? `1px solid ${T.border}` : "none",
+                borderBottom: !isLastRow ? `1px solid ${T.border}` : "none",
+              }}>
+              {isVoid && (
+                <>
+                  <div style={{
+                    position: "absolute",
+                    inset: "0 0 auto 0",
+                    height: 1,
+                    background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)",
+                    pointerEvents: "none",
+                  }} />
+                  <div style={{
+                    position: "absolute",
+                    width: 110,
+                    height: 110,
+                    right: -44,
+                    bottom: -58,
+                    borderRadius: "50%",
+                    background: `radial-gradient(circle, ${k.color}2e 0%, transparent 68%)`,
+                    filter: "blur(18px)",
+                    pointerEvents: "none",
+                  }} />
+                </>
+              )}
               {/* Per-cell color bar — 3px, full width, flush to top */}
               <div style={{
                 position: "absolute",
@@ -174,6 +230,8 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
               }}>
                 {k.value}
               </div>
+
+              <MiniSparkline T={T} data={k.sparkline} color={k.color} />
 
               {/* Sub */}
               <div style={{
