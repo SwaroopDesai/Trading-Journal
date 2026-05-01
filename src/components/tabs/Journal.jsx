@@ -70,10 +70,7 @@ function Journal({
     getSortedRowModel: getSortedRowModel(),
   });
 
-  const displayTrades = useMemo(
-    () => table.getRowModel().rows.map(row => row.original),
-    [table]
-  );
+  const displayTrades = table.getRowModel().rows.map(row => row.original);
 
   const groups = useMemo(() => {
     const byDate = {};
