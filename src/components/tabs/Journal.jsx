@@ -89,14 +89,14 @@ function Journal({
         header: "Date",
         size: 90,
         enableSorting: true,
-        cell: ({ row }) => <span className="journal-date">{fmtDate(row.original.date)}</span>,
+        cell: ({ row }) => <DateCell date={row.original.date} />,
       },
       {
         id: "pair",
         accessorKey: "pair",
         header: "Pair",
         enableSorting: true,
-        cell: ({ row }) => <span className="pair-cell">{row.original.pair}</span>,
+        cell: ({ row }) => <PairCell trade={row.original} />,
       },
       {
         id: "direction",
@@ -130,7 +130,7 @@ function Journal({
         accessorKey: "setup",
         header: "Setup",
         meta: { hideMobile: true },
-        cell: ({ row }) => <MetaCell value={row.original.setup} />,
+        cell: ({ row }) => <SetupCell value={row.original.setup} />,
       },
       {
         id: "bias",
@@ -222,6 +222,11 @@ function Journal({
   }
 
   function sortArrow(columnId) {
+    if (sortKey !== columnId) return "↕";
+    return sortDir === "asc" ? "↑" : "↓";
+  }
+
+  function sortIcon(columnId) {
     if (sortKey !== columnId) return "↕";
     return sortDir === "asc" ? "↑" : "↓";
   }
@@ -342,7 +347,7 @@ function Journal({
                             onClick={() => cycleSort(header.column.id)}
                           >
                             {flexRender(header.column.columnDef.header, header.getContext())}
-                            <span>{sortArrow(header.column.id)}</span>
+                            <span>{sortIcon(header.column.id)}</span>
                           </button>
                         ) : (
                           flexRender(header.column.columnDef.header, header.getContext())
@@ -378,10 +383,12 @@ function Journal({
 }
 
 function FragmentRow({ row, trade, isExpanded, columnCount, onToggle, onViewImg }) {
+  const rowTone = trade.result === "WIN" ? "row-win" : trade.result === "LOSS" ? "row-loss" : "row-be";
+
   return (
     <>
       <tr
-        className={isExpanded ? "expanded" : ""}
+        className={`${rowTone} ${isExpanded ? "expanded" : ""}`}
         onClick={onToggle}
         tabIndex={0}
         onKeyDown={event => {
@@ -504,6 +511,26 @@ function DirectionBadge({ direction }) {
   return <span className={`dir-badge ${direction === "LONG" ? "long" : "short"}`}>{direction}</span>;
 }
 
+function DateCell({ date }) {
+  const parts = String(fmtDate(date)).split(" ").filter(Boolean);
+  return (
+    <span className="date-cell">
+      <strong>{parts[0] || "-"}</strong>
+      <span>{parts.slice(1).join(" ")}</span>
+    </span>
+  );
+}
+
+function PairCell({ trade }) {
+  const tone = trade.result === "WIN" ? "win" : trade.result === "LOSS" ? "loss" : "be";
+  return (
+    <span className={`pair-stack ${tone}`}>
+      <i aria-hidden="true" />
+      <strong>{trade.pair || "-"}</strong>
+    </span>
+  );
+}
+
 function ResultPill({ result }) {
   const cls = result === "WIN" ? "win" : result === "LOSS" ? "loss" : "be";
   return <span className={`result-pill ${cls}`}>{result || "B/E"}</span>;
@@ -520,6 +547,10 @@ function RRCell({ T, value }) {
 
 function MetaCell({ value }) {
   return <span className="meta-cell">{value || "-"}</span>;
+}
+
+function SetupCell({ value }) {
+  return <span className="setup-cell">{value || "-"}</span>;
 }
 
 function BiasCell({ bias }) {
@@ -600,7 +631,7 @@ function journalCSS(T) {
     .journal-power-table {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
     }
 
     .journal-page-header {
@@ -620,10 +651,7 @@ function journalCSS(T) {
     }
 
     .journal-page-header h1 span {
-      background: ${brutal ? "none" : "linear-gradient(135deg, var(--ink), rgba(255,255,255,0.7))"};
-      -webkit-background-clip: ${brutal ? "initial" : "text"};
-      background-clip: ${brutal ? "initial" : "text"};
-      color: ${brutal ? "var(--ink)" : "transparent"};
+      color: var(--ink);
     }
 
     .journal-page-header p {
@@ -674,6 +702,7 @@ function journalCSS(T) {
     }
 
     .journal-stat-strip {
+      position: relative;
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       gap: 1px;
@@ -681,15 +710,40 @@ function journalCSS(T) {
       border: ${borderWidth} solid var(--line);
       border-radius: ${radius};
       overflow: hidden;
+      box-shadow: ${brutal ? "none" : "0 14px 50px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.04)"};
+    }
+
+    .journal-stat-strip::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 1px;
+      background: ${brutal ? "transparent" : "linear-gradient(90deg, transparent, rgba(129,140,248,.5), transparent)"};
+      pointer-events: none;
+      z-index: 1;
     }
 
     .journal-stat-strip .stat {
-      background: var(--surface);
+      position: relative;
+      background: ${isDark ? "linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012)), var(--surface)" : "var(--surface)"};
       padding: 16px 20px;
       display: flex;
       flex-direction: column;
       gap: 4px;
       min-width: 0;
+      overflow: hidden;
+    }
+
+    .journal-stat-strip .stat::after {
+      content: "";
+      position: absolute;
+      right: -34px;
+      bottom: -42px;
+      width: 112px;
+      height: 112px;
+      border-radius: 999px;
+      background: ${brutal ? "transparent" : "radial-gradient(circle, rgba(129,140,248,.10), transparent 64%)"};
+      pointer-events: none;
     }
 
     .stat-label {
@@ -712,10 +766,7 @@ function journalCSS(T) {
     .stat-val.green { color: var(--green); }
     .stat-val.red { color: var(--red); }
     .stat-val.gradient {
-      background: ${brutal ? "none" : "linear-gradient(135deg, var(--green), #10b981)"};
-      -webkit-background-clip: ${brutal ? "initial" : "text"};
-      background-clip: ${brutal ? "initial" : "text"};
-      color: ${brutal ? "var(--green)" : "transparent"};
+      color: var(--green);
     }
 
     .stat-sub {
@@ -731,12 +782,13 @@ function journalCSS(T) {
       align-items: center;
       gap: 8px;
       flex-wrap: wrap;
-      padding: 10px 14px;
-      background: ${filterBg};
+      padding: 12px 14px;
+      background: ${isDark ? "linear-gradient(180deg, rgba(20,20,28,.92), rgba(15,15,20,.86))" : filterBg};
       border: ${borderWidth} solid var(--line);
       border-radius: ${radius};
       backdrop-filter: ${blur};
       -webkit-backdrop-filter: ${blur};
+      box-shadow: ${brutal ? "none" : "0 10px 38px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.04)"};
     }
 
     .journal-search {
@@ -820,10 +872,22 @@ function journalCSS(T) {
     }
 
     .journal-table-wrap {
+      position: relative;
       background: var(--surface);
       border: ${borderWidth} solid var(--line);
       border-radius: ${radius};
       overflow: hidden;
+      box-shadow: ${brutal ? "none" : "0 22px 70px rgba(0,0,0,.20)"};
+    }
+
+    .journal-table-wrap::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 1px;
+      background: ${brutal ? "transparent" : "linear-gradient(90deg, transparent, rgba(255,255,255,.16), transparent)"};
+      z-index: 3;
+      pointer-events: none;
     }
 
     .journal-table-wrap table {
@@ -833,7 +897,7 @@ function journalCSS(T) {
     }
 
     .journal-table-wrap thead {
-      background: var(--surface-2);
+      background: ${isDark ? "linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.016)), var(--surface-2)" : "var(--surface-2)"};
       border-bottom: ${borderWidth} solid var(--line);
     }
 
@@ -881,12 +945,13 @@ function journalCSS(T) {
     .journal-table-wrap tbody tr {
       border-bottom: ${borderWidth} solid var(--line);
       cursor: pointer;
-      transition: background .12s;
+      transition: background .12s, box-shadow .12s;
       position: relative;
     }
 
     .journal-table-wrap tbody tr:hover {
       background: ${hover};
+      box-shadow: inset 0 0 0 999px rgba(129,140,248,.018);
     }
 
     .journal-table-wrap tbody tr.expanded {
@@ -910,24 +975,69 @@ function journalCSS(T) {
     }
 
     .journal-table-wrap td {
-      padding: 12px 14px;
+      padding: 13px 14px;
       font-size: 12.5px;
       color: var(--ink-2);
       vertical-align: middle;
     }
 
-    .journal-date,
-    .pair-cell,
+    .date-cell,
+    .pair-stack,
     .r-cell,
     .mono {
       font-family: var(--font-geist-mono), 'JetBrains Mono', monospace;
       font-feature-settings: "tnum";
     }
 
-    .pair-cell {
+    .date-cell {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .date-cell strong {
+      color: var(--ink-2);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .date-cell span {
+      color: var(--dim);
+      font-size: 11px;
+      font-weight: 650;
+    }
+
+    .pair-stack {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
       color: var(--ink);
       font-weight: 800;
       letter-spacing: -0.02em;
+    }
+
+    .pair-stack i {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+      background: var(--amber);
+    }
+
+    .pair-stack.win i {
+      background: var(--green);
+      box-shadow: ${brutal ? "none" : "0 0 14px rgba(52,211,153,.42)"};
+    }
+
+    .pair-stack.loss i {
+      background: var(--red);
+      box-shadow: ${brutal ? "none" : "0 0 14px rgba(251,113,133,.34)"};
+    }
+
+    .pair-stack.be i {
+      background: var(--amber);
+      box-shadow: ${brutal ? "none" : "0 0 14px rgba(251,191,36,.34)"};
     }
 
     .dir-badge {
@@ -977,6 +1087,23 @@ function journalCSS(T) {
     .meta-cell {
       color: var(--dim);
       font-size: 11px;
+    }
+
+    .setup-cell {
+      display: inline-flex;
+      max-width: 190px;
+      align-items: center;
+      padding: 3px 8px;
+      border-radius: ${brutal ? "3px" : "6px"};
+      border: ${borderWidth} solid ${isDark ? "rgba(129,140,248,.12)" : "var(--line)"};
+      background: ${isDark ? "rgba(129,140,248,.055)" : T.surface2};
+      color: var(--ink-2);
+      font-size: 11px;
+      font-weight: 650;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      vertical-align: middle;
     }
 
     .bias-cell.bullish { color: var(--green); }
@@ -1037,12 +1164,12 @@ function journalCSS(T) {
 
     .detail-content {
       padding: 18px 22px;
-      background: var(--surface-2);
+      background: ${isDark ? "radial-gradient(circle at 85% 0%, rgba(129,140,248,.08), transparent 30%), var(--surface-2)" : "var(--surface-2)"};
       border-top: ${borderWidth} solid var(--line);
       border-bottom: ${brutal ? `2px solid ${T.border}` : "2px solid var(--indigo)"};
       display: grid;
       grid-template-columns: minmax(0, 1.05fr) minmax(340px, .95fr);
-      gap: 14px;
+      gap: 16px;
     }
 
     .detail-card {
@@ -1052,6 +1179,7 @@ function journalCSS(T) {
       border-radius: ${brutal ? "4px" : "12px"};
       padding: 16px;
       overflow: hidden;
+      box-shadow: ${brutal ? "none" : "inset 0 1px 0 rgba(255,255,255,.035)"};
     }
 
     .detail-card::after {
@@ -1200,7 +1328,7 @@ function journalCSS(T) {
       border-radius: ${brutal ? "4px" : "10px"};
       border: ${borderWidth} solid var(--line);
       overflow: hidden;
-      background: var(--surface);
+      background: ${isDark ? "linear-gradient(135deg, rgba(255,255,255,.028), rgba(255,255,255,.01)), var(--surface)" : "var(--surface)"};
       cursor: pointer;
       padding: 0;
       color: var(--dim);
@@ -1250,6 +1378,16 @@ function journalCSS(T) {
       font-style: normal;
       font-size: 11px;
       color: var(--dim);
+    }
+
+    .screenshot-thumb.empty::after {
+      content: "";
+      position: absolute;
+      inset: 16px;
+      border: 1px dashed var(--line);
+      border-radius: ${brutal ? "3px" : "8px"};
+      opacity: .8;
+      pointer-events: none;
     }
 
     @media (max-width: 768px) {
