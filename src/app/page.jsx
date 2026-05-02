@@ -655,7 +655,7 @@ export default function App() {
           </div>
         )}
 
-        {!["daily","weekly","calculator","more"].includes(tab) && (
+        {!["journal","daily","weekly","calculator","more"].includes(tab) && (
           <DateRangeBar T={T} value={datePreset} onChange={setDatePreset} count={dateFiltered.length} total={trades.length}/>
         )}
 

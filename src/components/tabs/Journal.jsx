@@ -221,9 +221,16 @@ function Journal({
     setSortDir(null);
   }
 
-  function cleanSortIcon(columnId) {
-    if (sortKey !== columnId) return "↕";
-    return sortDir === "asc" ? "↑" : "↓";
+  function sortGlyph(columnId) {
+    if (sortKey !== columnId) return "\u2195";
+    return sortDir === "asc" ? "\u2191" : "\u2193";
+  }
+
+  function activeCount(value, type) {
+    if (type === "pair" && filterPair === value && value !== "ALL") return displayTrades.length;
+    if (type === "result" && filterResult === value && value !== "ALL") return displayTrades.length;
+    if (type === "tag" && filterTag === value) return displayTrades.length;
+    return null;
   }
 
   return (
@@ -237,7 +244,7 @@ function Journal({
         <div>
           <h1>Trade <span>Journal</span></h1>
           <p>
-            {stats.total} trades • {fmtRR(stats.totalR)} net • {stats.wins}W / {stats.losses}L
+            {stats.total} trades / {fmtRR(stats.totalR)} net / {stats.wins}W / {stats.losses}L
           </p>
         </div>
         <div className="journal-actions">
@@ -253,9 +260,9 @@ function Journal({
       </header>
 
       <section className="journal-stat-strip" aria-label="Journal stats">
-        <StatCell label="Total Trades" value={stats.total} sub="in current view" />
+        <StatCell label="Total Trades" value={stats.total} />
         <StatCell label="Net R" value={fmtRR(stats.totalR)} sub={`${stats.wins} wins / ${stats.losses} losses`} tone={stats.totalR >= 0 ? "green" : "red"} gradient={stats.totalR > 0} />
-        <StatCell label="Win Rate" value={`${stats.winRate.toFixed(1)}%`} sub="filtered trades" tone={stats.winRate >= 50 ? "green" : "red"} />
+        <StatCell label="Win Rate" value={`${stats.winRate.toFixed(1)}%`} tone={stats.winRate >= 50 ? "green" : "red"} />
         <StatCell label="Avg Win" value={fmtRR(stats.avgWin)} sub="winning trades" tone="green" />
         <StatCell label="Avg Loss" value={fmtRR(stats.avgLoss)} sub="losing trades" tone="red" />
       </section>
@@ -277,6 +284,7 @@ function Journal({
               key={pair}
               active={filterPair === pair}
               onClick={() => setFilterPair(pair)}
+              count={activeCount(pair, "pair")}
             >
               {pairLabel(pair)}
             </FilterChip>
@@ -291,6 +299,7 @@ function Journal({
               key={result.value}
               active={filterResult === result.value}
               onClick={() => setFilterResult(result.value)}
+              count={activeCount(result.value, "result")}
             >
               {result.label}
             </FilterChip>
@@ -304,6 +313,7 @@ function Journal({
                 key={tag}
                 active={filterTag === tag}
                 onClick={() => setFilterTag(filterTag === tag ? null : tag)}
+                count={activeCount(tag, "tag")}
               >
                 {tag}
               </FilterChip>
@@ -342,7 +352,7 @@ function Journal({
                             onClick={() => cycleSort(header.column.id)}
                           >
                             {flexRender(header.column.columnDef.header, header.getContext())}
-                            <span>{cleanSortIcon(header.column.id)}</span>
+                            <span>{sortGlyph(header.column.id)}</span>
                           </button>
                         ) : (
                           flexRender(header.column.columnDef.header, header.getContext())
@@ -354,7 +364,7 @@ function Journal({
               ))}
             </thead>
             <tbody>
-              {rows.map(row => {
+              {rows.map((row, index) => {
                 const trade = row.original;
                 const isExpanded = expandedId === trade._dbid;
                 return (
@@ -362,6 +372,7 @@ function Journal({
                     key={trade._dbid}
                     row={row}
                     trade={trade}
+                    index={index}
                     isExpanded={isExpanded}
                     columnCount={columns.length}
                     onToggle={() => toggleExpanded(trade._dbid)}
@@ -371,19 +382,24 @@ function Journal({
               })}
             </tbody>
           </table>
+          <div className="journal-table-footer">
+            <span>Showing {displayTrades.length} of {filtered.length} trades</span>
+            <strong className={stats.totalR >= 0 ? "positive" : "negative"}>Net R - {fmtRR(stats.totalR)}</strong>
+          </div>
         </section>
       )}
     </div>
   );
 }
 
-function FragmentRow({ row, trade, isExpanded, columnCount, onToggle, onViewImg }) {
+function FragmentRow({ row, trade, index, isExpanded, columnCount, onToggle, onViewImg }) {
   const rowTone = trade.result === "WIN" ? "row-win" : trade.result === "LOSS" ? "row-loss" : "row-be";
+  const rowAlt = index % 2 ? "row-alt" : "";
 
   return (
     <>
       <tr
-        className={`${rowTone} ${isExpanded ? "expanded" : ""}`}
+        className={`${rowTone} ${rowAlt} ${isExpanded ? "expanded" : ""}`}
         onClick={onToggle}
         tabIndex={0}
         onKeyDown={event => {
@@ -430,37 +446,30 @@ function TradeDetail({ trade, onViewImg }) {
 
   return (
     <div className="detail-content">
-      <div className="detail-card detail-review">
-        <div className="detail-kicker">
-          <span>Execution Review</span>
-          <strong className={Number(trade.rr) >= 0 ? "positive" : "negative"}>{fmtRR(trade.rr)}</strong>
-        </div>
+      <div className="detail-review">
+        <DetailTitle>Notes</DetailTitle>
         <p className={`detail-notes ${hasNotes ? "" : "empty"}`}>
-          {hasNotes ? trade.notes : "No written review yet. Add the lesson, why the setup mattered, and what you would repeat or avoid next time."}
+          {hasNotes ? trade.notes : "No notes yet. Add your reasoning, lesson, or what you would repeat."}
         </p>
 
-        <div className="detail-context-grid">
-          <ContextItem label="Session" value={trade.session || "-"} />
-          <ContextItem label="Setup" value={trade.setup || "-"} />
-          <ContextItem label="Bias" value={trade.dailyBias || "-"} tone={trade.dailyBias === "Bullish" ? "green" : trade.dailyBias === "Bearish" ? "red" : ""} />
-          <ContextItem label="Emotion" value={trade.emotion || "-"} />
-        </div>
-
-        <DetailTitle>Confluence Stack</DetailTitle>
+        <DetailTitle>Confluences</DetailTitle>
         <PillRow items={confluences.length ? confluences : ["No confluence tags"]} muted={!confluences.length} />
 
         <DetailTitle>Tags</DetailTitle>
         <PillRow items={tags.length ? tags : ["No tags"]} muted={!tags.length} />
       </div>
 
-      <div className="detail-card detail-evidence">
-        <div className="detail-kicker">
-          <span>Chart Evidence</span>
-          <strong>{[pre, post].filter(Boolean).length}/2</strong>
-        </div>
+      <div className="detail-evidence">
+        <DetailTitle>Charts</DetailTitle>
         <div className="screenshots-grid">
           <ScreenshotThumb label="PRE CHART" src={pre} onClick={() => pre && onViewImg(pre)} />
           <ScreenshotThumb label="POST CHART" src={post} onClick={() => post && onViewImg(post)} />
+        </div>
+        <div className="detail-meta-list">
+          <MetaRow label="Session" value={trade.session || "-"} />
+          <MetaRow label="Setup" value={trade.setup || "-"} />
+          <MetaRow label="Bias" value={trade.dailyBias || "-"} />
+          <MetaRow label="Emotion" value={trade.emotion || "-"} />
         </div>
       </div>
     </div>
@@ -488,22 +497,23 @@ function StatCell({ label, value, sub, tone, gradient }) {
     <div className="stat">
       <span className="stat-label">{label}</span>
       <span className={`stat-val ${tone || ""} ${gradient ? "gradient" : ""}`}>{value}</span>
-      <span className="stat-sub">{sub}</span>
+      {sub && <span className="stat-sub">{sub}</span>}
     </div>
   );
 }
 
-function FilterChip({ active, onClick, children }) {
+function FilterChip({ active, onClick, children, count }) {
   return (
     <button type="button" className={`filter-chip ${active ? "active" : ""}`} onClick={onClick}>
-      {children}
+      <span>{children}</span>
+      {count !== null && count !== undefined && <span className="chip-count">{count}</span>}
     </button>
   );
 }
 
 function DirectionBadge({ direction }) {
   if (!direction) return <span className="meta-cell">-</span>;
-  return <span className={`dir-badge ${direction === "LONG" ? "long" : "short"}`}>{direction}</span>;
+  return <span className="dir-badge">{direction}</span>;
 }
 
 function DateCell({ date }) {
@@ -517,10 +527,8 @@ function DateCell({ date }) {
 }
 
 function PairCell({ trade }) {
-  const tone = trade.result === "WIN" ? "win" : trade.result === "LOSS" ? "loss" : "be";
   return (
-    <span className={`pair-stack ${tone}`}>
-      <i aria-hidden="true" />
+    <span className="pair-stack">
       <strong>{trade.pair || "-"}</strong>
     </span>
   );
@@ -545,17 +553,22 @@ function MetaCell({ value }) {
 }
 
 function SetupCell({ value }) {
-  return <span className="setup-cell">{value || "-"}</span>;
+  return <span className="setup-cell" title={value || "-"}>{value || "-"}</span>;
 }
 
 function BiasCell({ bias }) {
-  const cls = bias === "Bullish" ? "bullish" : bias === "Bearish" ? "bearish" : "";
-  return <span className={`meta-cell bias-cell ${cls}`}>{bias || "-"}</span>;
+  const cls = bias === "Bullish" ? "bullish" : bias === "Bearish" ? "bearish" : "neutral";
+  return (
+    <span className={`meta-cell bias-cell ${cls}`}>
+      <i aria-hidden="true" />
+      {bias || "-"}
+    </span>
+  );
 }
 
 function EmotionCell({ emotion }) {
   const lower = String(emotion || "").toLowerCase();
-  const cls = lower.includes("revenge") ? "danger" : lower.includes("anxious") || lower.includes("impatient") ? "warning" : "";
+  const cls = lower.includes("revenge") ? "danger" : "";
   return <span className={`meta-cell emotion-cell ${cls}`}>{emotion || "-"}</span>;
 }
 
@@ -563,11 +576,11 @@ function DetailTitle({ children }) {
   return <h4 className="detail-title">{children}</h4>;
 }
 
-function ContextItem({ label, value, tone }) {
+function MetaRow({ label, value }) {
   return (
-    <div className="context-item">
+    <div className="meta-row">
       <span>{label}</span>
-      <strong className={tone || ""}>{value}</strong>
+      <strong>{value}</strong>
     </div>
   );
 }
@@ -590,7 +603,7 @@ function ScreenshotThumb({ label, src, onClick }) {
       aria-label={src ? `Open ${label} screenshot` : `${label} screenshot missing`}
     >
       <span>{label}</span>
-      {src ? <img src={src} alt={`${label} chart screenshot`} loading="lazy" /> : <em>No image</em>}
+      {src ? <img src={src} alt={`${label} chart screenshot`} loading="lazy" /> : <em>No chart yet</em>}
     </button>
   );
 }
@@ -617,10 +630,12 @@ function journalCSS(T) {
   const isDark = T.isDark && !brutal;
   const borderWidth = brutal ? "2px" : "1px";
   const radius = brutal ? "4px" : "12px";
-  const hover = isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)";
-  const expanded = isDark ? "rgba(129,140,248,0.04)" : "rgba(99,102,241,0.07)";
-  const filterBg = isDark ? "rgba(15,15,20,0.82)" : `${T.surface}ee`;
-  const blur = brutal ? "none" : "blur(20px)";
+  const hover = brutal ? "transparent" : isDark ? "rgba(255,255,255,0.025)" : "rgba(0,0,0,0.025)";
+  const expanded = isDark ? "rgba(129,140,248,0.06)" : "rgba(99,102,241,0.08)";
+  const filterBg = isDark ? "rgba(15,15,20,0.86)" : `${T.surface}f2`;
+  const blur = brutal ? "none" : "blur(24px)";
+  const softLine = brutal ? T.border : isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.06)";
+  const zebra = brutal ? "transparent" : isDark ? "rgba(255,255,255,0.015)" : "rgba(0,0,0,0.015)";
 
   return `
     .journal-power-table {
@@ -721,10 +736,12 @@ function journalCSS(T) {
     .journal-stat-strip .stat {
       position: relative;
       background: ${isDark ? "linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012)), var(--surface)" : "var(--surface)"};
-      padding: 16px 20px;
+      padding: 12px 18px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      justify-content: center;
+      gap: 2px;
+      min-height: 56px;
       min-width: 0;
       overflow: hidden;
     }
@@ -742,7 +759,7 @@ function journalCSS(T) {
     }
 
     .stat-label {
-      font-size: 10px;
+      font-size: 9px;
       color: var(--dim);
       letter-spacing: 0.15em;
       text-transform: uppercase;
@@ -751,8 +768,8 @@ function journalCSS(T) {
 
     .stat-val {
       font-family: var(--font-geist-mono), 'JetBrains Mono', monospace;
-      font-size: 22px;
-      font-weight: 800;
+      font-size: 18px;
+      font-weight: 700;
       letter-spacing: -0.02em;
       font-feature-settings: "tnum";
       color: var(--ink);
@@ -765,7 +782,7 @@ function journalCSS(T) {
     }
 
     .stat-sub {
-      font-size: 11px;
+      font-size: 10px;
       color: var(--dim);
     }
 
@@ -783,7 +800,7 @@ function journalCSS(T) {
       border-radius: ${radius};
       backdrop-filter: ${blur};
       -webkit-backdrop-filter: ${blur};
-      box-shadow: ${brutal ? "none" : "0 10px 38px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.04)"};
+      box-shadow: ${brutal ? "none" : "0 10px 38px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.04), inset 0 -1px 0 rgba(255,255,255,.04)"};
     }
 
     .journal-search {
@@ -845,18 +862,37 @@ function journalCSS(T) {
       font-weight: 650;
       min-height: 30px;
       white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .filter-chip:hover {
       color: var(--ink-2);
       border-color: var(--indigo);
+      background: ${brutal ? "transparent" : "rgba(255,255,255,0.04)"};
     }
 
     .filter-chip.active {
       background: rgba(129,140,248,0.15);
-      color: var(--indigo);
+      color: var(--ink);
       border-color: rgba(129,140,248,0.4);
       font-weight: 800;
+    }
+
+    .chip-count {
+      display: inline-grid;
+      place-items: center;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 5px;
+      border-radius: 999px;
+      background: rgba(129,140,248,.18);
+      color: var(--ink-2);
+      font-family: var(--font-geist-mono), 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      font-feature-settings: "tnum";
     }
 
     .journal-divider {
@@ -887,18 +923,18 @@ function journalCSS(T) {
 
     .journal-table-wrap table {
       width: 100%;
-      border-collapse: separate;
-      border-spacing: 0 7px;
+      border-collapse: collapse;
+      border-spacing: 0;
       table-layout: auto;
-      padding: 0 10px 10px;
     }
 
     .journal-table-wrap thead {
-      background: transparent;
+      background: var(--surface-2);
+      border-bottom: ${borderWidth} solid ${softLine};
     }
 
     .journal-table-wrap th {
-      padding: 12px 14px 6px;
+      padding: 12px 14px;
       font-size: 10px;
       letter-spacing: 0.15em;
       text-transform: uppercase;
@@ -940,16 +976,8 @@ function journalCSS(T) {
 
     .journal-table-wrap tbody tr {
       cursor: pointer;
-      transition: transform .14s ease;
+      transition: background .12s ease;
       position: relative;
-    }
-
-    .journal-table-wrap tbody tr:hover {
-      transform: translateY(-1px);
-    }
-
-    .journal-table-wrap tbody tr.expanded {
-      transform: translateY(-1px);
     }
 
     .journal-table-wrap tbody tr:focus-visible {
@@ -958,35 +986,42 @@ function journalCSS(T) {
     }
 
     .journal-table-wrap td {
-      padding: 13px 14px;
-      font-size: 12.5px;
+      padding: 10px 14px;
+      font-size: 12px;
       color: var(--ink-2);
       vertical-align: middle;
-      background: ${isDark ? "linear-gradient(180deg, rgba(255,255,255,.028), rgba(255,255,255,.012)), var(--surface)" : "var(--surface)"};
-      border-top: ${borderWidth} solid var(--line);
-      border-bottom: ${borderWidth} solid var(--line);
-      transition: background .14s ease, border-color .14s ease, box-shadow .14s ease;
+      background: transparent;
+      border-bottom: ${borderWidth} solid ${softLine};
+      transition: background .12s ease, border-color .12s ease;
     }
 
     .journal-table-wrap td:first-child {
-      border-left: ${borderWidth} solid var(--line);
-      border-radius: ${brutal ? "3px" : "10px"} 0 0 ${brutal ? "3px" : "10px"};
+      position: relative;
     }
 
-    .journal-table-wrap td:last-child {
-      border-right: ${borderWidth} solid var(--line);
-      border-radius: 0 ${brutal ? "3px" : "10px"} ${brutal ? "3px" : "10px"} 0;
+    .journal-table-wrap tbody tr.row-alt td {
+      background: ${zebra};
     }
 
     .journal-table-wrap tbody tr:hover td {
-      background: ${isDark ? "linear-gradient(180deg, rgba(129,140,248,.055), rgba(255,255,255,.016)), var(--surface)" : hover};
-      border-color: ${brutal ? T.border : "rgba(129,140,248,.22)"};
+      background: ${hover};
+      border-color: ${brutal ? T.border : "rgba(129,140,248,.12)"};
     }
 
     .journal-table-wrap tbody tr.expanded td {
       background: ${expanded};
-      border-color: ${brutal ? T.border : "rgba(129,140,248,.36)"};
-      box-shadow: ${brutal ? "none" : "0 14px 34px rgba(0,0,0,.12)"};
+      border-color: ${brutal ? T.border : "rgba(129,140,248,.22)"};
+    }
+
+    .journal-table-wrap tbody tr.expanded td:first-child::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: var(--indigo);
+      box-shadow: ${brutal ? "none" : "0 0 12px rgba(129,140,248,0.4)"};
     }
 
     .date-cell,
@@ -1037,54 +1072,28 @@ function journalCSS(T) {
 
     .journal-table-wrap tbody tr:hover .pair-stack strong,
     .journal-table-wrap tbody tr.expanded .pair-stack strong {
-      color: var(--indigo);
-    }
-
-    .pair-stack i {
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      flex: 0 0 auto;
-      background: var(--amber);
-    }
-
-    .pair-stack.win i {
-      background: var(--green);
-      box-shadow: ${brutal ? "none" : "0 0 14px rgba(52,211,153,.42)"};
-    }
-
-    .pair-stack.loss i {
-      background: var(--red);
-      box-shadow: ${brutal ? "none" : "0 0 14px rgba(251,113,133,.34)"};
-    }
-
-    .pair-stack.be i {
-      background: var(--amber);
-      box-shadow: ${brutal ? "none" : "0 0 14px rgba(251,191,36,.34)"};
+      color: var(--ink);
     }
 
     .dir-badge {
       display: inline-flex;
       align-items: center;
-      padding: 2px 7px;
-      border-radius: 4px;
       font-size: 10px;
-      font-weight: 800;
+      font-weight: 600;
       letter-spacing: 0.08em;
+      color: var(--dim);
+      font-family: var(--font-geist-mono), 'JetBrains Mono', monospace;
     }
-
-    .dir-badge.long { background: rgba(52,211,153,0.1); color: var(--green); }
-    .dir-badge.short { background: rgba(251,113,133,0.1); color: var(--red); }
 
     .result-pill {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 2px 8px;
-      border-radius: 5px;
-      font-size: 10px;
-      font-weight: 800;
+      padding: 0;
+      font-size: 11px;
+      font-weight: 600;
       letter-spacing: 0.05em;
+      color: var(--ink-2);
     }
 
     .result-pill::before {
@@ -1095,11 +1104,8 @@ function journalCSS(T) {
       flex-shrink: 0;
     }
 
-    .result-pill.win { background: rgba(52,211,153,0.12); color: var(--green); }
     .result-pill.win::before { background: var(--green); }
-    .result-pill.loss { background: rgba(251,113,133,0.12); color: var(--red); }
     .result-pill.loss::before { background: var(--red); }
-    .result-pill.be { background: rgba(251,191,36,0.12); color: var(--amber); }
     .result-pill.be::before { background: var(--amber); }
 
     .r-cell {
@@ -1113,16 +1119,11 @@ function journalCSS(T) {
     }
 
     .setup-cell {
-      display: inline-flex;
+      display: inline-block;
       max-width: 190px;
-      align-items: center;
-      padding: 3px 8px;
-      border-radius: ${brutal ? "3px" : "6px"};
-      border: ${borderWidth} solid ${isDark ? "rgba(129,140,248,.12)" : "var(--line)"};
-      background: ${isDark ? "rgba(129,140,248,.055)" : T.surface2};
       color: var(--ink-2);
       font-size: 11px;
-      font-weight: 650;
+      font-weight: 500;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -1132,12 +1133,26 @@ function journalCSS(T) {
     .journal-table-wrap tbody tr:hover .setup-cell,
     .journal-table-wrap tbody tr.expanded .setup-cell {
       color: var(--ink);
-      border-color: ${brutal ? T.border : "rgba(129,140,248,.28)"};
     }
 
-    .bias-cell.bullish { color: var(--green); }
-    .bias-cell.bearish { color: var(--red); }
-    .emotion-cell.warning { color: var(--amber); }
+    .bias-cell {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--dim);
+    }
+
+    .bias-cell i {
+      width: 4px;
+      height: 4px;
+      border-radius: 999px;
+      background: var(--dim);
+      opacity: .75;
+    }
+
+    .bias-cell.bullish i { background: var(--green); }
+    .bias-cell.bearish i { background: var(--red); }
+    .bias-cell.neutral i { background: var(--dim); }
     .emotion-cell.danger { color: var(--red); }
 
     .row-actions {
@@ -1180,6 +1195,27 @@ function journalCSS(T) {
       background: rgba(251,113,133,0.12);
     }
 
+    .journal-table-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      border-top: ${borderWidth} solid ${softLine};
+      color: var(--dim);
+      font-size: 11px;
+    }
+
+    .journal-table-footer strong {
+      font-family: var(--font-geist-mono), 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      font-feature-settings: "tnum";
+    }
+
+    .journal-table-footer strong.positive { color: var(--green); }
+    .journal-table-footer strong.negative { color: var(--red); }
+
     .detail-row,
     .detail-row:hover {
       cursor: default !important;
@@ -1192,104 +1228,16 @@ function journalCSS(T) {
     }
 
     .detail-content {
-      padding: 18px 22px;
-      background: ${isDark ? "radial-gradient(circle at 85% 0%, rgba(129,140,248,.08), transparent 30%), var(--surface-2)" : "var(--surface-2)"};
+      padding: 20px 24px;
+      background: var(--surface-2);
       border-top: ${borderWidth} solid var(--line);
       border-bottom: ${brutal ? `2px solid ${T.border}` : "2px solid var(--indigo)"};
       display: grid;
-      grid-template-columns: minmax(0, 1.05fr) minmax(340px, .95fr);
-      gap: 16px;
+      grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr);
+      gap: 24px;
     }
 
-    .detail-card {
-      position: relative;
-      background: ${isDark ? "linear-gradient(135deg, rgba(255,255,255,.035), rgba(255,255,255,.012))" : T.surface};
-      border: ${borderWidth} solid var(--line);
-      border-radius: ${brutal ? "4px" : "12px"};
-      padding: 16px;
-      overflow: hidden;
-      box-shadow: ${brutal ? "none" : "inset 0 1px 0 rgba(255,255,255,.035)"};
-    }
-
-    .detail-card::after {
-      content: "";
-      position: absolute;
-      inset: auto -18% -36% auto;
-      width: 220px;
-      height: 220px;
-      border-radius: 999px;
-      background: ${brutal ? "transparent" : "radial-gradient(circle, rgba(129,140,248,.13), transparent 62%)"};
-      pointer-events: none;
-    }
-
-    .detail-kicker {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 12px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .detail-kicker span {
-      color: var(--dim);
-      font-size: 10px;
-      font-weight: 850;
-      letter-spacing: .16em;
-      text-transform: uppercase;
-    }
-
-    .detail-kicker strong {
-      font-family: var(--font-geist-mono), 'JetBrains Mono', monospace;
-      font-size: 13px;
-      color: var(--ink);
-      font-feature-settings: "tnum";
-    }
-
-    .detail-kicker strong.positive { color: var(--green); }
-    .detail-kicker strong.negative { color: var(--red); }
-
-    .detail-context-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 8px;
-      margin: 14px 0 16px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .context-item {
-      background: ${isDark ? "rgba(255,255,255,.025)" : T.surface2};
-      border: ${borderWidth} solid var(--line);
-      border-radius: ${brutal ? "3px" : "8px"};
-      padding: 9px 10px;
-      min-width: 0;
-    }
-
-    .context-item span {
-      display: block;
-      margin-bottom: 5px;
-      color: var(--dim);
-      font-size: 9px;
-      text-transform: uppercase;
-      letter-spacing: .12em;
-      font-weight: 750;
-    }
-
-    .context-item strong {
-      display: block;
-      color: var(--ink-2);
-      font-size: 11px;
-      font-weight: 800;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .context-item strong.green { color: var(--green); }
-    .context-item strong.red { color: var(--red); }
-
+    .detail-review,
     .detail-evidence {
       min-width: 0;
     }
@@ -1328,19 +1276,46 @@ function journalCSS(T) {
     }
 
     .pill-row span {
-      background: rgba(99,102,241,0.1);
+      background: rgba(99,102,241,0.08);
       color: var(--indigo);
       border: ${borderWidth} solid rgba(99,102,241,0.18);
-      font-size: 10px;
-      font-weight: 750;
-      padding: 2px 7px;
-      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: ${brutal ? "3px" : "6px"};
     }
 
     .pill-row span.muted {
       color: var(--dim);
       border-color: var(--line);
       background: var(--surface);
+    }
+
+    .detail-meta-list {
+      margin-top: 12px;
+      display: grid;
+      gap: 5px;
+    }
+
+    .meta-row {
+      display: grid;
+      grid-template-columns: 74px minmax(0, 1fr);
+      gap: 10px;
+      align-items: baseline;
+      font-size: 11px;
+    }
+
+    .meta-row span {
+      color: var(--dim);
+      font-weight: 600;
+    }
+
+    .meta-row strong {
+      color: var(--ink-2);
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .screenshots-grid {
@@ -1457,10 +1432,6 @@ function journalCSS(T) {
       .detail-content {
         grid-template-columns: 1fr;
         padding: 16px;
-      }
-
-      .detail-context-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       .screenshots-grid {
