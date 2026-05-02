@@ -1,5 +1,6 @@
 "use client"
-import { useState, useEffect } from "react";
+
+import { useEffect, useMemo, useState } from "react";
 import { animate, motion, useMotionValue, useMotionValueEvent } from "framer-motion";
 import { EmptyState, Btn, Badge } from "@/components/ui";
 import EquityCurve from "@/components/EquityCurve";
@@ -8,27 +9,29 @@ import InsightCards from "@/components/InsightCards";
 import MonthlyReturns from "@/components/MonthlyReturns";
 import { fmtDate, fmtRR, getWeeklyPairNotes } from "@/lib/utils";
 
+const FONT_NUM = "'JetBrains Mono','Fira Code',monospace";
+
 function AnimatedNumber({ target, active, format }) {
-  const value = useMotionValue(active ? 0 : target)
-  const [display, setDisplay] = useState(format(active ? 0 : target))
+  const value = useMotionValue(active ? 0 : target);
+  const [display, setDisplay] = useState(format(active ? 0 : target));
 
   useMotionValueEvent(value, "change", latest => {
-    setDisplay(format(latest))
-  })
+    setDisplay(format(latest));
+  });
 
-  useEffect(()=>{
-    const reduceMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches
-    if(reduceMotion || !active){
-      value.set(target)
-      return
+  useEffect(() => {
+    const reduceMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    if (reduceMotion || !active) {
+      value.set(target);
+      return;
     }
-    value.set(0)
+    value.set(0);
     const controls = animate(value, target, {
-      duration: 0.8,
+      duration: 0.75,
       ease: [0.16, 1, 0.3, 1],
-    })
-    return controls.stop
-  }, [active, format, target, value])
+    });
+    return controls.stop;
+  }, [active, format, target, value]);
 
   return (
     <motion.span
@@ -39,537 +42,296 @@ function AnimatedNumber({ target, active, format }) {
     >
       {display}
     </motion.span>
-  )
+  );
 }
 
 function MiniSparkline({ T, data = [], color }) {
-  const points = data.slice(-7).map(point => Number(point?.r) || 0)
+  const points = data.slice(-7).map(point => Number(point?.r) || 0);
   if (points.length < 2) {
-    return <div style={{ height: 30, margin: "2px 0 5px" }} aria-hidden="true" />
+    return <div style={{ height: 28, margin: "1px 0 4px" }} aria-hidden="true" />;
   }
 
-  const min = Math.min(...points)
-  const max = Math.max(...points)
-  const range = max - min || 1
-  const width = 112
-  const height = 30
-  const path = points.map((value, index) => {
-    const x = (index / (points.length - 1)) * width
-    const y = height - 5 - ((value - min) / range) * (height - 10)
-    return `${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`
-  }).join(" ")
+  const min = Math.min(...points);
+  const max = Math.max(...points);
+  const range = max - min || 1;
+  const width = 112;
+  const height = 28;
+  const path = points.map((point, index) => {
+    const x = (index / (points.length - 1)) * width;
+    const y = height - 5 - ((point - min) / range) * (height - 10);
+    return `${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
+  }).join(" ");
 
   return (
-    <svg width="100%" height="30" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" aria-hidden="true" style={{ display: "block", margin: "2px 0 5px", opacity: 0.88 }}>
+    <svg width="100%" height="28" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" aria-hidden="true" style={{ display: "block", margin: "1px 0 4px", opacity: 0.86 }}>
       <path d={`M 0 ${height - 5} L ${width} ${height - 5}`} stroke={T.border} strokeWidth="1" strokeDasharray="4 6" opacity="0.45" />
       <path d={path} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
-  )
+  );
 }
 
+function BentoTile({ T, children, style, compact = false, interactive = true, delay = 0, accent }) {
+  const isVoid = T.isDark && !T.hardShadow;
+  const glow = accent || T.accentBright;
+
+  function handlePointerMove(event) {
+    if (!isVoid || !interactive) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    event.currentTarget.style.setProperty("--mx", `${event.clientX - rect.left}px`);
+    event.currentTarget.style.setProperty("--my", `${event.clientY - rect.top}px`);
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28, delay, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={interactive ? { y: -2 } : undefined}
+      onPointerMove={handlePointerMove}
+      style={{
+        position: "relative",
+        minWidth: 0,
+        minHeight: 0,
+        overflow: "hidden",
+        borderRadius: T.hardShadow ? 4 : 16,
+        border: `1px solid ${T.border}`,
+        background: isVoid
+          ? `radial-gradient(360px circle at var(--mx, 70%) var(--my, 30%), ${glow}20, transparent 62%), linear-gradient(135deg, rgba(255,255,255,0.038), rgba(255,255,255,0.010)), ${T.surface}`
+          : T.surface,
+        boxShadow: isVoid ? `0 18px 52px ${T.bg}55, inset 0 1px 0 rgba(255,255,255,0.045)` : T.hardShadow || "none",
+        backdropFilter: isVoid ? "blur(18px)" : undefined,
+        WebkitBackdropFilter: isVoid ? "blur(18px)" : undefined,
+        padding: compact ? "12px 14px" : "14px 16px",
+        ...style,
+      }}
+    >
+      {isVoid && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: 0,
+            pointerEvents: "none",
+            borderRadius: "inherit",
+            boxShadow: `inset 0 0 0 1px ${glow}22`,
+          }}
+        />
+      )}
+      <div style={{ position: "relative", zIndex: 1, height: "100%", minWidth: 0 }}>{children}</div>
+    </motion.div>
+  );
+}
+
+function SectionTitle({ T, title, meta }) {
+  return (
+    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, minHeight: 18, marginBottom: 10 }}>
+      <div style={{ color: T.muted, fontSize: 10, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", lineHeight: 1.1 }}>{title}</div>
+      {meta && <div style={{ color: T.textDim, fontSize: 10, fontFamily: FONT_NUM, whiteSpace: "nowrap" }}>{meta}</div>}
+    </div>
+  );
+}
 
 function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNewDaily, onNewWeekly, viewportWidth, active }) {
-  const today        = new Date().toISOString().split("T")[0]
-  const todayTrades  = trades.filter(t => t.date === today)
-  const latestDaily  = [...dailyPlans].sort((a,b) => new Date(b.date) - new Date(a.date))[0]
-  const latestWeekly = [...weeklyPlans].sort((a,b) => new Date(b.weekStart) - new Date(a.weekStart))[0]
-  const bestPair     = [...stats.byPair].sort((a,b) => b.totalR - a.totalR)[0]
-  const isMobile     = viewportWidth < 768
-  const isUltraWide  = viewportWidth >= 2200
-  const isVoid       = T.isDark && !T.hardShadow
-  const gridTemplate  = isMobile ? "1fr" : `repeat(${isUltraWide ? 16 : 12},minmax(0,1fr))`
-  const todayR        = todayTrades.reduce((sum, t) => sum + (Number(t.rr) || 0), 0)
-  const activePairs   = stats.byPair
-    .filter(p => p.count > 0)
-    .sort((a, b) => b.totalR - a.totalR)
-  const todayLabel    = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "2-digit", month: "long" })
+  const today = new Date().toISOString().split("T")[0];
+  const todayTrades = trades.filter(trade => trade.date === today);
+  const latestDaily = [...dailyPlans].sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+  const latestWeekly = [...weeklyPlans].sort((a, b) => new Date(b.weekStart) - new Date(a.weekStart))[0];
+  const bestPair = [...stats.byPair].sort((a, b) => b.totalR - a.totalR)[0];
+  const isMobile = viewportWidth < 768;
+  const isWide = viewportWidth >= 1800;
+  const gridTemplate = isMobile ? "1fr" : "repeat(12,minmax(0,1fr))";
+  const todayR = todayTrades.reduce((sum, trade) => sum + (Number(trade.rr) || 0), 0);
+  const activePairs = stats.byPair.filter(pair => pair.count > 0).sort((a, b) => b.totalR - a.totalR);
+  const todayLabel = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "2-digit", month: "long" });
 
   const kpis = [
     {
-      label:    "Total R",
-      value:    <AnimatedNumber target={stats.totalR} active={active} format={v=>`${v >= 0 ? "+" : ""}${v.toFixed(2)}R`} />,
-      color:    stats.totalR >= 0 ? T.green : T.red,
-      sub:      `${stats.total} trades`,
+      label: "Total R",
+      value: <AnimatedNumber target={stats.totalR} active={active} format={value => `${value >= 0 ? "+" : ""}${value.toFixed(2)}R`} />,
+      color: stats.totalR >= 0 ? T.green : T.red,
+      sub: `${stats.total} trades`,
       barWidth: `${Math.min(Math.abs(stats.totalR) / 20 * 100, 100)}%`,
       sparkline: stats.equityCurve,
     },
     {
-      label:    "Win Rate",
-      value:    <AnimatedNumber target={stats.winRate} active={active} format={v=>`${v.toFixed(1)}%`} />,
-      color:    stats.winRate >= 55 ? T.green : stats.winRate >= 45 ? T.amber : T.red,
-      sub:      `${stats.wins}W / ${stats.losses}L / ${stats.be}BE`,
+      label: "Win Rate",
+      value: <AnimatedNumber target={stats.winRate} active={active} format={value => `${value.toFixed(1)}%`} />,
+      color: stats.winRate >= 55 ? T.green : stats.winRate >= 45 ? T.amber : T.red,
+      sub: `${stats.wins}W / ${stats.losses}L / ${stats.be}BE`,
       barWidth: `${Math.min(stats.winRate, 100)}%`,
       sparkline: stats.equityCurve,
     },
     {
-      label:    "Avg RR",
-      value:    <AnimatedNumber target={stats.avgRR} active={active} format={v=>`${v.toFixed(2)}R`} />,
-      color:    stats.avgRR >= 2 ? T.green : stats.avgRR >= 1 ? T.amber : T.red,
-      sub:      "on winning trades",
+      label: "Avg RR",
+      value: <AnimatedNumber target={stats.avgRR} active={active} format={value => `${value.toFixed(2)}R`} />,
+      color: stats.avgRR >= 2 ? T.green : stats.avgRR >= 1 ? T.amber : T.red,
+      sub: "on winning trades",
       barWidth: `${Math.min(stats.avgRR / 3 * 100, 100)}%`,
       sparkline: stats.equityCurve,
     },
     {
-      label:    "Best Pair",
-      value:    bestPair?.pair || "None",
-      color:    T.accentBright,
-      sub:      `${(bestPair?.totalR || 0) >= 0 ? "+" : ""}${(bestPair?.totalR || 0).toFixed(1)}R total`,
+      label: "Best Pair",
+      value: bestPair?.pair || "None",
+      color: T.accentBright,
+      sub: `${(bestPair?.totalR || 0) >= 0 ? "+" : ""}${(bestPair?.totalR || 0).toFixed(1)}R total`,
       barWidth: `${Math.min(Math.abs(bestPair?.totalR || 0) / 20 * 100, 100)}%`,
       sparkline: stats.equityCurve,
     },
-  ]
-
-  // ── secondary card shared style ────────────────────────────────────────────
-  const secondCard = {
-    borderRadius: 14,
-    border: `1px solid ${T.border}`,
-    background: T.surface,
-    padding: "12px 14px",
-    overflow: "hidden",
-    minHeight: 136,
-  }
-  const secTitle = {
-    fontSize: 11,
-    fontWeight: 700,
-    color: T.muted,
-    letterSpacing: "0.1em",
-    textTransform: "uppercase",
-    marginBottom: 10,
-  }
+  ];
 
   return (
     <div style={{
-      display:"flex",
-      flexDirection:"column",
+      display: "flex",
+      flexDirection: "column",
       gap: 12,
       width: "100%",
-      maxWidth: isUltraWide ? "none" : 1800,
-      margin: 0,
+      maxWidth: isWide ? 1680 : 1540,
+      margin: "0 auto",
+      padding: isMobile ? "0 0 72px" : "0 18px 32px",
     }}>
-
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.24 }}
-        style={{
-          display: "flex",
-          alignItems: isMobile ? "flex-start" : "center",
-          justifyContent: "space-between",
-          gap: 14,
-          flexDirection: isMobile ? "column" : "row",
-          borderRadius: 16,
-          border: `1px solid ${T.border}`,
-          background: isVoid ? "linear-gradient(135deg, rgba(99,102,241,0.10), rgba(17,17,24,0.72) 44%, rgba(236,72,153,0.06))" : T.surface,
-          padding: isMobile ? "14px 15px" : "14px 18px",
-          overflow: "hidden",
-          position: "relative",
-        }}
-      >
-        {isVoid && <div aria-hidden="true" style={{ position: "absolute", inset: "-60% -20% auto auto", width: 360, height: 180, background: "radial-gradient(circle, rgba(99,102,241,0.18), transparent 68%)", filter: "blur(24px)" }} />}
-        <div style={{ position: "relative", minWidth: 0 }}>
+      <BentoTile T={T} delay={0} accent={T.accentBright} compact style={{
+        display: "flex",
+        alignItems: isMobile ? "flex-start" : "center",
+        justifyContent: "space-between",
+        gap: 14,
+        flexDirection: isMobile ? "column" : "row",
+        minHeight: isMobile ? "auto" : 78,
+      }}>
+        <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 10, fontWeight: 850, color: T.muted, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 5 }}>Trading Desk</div>
           <div style={{ fontFamily: "var(--font-geist-sans)", fontSize: isMobile ? 20 : 24, fontWeight: 900, color: T.text, letterSpacing: "-0.055em", lineHeight: 1 }}>Welcome back.</div>
           <div style={{ fontSize: 12, color: T.textDim, marginTop: 6 }}>{todayLabel} - {stats.total} trades in view - {activePairs.length} active pairs</div>
         </div>
-        <div style={{ position: "relative", display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <span style={{ border: `1px solid ${T.border}`, background: T.surface2, color: T.textDim, borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800 }}>{stats.wins}W / {stats.losses}L</span>
-          <span style={{ border: `1px solid ${(stats.totalR >= 0 ? T.green : T.red)}55`, background: `${stats.totalR >= 0 ? T.green : T.red}12`, color: stats.totalR >= 0 ? T.green : T.red, borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 900, fontFamily: "'JetBrains Mono','Fira Code',monospace" }}>{fmtRR(stats.totalR)}</span>
+          <span style={{ border: `1px solid ${(stats.totalR >= 0 ? T.green : T.red)}55`, background: `${stats.totalR >= 0 ? T.green : T.red}12`, color: stats.totalR >= 0 ? T.green : T.red, borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 900, fontFamily: FONT_NUM }}>{fmtRR(stats.totalR)}</span>
         </div>
-      </motion.div>
+      </BentoTile>
 
-      {/* ── KPI strip — one surface, four cells ── */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: isMobile ? "repeat(2,1fr)" : "repeat(4,1fr)",
-        gap: 12,
-      }}>
-        {kpis.map((k, idx) => {
-          return (
-            <motion.div
-              key={k.label}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.28, delay: idx * 0.04 }}
-              whileHover={{ y: -2 }}
-              style={{
-                position: "relative",
-                padding: "16px 16px 0",
-                minWidth: 0,
-                overflow: "hidden",
-                background: isVoid ? "linear-gradient(135deg, rgba(255,255,255,0.035), rgba(255,255,255,0.008))" : undefined,
-                border: `1px solid ${T.border}`,
-                borderRadius: 16,
-                boxShadow: isVoid ? `0 20px 48px ${T.bg}55` : "none",
-                backdropFilter: isVoid ? "blur(20px)" : undefined,
-                WebkitBackdropFilter: isVoid ? "blur(20px)" : undefined,
-              }}>
-              {isVoid && (
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2,1fr)" : "repeat(4,1fr)", gap: 12 }}>
+        {kpis.map((kpi, index) => (
+          <BentoTile key={kpi.label} T={T} delay={0.04 + index * 0.03} accent={kpi.color} compact style={{ padding: "16px 16px 0" }}>
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: kpi.color, opacity: 0.9 }} />
+            <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, letterSpacing: "0.13em", textTransform: "uppercase", marginBottom: 6 }}>{kpi.label}</div>
+            <div style={{ fontFamily: FONT_NUM, fontSize: isMobile ? 19 : 21, fontWeight: 700, color: kpi.color, lineHeight: 1, letterSpacing: "-0.03em", marginBottom: 5, wordBreak: "break-word" }}>{kpi.value}</div>
+            <MiniSparkline T={T} data={kpi.sparkline} color={kpi.color} />
+            <div style={{ fontSize: 10, color: T.textDim, marginBottom: 10, lineHeight: 1.3 }}>{kpi.sub}</div>
+            <div style={{ height: 7, margin: "0 -16px", background: T.surface2, position: "relative", overflow: "hidden" }}>
+              <motion.div
+                initial={{ width: "0%" }}
+                animate={{ width: kpi.barWidth }}
+                transition={{ duration: 0.65, delay: 0.12 + index * 0.05, ease: [0.16, 1, 0.3, 1] }}
+                style={{ position: "absolute", left: 0, top: 0, bottom: 0, background: kpi.color, opacity: 0.72, borderRadius: "0 2px 2px 0" }}
+              />
+            </div>
+          </BentoTile>
+        ))}
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: gridTemplate, gap: 12, alignItems: "stretch" }}>
+        <div style={{ gridColumn: isMobile ? "auto" : "span 8", minWidth: 0 }}>
+          <EquityCurve T={T} data={stats.equityCurve} />
+        </div>
+        <div style={{ gridColumn: isMobile ? "auto" : "span 4", minWidth: 0, height: "100%" }}>
+          <MonthlyReturns T={T} trades={trades} compact={!isMobile} fill={!isMobile} />
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: gridTemplate, gap: 12, alignItems: "stretch" }}>
+        <BentoTile T={T} delay={0.14} accent={todayR >= 0 ? T.green : T.red} style={{ gridColumn: isMobile ? "auto" : "span 5", minHeight: 172 }}>
+          <SectionTitle T={T} title="Today's Trades" meta={<span style={{ color: todayR >= 0 ? T.green : T.red }}>{todayR >= 0 ? "+" : ""}{todayR.toFixed(2)}R</span>} />
+          {todayTrades.length === 0 ? (
+            <EmptyState T={T} icon="Trade" compact title="No trades today" copy="Log the first execution of the session." action={<Btn onClick={onNewTrade}>+ Log Trade</Btn>} />
+          ) : todayTrades.map((trade, index) => (
+            <div key={trade._dbid} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 0", borderBottom: index === todayTrades.length - 1 ? "none" : `1px solid ${T.border}` }}>
+              <span style={{ width: 5, height: 5, flexShrink: 0, borderRadius: 1, background: trade.result === "WIN" ? T.green : trade.result === "LOSS" ? T.red : T.amber }} />
+              <span style={{ fontFamily: FONT_NUM, fontWeight: 700, color: T.accentBright, minWidth: 58, fontSize: 12, letterSpacing: "0.04em" }}>{trade.pair}</span>
+              <Badge color={trade.direction === "LONG" ? T.green : T.red}>{trade.direction}</Badge>
+              <Badge color={trade.result === "WIN" ? T.green : trade.result === "LOSS" ? T.red : T.amber}>{trade.result}</Badge>
+              <span style={{ fontSize: 11, color: T.textDim, minWidth: 58 }}>{trade.session || "Session"}</span>
+              <span style={{ marginLeft: "auto", fontFamily: FONT_NUM, fontWeight: 700, fontSize: 12, color: trade.rr >= 0 ? T.green : T.red }}>{fmtRR(trade.rr || 0)}</span>
+            </div>
+          ))}
+        </BentoTile>
+
+        <BentoTile T={T} delay={0.18} accent={T.accentBright} style={{ gridColumn: isMobile ? "auto" : "span 3", minHeight: 172 }}>
+          <SectionTitle T={T} title="Daily Bias" meta={latestDaily ? fmtDate(latestDaily.date) : null} />
+          {latestDaily ? (
+            <div>
+              {latestDaily.pairs?.map(pair => (
+                <div key={pair} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "5px 0", borderBottom: `1px solid ${T.border}` }}>
+                  <span style={{ fontWeight: 600, color: T.text, fontSize: 12 }}>{pair}</span>
+                  <Badge color={latestDaily.biases?.[pair] === "Bullish" ? T.green : latestDaily.biases?.[pair] === "Bearish" ? T.red : T.amber}>{latestDaily.biases?.[pair]}</Badge>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyState T={T} icon="Plan" compact title="No daily plan" copy="Set the bias before session opens." action={<Btn onClick={onNewDaily}>+ Add Plan</Btn>} />
+          )}
+        </BentoTile>
+
+        <BentoTile T={T} delay={0.22} accent={T.green} style={{ gridColumn: isMobile ? "auto" : "span 4", minHeight: 172 }}>
+          <SectionTitle T={T} title="Pair Edge" meta="Top performers" />
+          {activePairs.length === 0 ? (
+            <div style={{ color: T.muted, fontSize: 12, textAlign: "center", padding: "16px 0" }}>Log trades to see pair performance</div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+              {activePairs.slice(0, 5).map((pair, index) => {
+                const topColor = pair.totalR > 0 ? T.green : pair.totalR < 0 ? T.red : T.muted;
+                const winPct = pair.count > 0 ? (pair.wins / pair.count * 100).toFixed(0) : 0;
+                const maxAbs = Math.max(...activePairs.map(item => Math.abs(item.totalR)), 1);
+                const barWidth = `${Math.max(Math.abs(pair.totalR) / maxAbs * 100, 4)}%`;
+                return (
+                  <div key={pair.pair} style={{ display: "grid", gridTemplateColumns: "74px minmax(0,1fr) 60px", alignItems: "center", gap: 10, padding: "6px 0", borderBottom: index === Math.min(activePairs.length, 5) - 1 ? "none" : `1px solid ${T.border}` }}>
+                    <div>
+                      <div style={{ fontFamily: FONT_NUM, fontSize: 12, fontWeight: 850, color: T.text, letterSpacing: "0.03em" }}>{pair.pair}</div>
+                      <div style={{ fontSize: 9, color: T.textDim, marginTop: 2 }}>{pair.count}t - {winPct}% WR</div>
+                    </div>
+                    <div style={{ height: 5, background: T.surface2, borderRadius: 999, overflow: "hidden", border: `1px solid ${T.border}` }}>
+                      <motion.div initial={{ width: 0 }} animate={{ width: barWidth }} transition={{ duration: 0.5, delay: index * 0.04 }} style={{ height: "100%", background: topColor, opacity: 0.82, borderRadius: 999 }} />
+                    </div>
+                    <div style={{ textAlign: "right", fontFamily: FONT_NUM, fontSize: 12, fontWeight: 850, color: topColor }}>{pair.totalR >= 0 ? "+" : ""}{pair.totalR.toFixed(1)}R</div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </BentoTile>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: gridTemplate, gap: 12, alignItems: "stretch" }}>
+        <BentoTile T={T} delay={0.26} accent={T.amber} style={{ gridColumn: isMobile ? "auto" : "span 5", minHeight: 150 }}>
+          <SectionTitle T={T} title="Weekly Theme" meta={latestWeekly?.weekStart} />
+          {latestWeekly ? (
+            <div>
+              {Object.entries(getWeeklyPairNotes(latestWeekly)).filter(([, note]) => String(note || "").trim()).slice(0, 3).length > 0 && (
+                <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 8 }}>
+                  {Object.entries(getWeeklyPairNotes(latestWeekly)).filter(([, note]) => String(note || "").trim()).slice(0, 3).map(([pair]) => (
+                    <span key={pair} style={{ fontSize: 10, fontWeight: 700, color: T.textDim, background: T.surface2, border: `1px solid ${T.border}`, padding: "3px 8px", borderRadius: 999 }}>{pair}</span>
+                  ))}
+                </div>
+              )}
+              {latestWeekly.keyEvents && (
                 <>
-                  <div style={{
-                    position: "absolute",
-                    inset: "0 0 auto 0",
-                    height: 1,
-                    background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)",
-                    pointerEvents: "none",
-                  }} />
-                  <div style={{
-                    position: "absolute",
-                    width: 110,
-                    height: 110,
-                    right: -44,
-                    bottom: -58,
-                    borderRadius: "50%",
-                    background: `radial-gradient(circle, ${k.color}2e 0%, transparent 68%)`,
-                    filter: "blur(18px)",
-                    pointerEvents: "none",
-                  }} />
+                  <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 3 }}>Key Events</div>
+                  <div style={{ fontSize: 12, color: T.amber, lineHeight: 1.5, marginBottom: 6 }}>{latestWeekly.keyEvents}</div>
                 </>
               )}
-              {/* Per-cell color bar — 3px, full width, flush to top */}
-              <div style={{
-                position: "absolute",
-                top: 0, left: 0, right: 0,
-                height: 3,
-                background: k.color,
-                opacity: 0.9,
-              }}/>
-
-              {/* Label */}
-              <div style={{
-                fontSize: 9, fontWeight: 700,
-                color: T.muted, letterSpacing: "0.13em",
-                textTransform: "uppercase",
-                marginBottom: 6,
-              }}>
-                {k.label}
-              </div>
-
-              {/* Value */}
-              <div style={{
-                fontFamily: "'JetBrains Mono','Fira Code',monospace",
-                fontSize: isMobile ? 19 : 21,
-                fontWeight: 700,
-                color: k.color,
-                lineHeight: 1,
-                letterSpacing: "-0.03em",
-                marginBottom: 5,
-                wordBreak: "break-word",
-              }}>
-                {k.value}
-              </div>
-
-              <MiniSparkline T={T} data={k.sparkline} color={k.color} />
-
-              {/* Sub */}
-              <div style={{
-                fontSize: 10, color: T.textDim,
-                marginBottom: 10, lineHeight: 1.3,
-              }}>
-                {k.sub}
-              </div>
-
-              {/* Scale bar — 8px, breaks out of padding, reads as a real gauge */}
-              <div style={{
-                height: 8,
-                margin: "0 -16px",
-                background: T.surface2,
-                position: "relative",
-                overflow: "hidden",
-              }}>
-                <motion.div
-                  initial={{ width: "0%" }}
-                  animate={{ width: k.barWidth }}
-                  transition={{ duration: 0.65, delay: 0.12 + idx * 0.05, ease: [0.16, 1, 0.3, 1] }}
-                  style={{
-                  position: "absolute",
-                  left: 0, top: 0, bottom: 0,
-                  background: k.color,
-                  opacity: 0.72,
-                  borderRadius: "0 2px 2px 0",
-                }}/>
-              </div>
-            </motion.div>
-          )
-        })}
-      </div>
-
-      {/* ── Bento dashboard grid ── */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: gridTemplate,
-        gap: 10,
-        alignItems: "stretch",
-      }}>
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.28, delay: 0.06 }}
-          style={{ gridColumn: isMobile ? "auto" : `span ${isUltraWide ? 11 : 8}`, minWidth: 0 }}
-        >
-          <EquityCurve T={T} data={stats.equityCurve} />
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.28, delay: 0.1 }}
-          style={{ gridColumn: isMobile ? "auto" : `span ${isUltraWide ? 5 : 4}`, minWidth: 0, height: "100%" }}
-        >
-          <MonthlyReturns T={T} trades={trades} compact={!isMobile} fill={!isMobile} />
-        </motion.div>
-      </div>
-
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: isMobile ? "1fr" : gridTemplate,
-        gap: 10,
-        alignItems: "start",
-      }}>
-        <div style={{display:"flex",flexDirection:"column",gap:10,minWidth:0,gridColumn:isMobile?"auto":`span ${isUltraWide ? 8 : 6}`}}>
-        {/* Today's Trades */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.28, delay: 0.14 }}
-          whileHover={{ y: -2 }}
-          style={{ ...secondCard }}
-        >
-          <div style={{ ...secTitle, display:"flex", justifyContent:"space-between", gap:10 }}>
-            <span>Today&apos;s Trades</span>
-            <span style={{
-              color: todayR >= 0 ? T.green : T.red,
-              fontFamily: "'JetBrains Mono','Fira Code',monospace",
-              letterSpacing: "-0.02em",
-            }}>{todayR >= 0 ? "+" : ""}{todayR.toFixed(2)}R</span>
-          </div>
-          {todayTrades.length === 0
-            ? <EmptyState T={T} icon="Trade" compact
-                title="No trades today"
-                copy="Log the first execution of the session."
-                action={<Btn onClick={onNewTrade}>+ Log Trade</Btn>}
-              />
-            : todayTrades.map((t, idx) => (
-                <div key={t._dbid} style={{
-                  display: "flex", alignItems: "center", gap: 8,
-                  padding: "7px 0",
-                  borderBottom: idx === todayTrades.length - 1 ? "none" : `1px solid ${T.border}`,
-                }}>
-                  <span style={{
-                    width: 5, height: 5, flexShrink: 0, borderRadius: 1,
-                    background: t.result === "WIN" ? T.green : t.result === "LOSS" ? T.red : T.amber,
-                  }}/>
-                  <span style={{
-                    fontFamily: "'JetBrains Mono','Fira Code',monospace",
-                    fontWeight: 700, color: T.accentBright,
-                    minWidth: 58, fontSize: 12, letterSpacing: "0.04em",
-                  }}>{t.pair}</span>
-                  <Badge color={t.direction === "LONG" ? T.green : T.red}>{t.direction}</Badge>
-                  <Badge color={t.result === "WIN" ? T.green : t.result === "LOSS" ? T.red : T.amber}>{t.result}</Badge>
-                  <span style={{ fontSize: 11, color: T.textDim, minWidth: 58 }}>{t.session || "Session"}</span>
-                  <span style={{
-                    marginLeft: "auto",
-                    fontFamily: "'JetBrains Mono','Fira Code',monospace",
-                    fontWeight: 700, fontSize: 12,
-                    color: t.rr >= 0 ? T.green : T.red,
-                  }}>{fmtRR(t.rr || 0)}</span>
-                </div>
-              ))
-          }
-        </motion.div>
-
-        {/* Weekly Theme */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.28, delay: 0.22 }}
-          whileHover={{ y: -2 }}
-          style={{ ...secondCard }}
-        >
-          <div style={{ ...secTitle, display:"flex", justifyContent:"space-between" }}>
-            <span>Weekly Theme</span>
-            {latestWeekly && <span style={{ color: T.accent, fontWeight: 600, letterSpacing: 0, textTransform:"none", fontSize:11 }}>{latestWeekly.weekStart}</span>}
-          </div>
-          {latestWeekly
-            ? <div>
-                {Object.entries(getWeeklyPairNotes(latestWeekly))
-                  .filter(([, note]) => String(note || "").trim())
-                  .slice(0, 3).length > 0 && (
-                  <div style={{ display:"flex", gap:5, flexWrap:"wrap", marginBottom:8 }}>
-                    {Object.entries(getWeeklyPairNotes(latestWeekly))
-                      .filter(([, note]) => String(note || "").trim())
-                      .slice(0, 3).map(([pair]) => (
-                        <span key={pair} style={{
-                          fontSize: 10, fontWeight: 700, color: T.textDim,
-                          background: T.surface2, border: `1px solid ${T.border}`,
-                          padding: "3px 8px", borderRadius: 999,
-                        }}>{pair}</span>
-                      ))}
-                  </div>
-                )}
-                {latestWeekly.keyEvents && (
-                  <>
-                    <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, letterSpacing: "0.1em", textTransform:"uppercase", marginBottom: 3 }}>Key Events</div>
-                    <div style={{ fontSize: 12, color: T.amber, lineHeight: 1.5, marginBottom: 6 }}>{latestWeekly.keyEvents}</div>
-                  </>
-                )}
-                {latestWeekly.notes && (
-                  <div style={{ fontSize: 12, color: T.textDim, lineHeight: 1.5 }}>{latestWeekly.notes}</div>
-                )}
-              </div>
-            : <EmptyState T={T} icon="WK" compact
-                title="No weekly plan"
-                copy="Map the week before sessions open."
-                action={<Btn T={T} onClick={onNewWeekly}>+ Weekly Plan</Btn>}
-              />
-          }
-        </motion.div>
-        </div>
-
-        <div style={{display:"flex",flexDirection:"column",gap:10,minWidth:0,gridColumn:isMobile?"auto":`span ${isUltraWide ? 8 : 6}`}}>
-        {/* Daily Bias */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.28, delay: 0.18 }}
-          whileHover={{ y: -2 }}
-          style={{ ...secondCard }}
-        >
-          <div style={{ ...secTitle, display:"flex", justifyContent:"space-between" }}>
-            <span>Daily Bias</span>
-            {latestDaily && <span style={{ color: T.accent, fontWeight: 600, letterSpacing: 0, textTransform:"none", fontSize:11 }}>{fmtDate(latestDaily.date)}</span>}
-          </div>
-          {latestDaily
-            ? <div>
-                {latestDaily.pairs?.map(p => (
-                  <div key={p} style={{
-                    display: "flex", alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "5px 0",
-                    borderBottom: `1px solid ${T.border}`,
-                  }}>
-                    <span style={{ fontWeight: 600, color: T.text, fontSize: 12 }}>{p}</span>
-                    <Badge color={
-                      latestDaily.biases?.[p] === "Bullish" ? T.green :
-                      latestDaily.biases?.[p] === "Bearish" ? T.red : T.amber
-                    }>{latestDaily.biases?.[p]}</Badge>
-                  </div>
-                ))}
-                {latestDaily.notes && (
-                  <div style={{
-                    fontSize: 12,
-                    color: T.textDim,
-                    marginTop: 8,
-                    lineHeight: 1.5,
-                    borderTop: `1px solid ${T.border}`,
-                    paddingTop: 8,
-                  }}>
-                    {latestDaily.notes}
-                  </div>
-                )}
-              </div>
-            : <EmptyState T={T} icon="Plan" compact
-                title="No daily plan"
-                copy="Set the bias and levels before the session opens."
-                action={<Btn onClick={onNewDaily}>+ Add Plan</Btn>}
-              />
-          }
-        </motion.div>
-
-        {/* Asset Efficiency Matrix */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.28, delay: 0.26 }}
-          whileHover={{ y: -2 }}
-          style={{ ...secondCard }}
-        >
-          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
-            <div aria-hidden="true" style={{
-              width: 42,
-              height: 28,
-              borderRadius: 9,
-              display: "grid",
-              placeItems: "center",
-              color: T.accentBright,
-              background: isVoid ? "linear-gradient(135deg, rgba(99,102,241,0.22), rgba(236,72,153,0.12))" : T.surface2,
-              border: `1px solid ${T.border}`,
-              fontSize: 10,
-              fontWeight: 900,
-            }}>Edge</div>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 850, color: T.text, letterSpacing: "-0.02em" }}>Pair Edge</div>
-              <div style={{ fontSize: 9, fontWeight: 800, color: T.muted, letterSpacing: "0.12em", textTransform: "uppercase", marginTop: 2 }}>Top performers</div>
+              {latestWeekly.notes && <div style={{ fontSize: 12, color: T.textDim, lineHeight: 1.5 }}>{latestWeekly.notes}</div>}
             </div>
-          </div>
-          {activePairs.length === 0
-            ? <div style={{ color: T.muted, fontSize: 12, textAlign:"center", padding: "16px 0" }}>Log trades to see pair performance</div>
-            : <div style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 7,
-              }}>
-                {activePairs.map((p, idx) => {
-                  const topColor = p.totalR > 0 ? T.green : p.totalR < 0 ? T.red : T.muted
-                  const winPct   = p.count > 0 ? (p.wins / p.count * 100).toFixed(0) : 0
-                  const maxAbs    = Math.max(...activePairs.map(x => Math.abs(x.totalR)), 1)
-                  const barWidth  = `${Math.max(Math.abs(p.totalR) / maxAbs * 100, 4)}%`
-                  return (
-                    <div key={p.pair} style={{
-                      display: "grid",
-                      gridTemplateColumns: "74px minmax(0,1fr) 60px",
-                      alignItems: "center",
-                      gap: 10,
-                      padding: "6px 0",
-                      borderBottom: idx === activePairs.length - 1 ? "none" : `1px solid ${T.border}`,
-                    }}>
-                      <div>
-                        <div style={{
-                          fontFamily: "'JetBrains Mono','Fira Code',monospace",
-                          fontSize: 12,
-                          fontWeight: 850,
-                          color: T.text,
-                          letterSpacing: "0.03em",
-                        }}>{p.pair}</div>
-                        <div style={{ fontSize: 9, color: T.textDim, marginTop: 2 }}>{p.count}t - {winPct}% WR</div>
-                      </div>
-                      <div style={{ height: 5, background: T.surface2, borderRadius: 999, overflow:"hidden", border: `1px solid ${T.border}` }}>
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: barWidth }}
-                          transition={{ duration: 0.5, delay: idx * 0.04 }}
-                          style={{ height:"100%", background: topColor, opacity: 0.82, borderRadius: 999 }}
-                        />
-                      </div>
-                      <div style={{
-                        textAlign: "right",
-                        fontFamily: "'JetBrains Mono','Fira Code',monospace",
-                        fontSize: 12,
-                        fontWeight: 850,
-                        color: topColor,
-                      }}>{p.totalR >= 0 ? "+" : ""}{p.totalR.toFixed(1)}R</div>
-                    </div>
-                  )
-                })}
-              </div>
-          }
-        </motion.div>
+          ) : (
+            <EmptyState T={T} icon="WK" compact title="No weekly plan" copy="Map the week before sessions open." action={<Btn T={T} onClick={onNewWeekly}>+ Weekly Plan</Btn>} />
+          )}
+        </BentoTile>
+
+        <div style={{ gridColumn: isMobile ? "auto" : "span 7", minWidth: 0, display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(12,minmax(0,1fr))", gap: 12 }}>
+          <DashboardCharts T={T} trades={trades} isMobile={isMobile} isUltraWide={false} />
         </div>
-
-      </div>
-
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: gridTemplate,
-        gap: 10,
-        alignItems: "start",
-      }}>
-        <DashboardCharts T={T} trades={trades} isMobile={isMobile} isUltraWide={isUltraWide} />
-
       </div>
 
       <InsightCards T={T} trades={trades} collapseEmpty />
     </div>
-  )
+  );
 }
 
 export default Dashboard;
