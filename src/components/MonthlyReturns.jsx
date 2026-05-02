@@ -46,20 +46,37 @@ export default function MonthlyReturns({ T, trades = [], compact = false, fill =
 
   if (compact && latestYear) {
     const yearTotal = MONTHS.reduce((acc, _, m) => acc + (map[latestYear]?.[m] || 0), 0)
+    const isVoid = T.isDark && !T.hardShadow
     return (
       <div style={{
-        borderRadius: 14,
+        position: "relative",
+        borderRadius: T.hardShadow ? 4 : 16,
         border: `1px solid ${T.border}`,
-        background: T.isDark && !T.hardShadow ? "linear-gradient(135deg, rgba(255,255,255,0.026), rgba(255,255,255,0.006))" : T.surface,
+        background: isVoid
+          ? `radial-gradient(420px circle at 88% 18%, ${yearTotal >= 0 ? T.green : T.red}18, transparent 62%), linear-gradient(135deg, rgba(255,255,255,0.038), rgba(255,255,255,0.010)), ${T.surface}`
+          : T.surface,
         padding: "16px",
         overflow: "hidden",
         minHeight: fill ? "100%" : 0,
         height: fill ? "100%" : "auto",
         display: "flex",
         flexDirection: "column",
-        backdropFilter: T.isDark && !T.hardShadow ? "blur(20px)" : undefined,
-        WebkitBackdropFilter: T.isDark && !T.hardShadow ? "blur(20px)" : undefined,
+        boxShadow: isVoid ? `0 18px 52px ${T.bg}55, inset 0 1px 0 rgba(255,255,255,0.045)` : T.hardShadow || "none",
+        backdropFilter: isVoid ? "blur(18px)" : undefined,
+        WebkitBackdropFilter: isVoid ? "blur(18px)" : undefined,
       }}>
+        {isVoid && (
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              inset: 0,
+              borderRadius: "inherit",
+              pointerEvents: "none",
+              boxShadow: `inset 0 0 0 1px ${(yearTotal >= 0 ? T.green : T.red)}22`,
+            }}
+          />
+        )}
         <div style={{
           display: "flex",
           justifyContent: "space-between",
@@ -87,8 +104,8 @@ export default function MonthlyReturns({ T, trades = [], compact = false, fill =
         <div style={{
           display: "grid",
           gridTemplateColumns: "repeat(4,minmax(0,1fr))",
-          gridTemplateRows: fill ? "repeat(3,minmax(0,1fr))" : undefined,
-          gap: 9,
+          gridTemplateRows: fill ? "repeat(3,minmax(76px,1fr))" : undefined,
+          gap: 10,
           flex: fill ? 1 : "none",
           minHeight: fill ? 0 : undefined,
         }}>
@@ -98,16 +115,21 @@ export default function MonthlyReturns({ T, trades = [], compact = false, fill =
             const active = v !== undefined
             return (
               <div key={month} style={{
-                minHeight: fill ? 0 : 54,
-                borderRadius: 11,
-                background: active ? bg : T.surface2,
+                position: "relative",
+                minHeight: fill ? 0 : 58,
+                borderRadius: T.hardShadow ? 3 : 12,
+                background: active
+                  ? (v >= 0
+                    ? `linear-gradient(135deg, ${T.green}70, ${T.green}22)`
+                    : `linear-gradient(135deg, ${T.red}70, ${T.red}22)`)
+                  : (isVoid ? "rgba(255,255,255,0.026)" : T.surface2),
                 border: `1px solid ${active ? (v >= 0 ? `${T.green}33` : `${T.red}33`) : T.border}`,
-                padding: "10px 11px",
+                padding: "11px 12px",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
                 gap: 8,
-                boxShadow: active && T.isDark && !T.hardShadow ? `inset 0 1px 0 rgba(255,255,255,0.06), 0 12px 28px ${T.bg}44` : "none",
+                boxShadow: active && isVoid ? `inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 28px ${T.bg}44` : "none",
               }}>
                 <span style={{ fontSize: 10, fontWeight: 850, color: T.textDim, letterSpacing: "0.05em" }}>{month}</span>
                 <span style={{

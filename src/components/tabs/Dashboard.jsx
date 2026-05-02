@@ -138,7 +138,6 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
   const latestWeekly = [...weeklyPlans].sort((a, b) => new Date(b.weekStart) - new Date(a.weekStart))[0];
   const bestPair = [...stats.byPair].sort((a, b) => b.totalR - a.totalR)[0];
   const isMobile = viewportWidth < 768;
-  const isWide = viewportWidth >= 1800;
   const gridTemplate = isMobile ? "1fr" : "repeat(12,minmax(0,1fr))";
   const todayR = todayTrades.reduce((sum, trade) => sum + (Number(trade.rr) || 0), 0);
   const activePairs = stats.byPair.filter(pair => pair.count > 0).sort((a, b) => b.totalR - a.totalR);
@@ -185,45 +184,44 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
       flexDirection: "column",
       gap: 12,
       width: "100%",
-      maxWidth: isWide ? 1680 : 1540,
-      margin: "0 auto",
-      padding: isMobile ? "0 0 72px" : "0 18px 32px",
+      maxWidth: "none",
+      margin: 0,
+      padding: isMobile ? "0 0 72px" : "0 24px 32px",
     }}>
-      <BentoTile T={T} delay={0} accent={T.accentBright} compact style={{
-        display: "flex",
-        alignItems: isMobile ? "flex-start" : "center",
-        justifyContent: "space-between",
-        gap: 14,
-        flexDirection: isMobile ? "column" : "row",
-        minHeight: isMobile ? "auto" : 78,
-      }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(0,1fr) 360px", gap: 12, alignItems: "stretch" }}>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 10, fontWeight: 850, color: T.muted, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 5 }}>Trading Desk</div>
-          <div style={{ fontFamily: "var(--font-geist-sans)", fontSize: isMobile ? 20 : 24, fontWeight: 900, color: T.text, letterSpacing: "-0.055em", lineHeight: 1 }}>Welcome back.</div>
-          <div style={{ fontSize: 12, color: T.textDim, marginTop: 6 }}>{todayLabel} - {stats.total} trades in view - {activePairs.length} active pairs</div>
+          <InsightCards T={T} trades={trades} flush />
         </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <span style={{ border: `1px solid ${T.border}`, background: T.surface2, color: T.textDim, borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800 }}>{stats.wins}W / {stats.losses}L</span>
-          <span style={{ border: `1px solid ${(stats.totalR >= 0 ? T.green : T.red)}55`, background: `${stats.totalR >= 0 ? T.green : T.red}12`, color: stats.totalR >= 0 ? T.green : T.red, borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 900, fontFamily: FONT_NUM }}>{fmtRR(stats.totalR)}</span>
-        </div>
-      </BentoTile>
+        <BentoTile T={T} delay={0} accent={T.accentBright} compact interactive={false} style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+          minHeight: 58,
+          padding: "10px 12px",
+        }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 9, fontWeight: 850, color: T.muted, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 4 }}>Trading Desk</div>
+            <div style={{ fontSize: 13, fontWeight: 850, color: T.text, letterSpacing: "-0.02em", marginBottom: 3 }}>Welcome back</div>
+            <div style={{ fontSize: 11, color: T.textDim, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{todayLabel} · {activePairs.length} active pairs</div>
+          </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
+            <span style={{ border: `1px solid ${T.border}`, background: T.surface2, color: T.textDim, borderRadius: 999, padding: "6px 9px", fontSize: 10, fontWeight: 800 }}>{stats.wins}W / {stats.losses}L</span>
+            <span style={{ border: `1px solid ${(stats.totalR >= 0 ? T.green : T.red)}55`, background: `${stats.totalR >= 0 ? T.green : T.red}12`, color: stats.totalR >= 0 ? T.green : T.red, borderRadius: 999, padding: "6px 9px", fontSize: 10, fontWeight: 900, fontFamily: FONT_NUM }}>{fmtRR(stats.totalR)}</span>
+          </div>
+        </BentoTile>
+      </div>
 
       <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2,1fr)" : "repeat(4,1fr)", gap: 12 }}>
         {kpis.map((kpi, index) => (
-          <BentoTile key={kpi.label} T={T} delay={0.04 + index * 0.03} accent={kpi.color} compact style={{ padding: "16px 16px 0" }}>
-            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: kpi.color, opacity: 0.9 }} />
-            <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, letterSpacing: "0.13em", textTransform: "uppercase", marginBottom: 6 }}>{kpi.label}</div>
+          <BentoTile key={kpi.label} T={T} delay={0.04 + index * 0.03} accent={kpi.color} compact style={{ padding: "15px 16px 14px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
+              <span style={{ width: 6, height: 6, borderRadius: 999, background: kpi.color, boxShadow: T.isDark && !T.hardShadow ? `0 0 14px ${kpi.color}66` : "none" }} />
+              <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, letterSpacing: "0.13em", textTransform: "uppercase" }}>{kpi.label}</div>
+            </div>
             <div style={{ fontFamily: FONT_NUM, fontSize: isMobile ? 19 : 21, fontWeight: 700, color: kpi.color, lineHeight: 1, letterSpacing: "-0.03em", marginBottom: 5, wordBreak: "break-word" }}>{kpi.value}</div>
             <MiniSparkline T={T} data={kpi.sparkline} color={kpi.color} />
-            <div style={{ fontSize: 10, color: T.textDim, marginBottom: 10, lineHeight: 1.3 }}>{kpi.sub}</div>
-            <div style={{ height: 7, margin: "0 -16px", background: T.surface2, position: "relative", overflow: "hidden" }}>
-              <motion.div
-                initial={{ width: "0%" }}
-                animate={{ width: kpi.barWidth }}
-                transition={{ duration: 0.65, delay: 0.12 + index * 0.05, ease: [0.16, 1, 0.3, 1] }}
-                style={{ position: "absolute", left: 0, top: 0, bottom: 0, background: kpi.color, opacity: 0.72, borderRadius: "0 2px 2px 0" }}
-              />
-            </div>
+            <div style={{ fontSize: 10, color: T.textDim, lineHeight: 1.3 }}>{kpi.sub}</div>
           </BentoTile>
         ))}
       </div>
@@ -329,7 +327,6 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
         </div>
       </div>
 
-      <InsightCards T={T} trades={trades} collapseEmpty />
     </div>
   );
 }

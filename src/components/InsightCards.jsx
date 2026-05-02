@@ -138,7 +138,7 @@ function getColor(T, type, key) {
 
 const DISMISS_KEY = "fx_dismissed_insights"
 
-export default function InsightCards({ T, trades, collapseEmpty = false }) {
+export default function InsightCards({ T, trades, collapseEmpty = false, flush = false }) {
   const [dismissed, setDismissed] = useState(() => {
     if (typeof window === "undefined") return []
     try {
@@ -215,7 +215,7 @@ Give the single most important thing this trader should do differently this week
   if (trades.length < 8) return null
 
   return (
-    <div style={{marginBottom:20}}>
+    <div style={{marginBottom: flush ? 0 : 20}}>
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
         <div style={{fontSize:11,fontWeight:700,color:T.muted,letterSpacing:"0.14em",textTransform:"uppercase"}}>
           Weekly Insights
