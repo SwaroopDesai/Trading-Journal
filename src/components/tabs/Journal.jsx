@@ -221,12 +221,7 @@ function Journal({
     setSortDir(null);
   }
 
-  function sortArrow(columnId) {
-    if (sortKey !== columnId) return "↕";
-    return sortDir === "asc" ? "↑" : "↓";
-  }
-
-  function sortIcon(columnId) {
+  function cleanSortIcon(columnId) {
     if (sortKey !== columnId) return "↕";
     return sortDir === "asc" ? "↑" : "↓";
   }
@@ -347,7 +342,7 @@ function Journal({
                             onClick={() => cycleSort(header.column.id)}
                           >
                             {flexRender(header.column.columnDef.header, header.getContext())}
-                            <span>{sortIcon(header.column.id)}</span>
+                            <span>{cleanSortIcon(header.column.id)}</span>
                           </button>
                         ) : (
                           flexRender(header.column.columnDef.header, header.getContext())
@@ -892,17 +887,18 @@ function journalCSS(T) {
 
     .journal-table-wrap table {
       width: 100%;
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0 7px;
       table-layout: auto;
+      padding: 0 10px 10px;
     }
 
     .journal-table-wrap thead {
-      background: ${isDark ? "linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.016)), var(--surface-2)" : "var(--surface-2)"};
-      border-bottom: ${borderWidth} solid var(--line);
+      background: transparent;
     }
 
     .journal-table-wrap th {
-      padding: 12px 14px;
+      padding: 12px 14px 6px;
       font-size: 10px;
       letter-spacing: 0.15em;
       text-transform: uppercase;
@@ -943,30 +939,17 @@ function journalCSS(T) {
     }
 
     .journal-table-wrap tbody tr {
-      border-bottom: ${borderWidth} solid var(--line);
       cursor: pointer;
-      transition: background .12s, box-shadow .12s;
+      transition: transform .14s ease;
       position: relative;
     }
 
     .journal-table-wrap tbody tr:hover {
-      background: ${hover};
-      box-shadow: inset 0 0 0 999px rgba(129,140,248,.018);
+      transform: translateY(-1px);
     }
 
     .journal-table-wrap tbody tr.expanded {
-      background: ${expanded};
-      box-shadow: inset 0 1px 0 rgba(129,140,248,.22), inset 0 -1px 0 rgba(129,140,248,.14);
-    }
-
-    .journal-table-wrap tbody tr.expanded::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 2px;
-      background: ${brutal ? T.border : "linear-gradient(180deg, #818cf8, #ec4899)"};
+      transform: translateY(-1px);
     }
 
     .journal-table-wrap tbody tr:focus-visible {
@@ -979,6 +962,31 @@ function journalCSS(T) {
       font-size: 12.5px;
       color: var(--ink-2);
       vertical-align: middle;
+      background: ${isDark ? "linear-gradient(180deg, rgba(255,255,255,.028), rgba(255,255,255,.012)), var(--surface)" : "var(--surface)"};
+      border-top: ${borderWidth} solid var(--line);
+      border-bottom: ${borderWidth} solid var(--line);
+      transition: background .14s ease, border-color .14s ease, box-shadow .14s ease;
+    }
+
+    .journal-table-wrap td:first-child {
+      border-left: ${borderWidth} solid var(--line);
+      border-radius: ${brutal ? "3px" : "10px"} 0 0 ${brutal ? "3px" : "10px"};
+    }
+
+    .journal-table-wrap td:last-child {
+      border-right: ${borderWidth} solid var(--line);
+      border-radius: 0 ${brutal ? "3px" : "10px"} ${brutal ? "3px" : "10px"} 0;
+    }
+
+    .journal-table-wrap tbody tr:hover td {
+      background: ${isDark ? "linear-gradient(180deg, rgba(129,140,248,.055), rgba(255,255,255,.016)), var(--surface)" : hover};
+      border-color: ${brutal ? T.border : "rgba(129,140,248,.22)"};
+    }
+
+    .journal-table-wrap tbody tr.expanded td {
+      background: ${expanded};
+      border-color: ${brutal ? T.border : "rgba(129,140,248,.36)"};
+      box-shadow: ${brutal ? "none" : "0 14px 34px rgba(0,0,0,.12)"};
     }
 
     .date-cell,
@@ -1008,6 +1016,12 @@ function journalCSS(T) {
       font-weight: 650;
     }
 
+    .row-win .date-cell strong,
+    .row-loss .date-cell strong,
+    .row-be .date-cell strong {
+      color: var(--ink);
+    }
+
     .pair-stack {
       display: inline-flex;
       align-items: center;
@@ -1015,6 +1029,15 @@ function journalCSS(T) {
       color: var(--ink);
       font-weight: 800;
       letter-spacing: -0.02em;
+    }
+
+    .pair-stack strong {
+      text-shadow: ${isDark && !brutal ? "0 0 18px rgba(129,140,248,.12)" : "none"};
+    }
+
+    .journal-table-wrap tbody tr:hover .pair-stack strong,
+    .journal-table-wrap tbody tr.expanded .pair-stack strong {
+      color: var(--indigo);
     }
 
     .pair-stack i {
@@ -1104,6 +1127,12 @@ function journalCSS(T) {
       overflow: hidden;
       text-overflow: ellipsis;
       vertical-align: middle;
+    }
+
+    .journal-table-wrap tbody tr:hover .setup-cell,
+    .journal-table-wrap tbody tr.expanded .setup-cell {
+      color: var(--ink);
+      border-color: ${brutal ? T.border : "rgba(129,140,248,.28)"};
     }
 
     .bias-cell.bullish { color: var(--green); }
