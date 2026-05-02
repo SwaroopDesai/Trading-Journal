@@ -141,7 +141,6 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
   const gridTemplate = isMobile ? "1fr" : "repeat(12,minmax(0,1fr))";
   const todayR = todayTrades.reduce((sum, trade) => sum + (Number(trade.rr) || 0), 0);
   const activePairs = stats.byPair.filter(pair => pair.count > 0).sort((a, b) => b.totalR - a.totalR);
-  const todayLabel = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "2-digit", month: "long" });
 
   const kpis = [
     {
@@ -188,29 +187,7 @@ function Dashboard({ T, stats, trades, dailyPlans, weeklyPlans, onNewTrade, onNe
       margin: 0,
       padding: isMobile ? "0 0 72px" : "0 24px 32px",
     }}>
-      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(0,1fr) 360px", gap: 12, alignItems: "stretch" }}>
-        <div style={{ minWidth: 0 }}>
-          <InsightCards T={T} trades={trades} flush />
-        </div>
-        <BentoTile T={T} delay={0} accent={T.accentBright} compact interactive={false} style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 12,
-          minHeight: 58,
-          padding: "10px 12px",
-        }}>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 9, fontWeight: 850, color: T.muted, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 4 }}>Trading Desk</div>
-            <div style={{ fontSize: 13, fontWeight: 850, color: T.text, letterSpacing: "-0.02em", marginBottom: 3 }}>Welcome back</div>
-            <div style={{ fontSize: 11, color: T.textDim, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{todayLabel} · {activePairs.length} active pairs</div>
-          </div>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
-            <span style={{ border: `1px solid ${T.border}`, background: T.surface2, color: T.textDim, borderRadius: 999, padding: "6px 9px", fontSize: 10, fontWeight: 800 }}>{stats.wins}W / {stats.losses}L</span>
-            <span style={{ border: `1px solid ${(stats.totalR >= 0 ? T.green : T.red)}55`, background: `${stats.totalR >= 0 ? T.green : T.red}12`, color: stats.totalR >= 0 ? T.green : T.red, borderRadius: 999, padding: "6px 9px", fontSize: 10, fontWeight: 900, fontFamily: FONT_NUM }}>{fmtRR(stats.totalR)}</span>
-          </div>
-        </BentoTile>
-      </div>
+      <InsightCards T={T} trades={trades} flush />
 
       <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2,1fr)" : "repeat(4,1fr)", gap: 12 }}>
         {kpis.map((kpi, index) => (

@@ -636,6 +636,12 @@ function journalCSS(T) {
   const blur = brutal ? "none" : "blur(24px)";
   const softLine = brutal ? T.border : isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.06)";
   const zebra = brutal ? "transparent" : isDark ? "rgba(255,255,255,0.015)" : "rgba(0,0,0,0.015)";
+  const bentoSurface = brutal
+    ? "var(--surface)"
+    : isDark
+      ? "radial-gradient(620px circle at 92% 6%, rgba(129,140,248,.12), transparent 58%), radial-gradient(460px circle at 6% 96%, rgba(52,211,153,.08), transparent 58%), linear-gradient(135deg, rgba(255,255,255,.038), rgba(255,255,255,.010)), var(--surface)"
+      : "linear-gradient(135deg, rgba(255,255,255,.96), rgba(248,248,245,.98)), var(--surface)";
+  const bentoShadow = brutal ? "none" : isDark ? "0 18px 52px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.045)" : "0 16px 46px rgba(17,24,39,.06)";
 
   return `
     .journal-power-table {
@@ -645,10 +651,31 @@ function journalCSS(T) {
     }
 
     .journal-page-header {
+      position: relative;
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      align-items: center;
       gap: 16px;
+      padding: 16px 18px;
+      border: ${borderWidth} solid var(--line);
+      border-radius: ${brutal ? "4px" : "16px"};
+      background: ${bentoSurface};
+      box-shadow: ${bentoShadow};
+      overflow: hidden;
+    }
+
+    .journal-page-header::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 1px;
+      background: ${brutal ? "transparent" : "linear-gradient(90deg, transparent, rgba(255,255,255,.16), transparent)"};
+      pointer-events: none;
+    }
+
+    .journal-page-header > * {
+      position: relative;
+      z-index: 1;
     }
 
     .journal-page-header h1 {
@@ -716,11 +743,13 @@ function journalCSS(T) {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       gap: 1px;
-      background: var(--line);
+      background: ${brutal ? "var(--line)" : isDark ? "rgba(255,255,255,.035)" : "rgba(0,0,0,.055)"};
       border: ${borderWidth} solid var(--line);
-      border-radius: ${radius};
+      border-radius: ${brutal ? radius : "16px"};
       overflow: hidden;
-      box-shadow: ${brutal ? "none" : "0 14px 50px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.04)"};
+      box-shadow: ${bentoShadow};
+      backdrop-filter: ${blur};
+      -webkit-backdrop-filter: ${blur};
     }
 
     .journal-stat-strip::before {
@@ -735,7 +764,7 @@ function journalCSS(T) {
 
     .journal-stat-strip .stat {
       position: relative;
-      background: ${isDark ? "linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012)), var(--surface)" : "var(--surface)"};
+      background: ${isDark ? "linear-gradient(135deg, rgba(255,255,255,.04), rgba(255,255,255,.012)), var(--surface)" : "var(--surface)"};
       padding: 12px 18px;
       display: flex;
       flex-direction: column;
@@ -795,12 +824,12 @@ function journalCSS(T) {
       gap: 8px;
       flex-wrap: wrap;
       padding: 12px 14px;
-      background: ${isDark ? "linear-gradient(180deg, rgba(20,20,28,.92), rgba(15,15,20,.86))" : filterBg};
+      background: ${isDark ? "radial-gradient(520px circle at 94% 0%, rgba(129,140,248,.10), transparent 58%), linear-gradient(180deg, rgba(20,20,28,.94), rgba(15,15,20,.88))" : filterBg};
       border: ${borderWidth} solid var(--line);
-      border-radius: ${radius};
+      border-radius: ${brutal ? radius : "16px"};
       backdrop-filter: ${blur};
       -webkit-backdrop-filter: ${blur};
-      box-shadow: ${brutal ? "none" : "0 10px 38px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.04), inset 0 -1px 0 rgba(255,255,255,.04)"};
+      box-shadow: ${brutal ? "none" : "0 16px 46px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.045), inset 0 -1px 0 rgba(255,255,255,.04)"};
     }
 
     .journal-search {
@@ -904,11 +933,13 @@ function journalCSS(T) {
 
     .journal-table-wrap {
       position: relative;
-      background: var(--surface);
+      background: ${bentoSurface};
       border: ${borderWidth} solid var(--line);
-      border-radius: ${radius};
+      border-radius: ${brutal ? radius : "16px"};
       overflow: hidden;
-      box-shadow: ${brutal ? "none" : "0 22px 70px rgba(0,0,0,.20)"};
+      box-shadow: ${brutal ? "none" : "0 24px 74px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.04)"};
+      backdrop-filter: ${blur};
+      -webkit-backdrop-filter: ${blur};
     }
 
     .journal-table-wrap::before {
@@ -929,7 +960,7 @@ function journalCSS(T) {
     }
 
     .journal-table-wrap thead {
-      background: var(--surface-2);
+      background: ${isDark ? "linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.018)), var(--surface-2)" : "var(--surface-2)"};
       border-bottom: ${borderWidth} solid ${softLine};
     }
 
@@ -1004,7 +1035,7 @@ function journalCSS(T) {
     }
 
     .journal-table-wrap tbody tr:hover td {
-      background: ${hover};
+      background: ${brutal ? hover : isDark ? "rgba(129,140,248,.035)" : "rgba(99,102,241,.035)"};
       border-color: ${brutal ? T.border : "rgba(129,140,248,.12)"};
     }
 
