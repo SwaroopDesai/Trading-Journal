@@ -240,31 +240,34 @@ function Journal({
     >
       <style>{journalCSS(T)}</style>
 
-      <header className="journal-page-header">
-        <div>
-          <h1>Trade <span>Journal</span></h1>
-          <p>
-            {stats.total} trades / {fmtRR(stats.totalR)} net / {stats.wins}W / {stats.losses}L
-          </p>
-        </div>
-        <div className="journal-actions">
-          {onRepeatLast && (
-            <button type="button" className="journal-action secondary" onClick={onRepeatLast}>
-              Repeat Last
+      <section className="journal-command-deck" aria-label="Journal overview">
+        <header className="journal-page-header">
+          <div>
+            <span className="journal-eyebrow">Execution Archive</span>
+            <h1>Trade <span>Journal</span></h1>
+            <p>
+              {stats.total} trades / {fmtRR(stats.totalR)} net / {stats.wins}W / {stats.losses}L
+            </p>
+          </div>
+          <div className="journal-actions">
+            {onRepeatLast && (
+              <button type="button" className="journal-action secondary" onClick={onRepeatLast}>
+                Repeat Last
+              </button>
+            )}
+            <button type="button" className="journal-action primary" onClick={onNew}>
+              + Log Trade
             </button>
-          )}
-          <button type="button" className="journal-action primary" onClick={onNew}>
-            + Log Trade
-          </button>
-        </div>
-      </header>
+          </div>
+        </header>
 
-      <section className="journal-stat-strip" aria-label="Journal stats">
-        <StatCell label="Total Trades" value={stats.total} />
-        <StatCell label="Net R" value={fmtRR(stats.totalR)} sub={`${stats.wins} wins / ${stats.losses} losses`} tone={stats.totalR >= 0 ? "green" : "red"} gradient={stats.totalR > 0} />
-        <StatCell label="Win Rate" value={`${stats.winRate.toFixed(1)}%`} tone={stats.winRate >= 50 ? "green" : "red"} />
-        <StatCell label="Avg Win" value={fmtRR(stats.avgWin)} sub="winning trades" tone="green" />
-        <StatCell label="Avg Loss" value={fmtRR(stats.avgLoss)} sub="losing trades" tone="red" />
+        <div className="journal-stat-strip" aria-label="Journal stats">
+          <StatCell label="Total Trades" value={stats.total} />
+          <StatCell label="Net R" value={fmtRR(stats.totalR)} sub={`${stats.wins} wins / ${stats.losses} losses`} tone={stats.totalR >= 0 ? "green" : "red"} gradient={stats.totalR > 0} />
+          <StatCell label="Win Rate" value={`${stats.winRate.toFixed(1)}%`} tone={stats.winRate >= 50 ? "green" : "red"} />
+          <StatCell label="Avg Win" value={fmtRR(stats.avgWin)} sub="winning trades" tone="green" />
+          <StatCell label="Avg Loss" value={fmtRR(stats.avgLoss)} sub="losing trades" tone="red" />
+        </div>
       </section>
 
       <section className="journal-filter-bar" aria-label="Journal filters">
@@ -650,27 +653,52 @@ function journalCSS(T) {
       gap: 14px;
     }
 
-    .journal-page-header {
+    .journal-command-deck {
       position: relative;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      padding: 16px 18px;
       border: ${borderWidth} solid var(--line);
-      border-radius: ${brutal ? "4px" : "16px"};
+      border-radius: ${brutal ? "4px" : "18px"};
       background: ${bentoSurface};
       box-shadow: ${bentoShadow};
       overflow: hidden;
     }
 
-    .journal-page-header::before {
+    .journal-command-deck::before {
       content: "";
       position: absolute;
       inset: 0 0 auto 0;
       height: 1px;
       background: ${brutal ? "transparent" : "linear-gradient(90deg, transparent, rgba(255,255,255,.16), transparent)"};
       pointer-events: none;
+      z-index: 2;
+    }
+
+    .journal-command-deck::after {
+      content: "";
+      position: absolute;
+      right: -110px;
+      top: -140px;
+      width: 420px;
+      height: 300px;
+      border-radius: 999px;
+      background: ${brutal ? "transparent" : "radial-gradient(circle, rgba(129,140,248,.18), transparent 66%)"};
+      pointer-events: none;
+    }
+
+    .journal-command-deck > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .journal-page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 20px 14px;
+    }
+
+    .journal-page-header::before {
+      content: none;
     }
 
     .journal-page-header > * {
@@ -678,9 +706,19 @@ function journalCSS(T) {
       z-index: 1;
     }
 
+    .journal-eyebrow {
+      display: block;
+      margin: 0 0 7px;
+      color: var(--dim);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
     .journal-page-header h1 {
-      margin: 0 0 4px;
-      font-size: 28px;
+      margin: 0 0 5px;
+      font-size: 30px;
       line-height: 1;
       font-weight: 800;
       letter-spacing: -0.045em;
@@ -721,7 +759,7 @@ function journalCSS(T) {
     }
 
     .journal-action.secondary {
-      background: transparent;
+      background: ${brutal ? "transparent" : isDark ? "rgba(255,255,255,.025)" : "rgba(0,0,0,.018)"};
       color: var(--ink-2);
       border: ${borderWidth} solid var(--line);
     }
@@ -736,6 +774,7 @@ function journalCSS(T) {
       color: ${brutal ? T.text : "#fff"} !important;
       border: ${brutal ? `2px solid ${T.border}` : "none"} !important;
       font-weight: 800 !important;
+      box-shadow: ${brutal ? "none" : "0 14px 34px rgba(129,140,248,.24)"};
     }
 
     .journal-stat-strip {
@@ -743,17 +782,18 @@ function journalCSS(T) {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       gap: 1px;
-      background: ${brutal ? "var(--line)" : isDark ? "rgba(255,255,255,.035)" : "rgba(0,0,0,.055)"};
-      border: ${borderWidth} solid var(--line);
-      border-radius: ${brutal ? radius : "16px"};
+      background: ${brutal ? "var(--line)" : isDark ? "rgba(255,255,255,.032)" : "rgba(0,0,0,.052)"};
+      border: 0;
+      border-top: ${borderWidth} solid ${softLine};
+      border-radius: 0;
       overflow: hidden;
-      box-shadow: ${bentoShadow};
-      backdrop-filter: ${blur};
-      -webkit-backdrop-filter: ${blur};
+      box-shadow: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
     }
 
     .journal-stat-strip::before {
-      content: "";
+      content: none;
       position: absolute;
       inset: 0 0 auto 0;
       height: 1px;
@@ -764,8 +804,8 @@ function journalCSS(T) {
 
     .journal-stat-strip .stat {
       position: relative;
-      background: ${isDark ? "linear-gradient(135deg, rgba(255,255,255,.04), rgba(255,255,255,.012)), var(--surface)" : "var(--surface)"};
-      padding: 12px 18px;
+      background: ${isDark ? "linear-gradient(135deg, rgba(255,255,255,.026), rgba(255,255,255,.006))" : "rgba(255,255,255,.42)"};
+      padding: 13px 20px 14px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -783,7 +823,7 @@ function journalCSS(T) {
       width: 112px;
       height: 112px;
       border-radius: 999px;
-      background: ${brutal ? "transparent" : "radial-gradient(circle, rgba(129,140,248,.10), transparent 64%)"};
+      background: ${brutal ? "transparent" : "radial-gradient(circle, rgba(129,140,248,.075), transparent 64%)"};
       pointer-events: none;
     }
 
