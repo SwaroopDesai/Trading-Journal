@@ -271,56 +271,65 @@ function Journal({
       </section>
 
       <section className="journal-filter-bar" aria-label="Journal filters">
-        <div className="journal-search">
-          <Search size={14} aria-hidden="true" />
-          <input
-            value={query}
-            onChange={event => setQuery(event.target.value)}
-            placeholder="Search notes, setup, emotion, tags..."
-            aria-label="Search trades"
-          />
-        </div>
+        <div className="journal-filter-main">
+          <div className="journal-search">
+            <Search size={14} aria-hidden="true" />
+            <input
+              value={query}
+              onChange={event => setQuery(event.target.value)}
+              placeholder="Search notes, setup, emotion, tags..."
+              aria-label="Search trades"
+            />
+          </div>
 
-        <div className="journal-chip-group" aria-label="Pair filter">
-          {PAIR_ORDER.filter(pair => pair === "ALL" || PAIRS.includes(pair)).map(pair => (
-            <FilterChip
-              key={pair}
-              active={filterPair === pair}
-              onClick={() => setFilterPair(pair)}
-              count={activeCount(pair, "pair")}
-            >
-              {pairLabel(pair)}
-            </FilterChip>
-          ))}
-        </div>
+          <div className="journal-filter-cluster" aria-label="Pair filter">
+            <span className="journal-filter-label">Pair</span>
+            <div className="journal-chip-group">
+              {PAIR_ORDER.filter(pair => pair === "ALL" || PAIRS.includes(pair)).map(pair => (
+                <FilterChip
+                  key={pair}
+                  active={filterPair === pair}
+                  onClick={() => setFilterPair(pair)}
+                  count={activeCount(pair, "pair")}
+                >
+                  {pairLabel(pair)}
+                </FilterChip>
+              ))}
+            </div>
+          </div>
 
-        <div className="journal-divider" aria-hidden="true" />
-
-        <div className="journal-chip-group" aria-label="Result filter">
-          {RESULT_FILTERS.map(result => (
-            <FilterChip
-              key={result.value}
-              active={filterResult === result.value}
-              onClick={() => setFilterResult(result.value)}
-              count={activeCount(result.value, "result")}
-            >
-              {result.label}
-            </FilterChip>
-          ))}
+          <div className="journal-filter-cluster compact" aria-label="Result filter">
+            <span className="journal-filter-label">Result</span>
+            <div className="journal-chip-group">
+              {RESULT_FILTERS.map(result => (
+                <FilterChip
+                  key={result.value}
+                  active={filterResult === result.value}
+                  onClick={() => setFilterResult(result.value)}
+                  count={activeCount(result.value, "result")}
+                >
+                  {result.label}
+                </FilterChip>
+              ))}
+            </div>
+          </div>
         </div>
 
         {allTags.length > 0 && (
           <div className="journal-tags-filter" aria-label="Tag filter">
-            {allTags.map(tag => (
-              <FilterChip
-                key={tag}
-                active={filterTag === tag}
-                onClick={() => setFilterTag(filterTag === tag ? null : tag)}
-                count={activeCount(tag, "tag")}
-              >
-                {tag}
-              </FilterChip>
-            ))}
+            <span className="journal-filter-label">Tags</span>
+            <div className="journal-chip-group">
+              {allTags.map(tag => (
+                <FilterChip
+                  key={tag}
+                  active={filterTag === tag}
+                  onClick={() => setFilterTag(filterTag === tag ? null : tag)}
+                  count={activeCount(tag, "tag")}
+                >
+                  {tag}
+                </FilterChip>
+              ))}
+            </div>
           </div>
         )}
       </section>
@@ -859,50 +868,99 @@ function journalCSS(T) {
       position: sticky;
       top: 80px;
       z-index: 50;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      padding: 12px 14px;
-      background: ${isDark ? "radial-gradient(520px circle at 94% 0%, rgba(129,140,248,.10), transparent 58%), linear-gradient(180deg, rgba(20,20,28,.94), rgba(15,15,20,.88))" : filterBg};
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+      background: ${isDark ? "radial-gradient(620px circle at 96% 0%, rgba(129,140,248,.12), transparent 58%), radial-gradient(420px circle at 2% 100%, rgba(52,211,153,.075), transparent 60%), linear-gradient(180deg, rgba(20,20,28,.94), rgba(15,15,20,.88))" : filterBg};
       border: ${borderWidth} solid var(--line);
-      border-radius: ${brutal ? radius : "16px"};
+      border-radius: ${brutal ? radius : "18px"};
       backdrop-filter: ${blur};
       -webkit-backdrop-filter: ${blur};
-      box-shadow: ${brutal ? "none" : "0 16px 46px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.045), inset 0 -1px 0 rgba(255,255,255,.04)"};
+      box-shadow: ${brutal ? "none" : "0 18px 54px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.055), inset 0 -1px 0 rgba(255,255,255,.035)"};
+      overflow: hidden;
+    }
+
+    .journal-filter-bar::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 1px;
+      background: ${brutal ? "transparent" : "linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent)"};
+      pointer-events: none;
+    }
+
+    .journal-filter-main {
+      display: grid;
+      grid-template-columns: minmax(280px, 1fr) auto auto;
+      align-items: stretch;
+      gap: 10px;
     }
 
     .journal-search {
-      flex: 1 1 240px;
-      min-width: 240px;
       position: relative;
       display: flex;
       align-items: center;
       color: var(--dim);
+      min-width: 0;
+      min-height: 42px;
+      background: ${isDark ? "rgba(255,255,255,.026)" : "rgba(0,0,0,.018)"};
+      border: ${borderWidth} solid ${softLine};
+      border-radius: ${brutal ? "3px" : "12px"};
+      transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+    }
+
+    .journal-search:focus-within {
+      border-color: rgba(129,140,248,.52);
+      background: ${isDark ? "rgba(255,255,255,.04)" : "rgba(255,255,255,.72)"};
+      box-shadow: ${brutal ? "none" : "0 0 0 3px rgba(129,140,248,.12)"};
     }
 
     .journal-search svg {
       position: absolute;
-      left: 10px;
+      left: 13px;
       pointer-events: none;
     }
 
     .journal-search input {
       width: 100%;
-      background: var(--surface-2);
-      border: ${borderWidth} solid var(--line);
+      background: transparent;
+      border: 0;
       color: var(--ink);
       font-family: var(--font-geist-sans);
       font-size: 12px;
-      min-height: 34px;
-      padding: 8px 12px 8px 32px;
-      border-radius: ${brutal ? "3px" : "8px"};
+      min-height: 40px;
+      padding: 9px 12px 9px 36px;
+      border-radius: inherit;
       outline: none;
     }
 
     .journal-search input:focus {
-      border-color: var(--indigo);
-      box-shadow: ${brutal ? "none" : "0 0 0 3px rgba(129,140,248,0.18)"};
+      box-shadow: none;
+    }
+
+    .journal-filter-cluster {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 5px 7px 5px 11px;
+      background: ${isDark ? "rgba(255,255,255,.024)" : "rgba(0,0,0,.014)"};
+      border: ${borderWidth} solid ${softLine};
+      border-radius: ${brutal ? "3px" : "999px"};
+      min-width: 0;
+    }
+
+    .journal-filter-cluster.compact {
+      padding-left: 10px;
+    }
+
+    .journal-filter-label {
+      color: var(--dim);
+      font-size: 9px;
+      font-weight: 750;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      white-space: nowrap;
     }
 
     .journal-chip-group,
@@ -914,12 +972,14 @@ function journalCSS(T) {
     }
 
     .journal-tags-filter {
-      flex-basis: 100%;
-      padding-top: 2px;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 0 0;
+      border-top: ${borderWidth} solid ${softLine};
     }
 
     .filter-chip {
-      padding: 5px 11px;
+      padding: 5px 10px;
       background: transparent;
       border: ${borderWidth} solid var(--line);
       border-radius: ${brutal ? "3px" : "100px"};
@@ -929,7 +989,7 @@ function journalCSS(T) {
       font-family: var(--font-geist-sans);
       font-size: 11px;
       font-weight: 650;
-      min-height: 30px;
+      min-height: 28px;
       white-space: nowrap;
       display: inline-flex;
       align-items: center;
@@ -962,13 +1022,6 @@ function journalCSS(T) {
       font-size: 10px;
       font-weight: 700;
       font-feature-settings: "tnum";
-    }
-
-    .journal-divider {
-      width: 1px;
-      height: 20px;
-      background: var(--line);
-      margin: 0 4px;
     }
 
     .journal-table-wrap {
@@ -1483,9 +1536,21 @@ function journalCSS(T) {
         top: 66px;
       }
 
-      .journal-search {
-        flex-basis: 100%;
-        min-width: 100%;
+      .journal-filter-main {
+        grid-template-columns: 1fr;
+      }
+
+      .journal-filter-cluster,
+      .journal-filter-cluster.compact,
+      .journal-tags-filter {
+        align-items: flex-start;
+        flex-direction: column;
+        border-radius: ${brutal ? "3px" : "12px"};
+        padding: 10px;
+      }
+
+      .journal-tags-filter {
+        border-top: ${borderWidth} solid ${softLine};
       }
 
       .journal-table-wrap {
